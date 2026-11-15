@@ -79,6 +79,18 @@ describe('cabinet', () => {
     expect(me.sites[0].new_leads).toBe(2);
     expect(me.sites[0].listed).toBe(1);
   });
+  test('old loose matches vanish when the list is read, answered ones stay', async () => {
+    const e = env(); const c = await session(e);
+    const { id } = await (await call(e, c, '/api/sites', { url: 'https://hosting.example/' })).json();
+    await call(e, c, `/api/sites/${id}/keywords`, { keywords: 'free page hosting' });
+    const ins = (url, text, status) => e.DB.prepare("INSERT INTO leads (site_id, url, source, title, text, author, author_url, at, status, found) VALUES (?, ?, 'Bluesky', '', ?, 'x', '', ?, ?, ?)").bind(id, url, text, now, status, now).run();
+    await ins('https://b/1', 'Slave tortured, use coupon code BLUESKY26', 'new');
+    await ins('https://b/2', 'Looking for free page hosting for my demo', 'new');
+    await ins('https://b/3', 'Unrelated but I already replied', 'replied');
+    const d = await (await call(e, c, `/api/sites/${id}/leads`)).json();
+    expect(d.leads.map((l) => l.url).sort()).toEqual(['https://b/2', 'https://b/3']);
+    expect((await e.DB.prepare('SELECT COUNT(*) AS n FROM leads WHERE site_id = ?').bind(id).first()).n).toBe(2);
+  });
   test('another visitor cannot read or change my site', async () => {
     const e = env(); const a = await session(e); const b = await session(e);
     const { id } = await (await call(e, a, '/api/sites', { url: 'https://a.example/' })).json();
