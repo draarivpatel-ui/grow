@@ -21,7 +21,7 @@ service = "citable"
 [[d1_databases]]
 binding = "DB"
 database_name = "flisk-grow"
-database_id = "REPLACE_AFTER_D1_CREATE"
+database_id = "63e62013-1cff-4781-b352-59ff4761325d"
 
 [triggers]
 crons = ["17 3 * * *"]
