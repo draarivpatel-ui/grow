@@ -53,7 +53,7 @@ export async function cabinet(req, env, deps = {}) {
   const origin = env.PUBLIC_ORIGIN || url.origin;
 
   if (req.method === 'GET' && path === '/me') {
-    const headers = { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-robots-tag': 'noindex', 'x-content-type-options': 'nosniff', 'content-security-policy': "default-src 'self'; script-src 'self' 'unsafe-inline' https://flisk.si; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://flisk.si; font-src https://fonts.gstatic.com; img-src 'self' data: https://flisk.si; connect-src 'self' https://flisk.si https://*.flisk.si; frame-ancestors 'none'" };
+    const headers = { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-robots-tag': 'noindex', 'x-content-type-options': 'nosniff', 'content-security-policy': "default-src 'self'; script-src 'self' 'unsafe-inline' https://flisk.si https://flisk.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://flisk.si; font-src https://fonts.gstatic.com; img-src 'self' data: https://flisk.si; connect-src 'self' https://flisk.si https://*.flisk.si; frame-ancestors 'none'" };
     if (env.SESSION_SECRET && !(await userId(req, env))) headers['set-cookie'] = await sessionCookie(env, 'a_' + rand(8));
     return new Response(cabinetPage(), { headers });
   }
@@ -305,7 +305,8 @@ export function cabinetPage() {
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,700;9..144,800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-<style>${CSS}${CAB_CSS}</style></head><body>
+<style>${CSS}${CAB_CSS}</style>
+<script defer data-domain="grow.flisk.si" src="https://flisk.sh/a.js"></script></head><body>
 <script src="https://flisk.si/assets/bar.js" defer></script>
 <div class="wrap">
 <header class="nav"><a class="brand" href="/"><img src="/icon.svg" alt="">Flisk Grow</a><nav class="navr" id="who"></nav></header>
