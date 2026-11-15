@@ -4,7 +4,7 @@
 
 const esc = (t) => String(t).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
-const CSS = String.raw`
+export const CSS = String.raw`
 :root{--bg:#eeece5;--bg2:#e5e2d9;--panel:#f6f4ee;--panel2:#e8e5dc;--ink:#121212;--mut:#3d3d42;--faint:#6a6a70;--line:rgba(18,18,18,.13);--line2:rgba(18,18,18,.82);
 --acc:#22c55e;--accink:#04120a;--acctext:#137a3a;--tint:rgba(34,197,94,.12);--red:#be123c;--amber:#9a5300;
 --display:"Fraunces",Georgia,"Times New Roman",serif;--font:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;color-scheme:light}
@@ -75,7 +75,7 @@ function draw(id, plan) {
   const head = section('A plan for ' + host(plan.url), plan.product || '');
   const share = el('div', 'share');
   const here = location.origin + '/p/' + id;
-  share.append(button('Copy link to this plan', () => copy(here)), link('Open the site', plan.url), el('span', '', 'Kept 30 days: ' + here));
+  share.append(button('Save to my cabinet', () => fetch('/me').then(() => fetch('/api/sites', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: plan.url, plan: id }) })).then((r) => r.json()).then((j) => { location.href = '/me?site=' + j.id; })), button('Copy link to this plan', () => copy(here)), link('Open the site', plan.url), el('span', '', 'Kept 30 days: ' + here));
   head.append(share); out.append(head);
 
   const c = section('Can AI search find it', 'ChatGPT, Claude and Perplexity answer from pages they can read. Citable checks yours.');
@@ -184,7 +184,7 @@ export function page({ planId = '', prefill = '' } = {}) {
 <script src="https://flisk.si/assets/bar.js" defer></script>
 <div class="wrap">
 <header class="nav"><a class="brand" href="/"><img src="/icon.svg" alt="">Flisk Grow</a>
-<nav class="navr"><a href="#api" class="hide-s">API</a><a href="https://github.com/flisk-sh/grow" class="hide-s">GitHub</a><a href="https://flisk.si">More from Flisk</a></nav></header>
+<nav class="navr"><a href="/me">My cabinet</a><a href="#api" class="hide-s">API</a><a href="https://github.com/flisk-sh/grow" class="hide-s">GitHub</a><a href="https://flisk.si">More from Flisk</a></nav></header>
 <div class="hero"><div>
 <div class="kicker">Beta · free · no sign-in</div>
 <h1>Find your first customers.</h1>
@@ -204,7 +204,7 @@ export function page({ planId = '', prefill = '' } = {}) {
 <div><h3>Posts to write</h3><p>Drafts for X, Reddit and Hacker News that open the post box filled in.</p></div>
 <div><h3>Where to list it</h3><p>Show HN, Product Hunt, SaaSHub, AlternativeTo and more, each a link to its submit page.</p></div>
 </div></section>
-<section id="api"><h2>API</h2><p class="sub">The same plan as JSON, for scripts and agents. Same free limits: 3 plans a day per visitor.</p>
+<section id="api"><h2>API</h2><p class="sub">The same plan as JSON, for scripts and agents. Same free limits: 10 plans a day per visitor.</p>
 <pre class="code">curl -s https://grow.flisk.si/api/plan \\
   -H 'content-type: application/json' \\
   -d '{"url": "https://your-site.com"}'</pre>

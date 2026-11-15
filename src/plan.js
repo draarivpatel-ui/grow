@@ -65,6 +65,7 @@ You get a link and the text of its page. Answer with ONE JSON object and nothing
  "buyers": "who would pay first: a narrow group, their job, the problem they have today (2 sentences)",
  "pitch": "one line a buyer would care about, no hype",
  "today": "the one step to take today, one sentence",
+ "queries": ["2 to 4 short search phrases (2-4 words) a buyer would write in a post when they have the problem"],
  "places": [{"name": "a real community, forum, subreddit, newsletter, event or group where those buyers are", "why": "why there", "url": "its address if you are sure, else empty"}],
  "emails": [{"to": "who to write to (a role, not a made-up name)", "subject": "short", "body": "a short plain email under 90 words: why them, what it does for them, one small ask; sign it [your name]"}],
  "posts": [{"where": "X" | "Reddit" | "Hacker News", "title": "post title", "body": "the post, plain, under 60 words"}]}
@@ -90,7 +91,8 @@ export function cleanPlan(i) {
     .filter((p) => p.title || p.body);
   const buyers = str(i.buyers, 500);
   if (!buyers || !places.length || !emails.length) return null;
-  return { product: str(i.product, 200), buyers, pitch: str(i.pitch, 200), today: str(i.today, 240), places, emails, posts };
+  const queries = (Array.isArray(i.queries) ? i.queries : []).map((q) => str(q, 60)).filter((q) => q.length >= 3).slice(0, 4);
+  return { product: str(i.product, 200), queries, buyers, pitch: str(i.pitch, 200), today: str(i.today, 240), places, emails, posts };
 }
 
 // The whole plan. `model` and `citable` are fetch-like functions (service bindings in production).
