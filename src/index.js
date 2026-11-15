@@ -1,6 +1,7 @@
 // grow.flisk.si: paste a link, get a plan to find the first customers. No sign-in. Plans are kept 30 days at /p/<id>.
 import { httpUrl, makePlan } from './plan.js';
 import { page } from './page.js';
+import { cabinet } from './cabinet.js';
 
 const DAY_MS = 864e5;
 const json = (status, body, extra = {}) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'access-control-allow-origin': '*', ...extra } });
@@ -8,7 +9,7 @@ const html = (body, extra = {}) => new Response(body, { headers: { 'content-type
 const today = () => new Date().toISOString().slice(0, 10);
 const newId = () => [...crypto.getRandomValues(new Uint8Array(6))].map((b) => b.toString(16).padStart(2, '0')).join('');
 
-const ROBOTS = 'User-agent: *\nAllow: /$\nAllow: /llms.txt\nDisallow: /p/\nDisallow: /api/\nDisallow: /*?\n';
+const ROBOTS = 'User-agent: *\nAllow: /$\nAllow: /llms.txt\nDisallow: /p/\nDisallow: /me\nDisallow: /auth/\nDisallow: /api/\nDisallow: /*?\n';
 const LLMS = `# Flisk Grow
 
 > Paste a link to something you made and get a plan to find its first customers: who would buy it, where they are,
@@ -42,6 +43,8 @@ export async function handle(req, env, deps = {}) {
   if (path === '/llms.txt') return new Response(LLMS, { headers: { 'content-type': 'text/plain; charset=utf-8' } });
   if (path === '/icon.svg' || path === '/favicon.ico') return new Response(ICON, { headers: { 'content-type': 'image/svg+xml', 'cache-control': 'max-age=86400' } });
   if (path === '/health') return json(200, { ok: true });
+  const cab = await cabinet(req, env, { fetch: fetchImpl });
+  if (cab) return cab;
 
   if (req.method === 'GET' && (path === '/' || /^\/p\/[0-9a-f]{12}$/.test(path))) {
     // A link with ?url= only fills the box: a plan costs a model call, so a person presses the button.

@@ -50,3 +50,17 @@ MIT license.
 ## Git hooks
 
 `bun install` (or `bun run prepare`) turns on the hooks in `.githooks/`: pre-commit checks syntax and runs `bun test`, commit-msg needs a sign-off, and pre-push builds the Worker with `wrangler deploy --dry-run`.
+
+## Cabinet (/me)
+
+`/me` keeps your sites, the people talking about the problem each one solves, and where you listed it.
+
+- **People talking about it**: posts from the last 14 days on Hacker News, Bluesky and GitHub issues that use the
+  site's search phrases (from its plan, editable). Mark each one replied or skip. Reddit blocks servers, so there is a
+  Reddit search link instead. At most one look per site every 10 minutes.
+- **Where you listed it**: status (to do, submitted, live) and the link for each directory.
+- A visitor gets a cabinet in this browser at once. GitHub sign-in (when `GITHUB_CLIENT_ID` and
+  `GITHUB_CLIENT_SECRET` are set; OAuth app callback `https://grow.flisk.si/auth/callback`) keeps it across browsers.
+
+Secrets: `SESSION_SECRET` (long random), optional `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`.
+Schema: `bunx wrangler@4 d1 execute flisk-grow --remote --file schema.sql`.

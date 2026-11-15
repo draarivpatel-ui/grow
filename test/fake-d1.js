@@ -9,7 +9,7 @@ export function fakeD1() {
     bind: (...a) => stmt(sql, a),
     first: async () => db.query(sql).get(...args) ?? null,
     all: async () => ({ results: db.query(sql).all(...args) }),
-    run: async () => db.query(sql).run(...args),
+    run: async () => { const r = db.query(sql).run(...args); return { ...r, meta: { changes: r.changes } }; },
   });
   return { prepare: (sql) => stmt(sql), batch: async (list) => Promise.all(list.map((s) => s.run())), raw: db };
 }
