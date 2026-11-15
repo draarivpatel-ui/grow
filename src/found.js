@@ -24,12 +24,12 @@ async function text(fetchImpl, url) {
 
 export async function findHN(name, host, fetchImpl) {
   if (!name) return null;
-  const raw = await text(fetchImpl, `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(name)}&tags=story&typoTolerance=false&hitsPerPage=30`);
+  const raw = await text(fetchImpl, `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(host)}&tags=story&typoTolerance=false&hitsPerPage=30`);
   let hits = [];
   try { hits = JSON.parse(raw).hits || []; } catch { /* no hits */ }
-  const word = new RegExp(`(^|[^a-z0-9])${name.replace(/[^a-z0-9-]/gi, '')}($|[^a-z0-9])`, 'i');
-  const hit = hits.find((h) => { const u = String(h.url || '').toLowerCase(); return u.includes(host) || u.includes(`github.com/${name}`); })
-    || hits.find((h) => /^Show HN/i.test(h.title || '') && word.test(h.title || ''));
+  // Only a story that links to this exact domain is yours. A "Show HN" title with the same word is not.
+  const at = new RegExp(`^https?://(www\\.)?${host.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([/:?#]|$)`, 'i');
+  const hit = hits.find((h) => at.test(String(h.url || '')));
   return hit ? { place: 'Hacker News (Show HN)', link: `https://news.ycombinator.com/item?id=${hit.objectID}` } : null;
 }
 

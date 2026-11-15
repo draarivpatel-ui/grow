@@ -2,9 +2,10 @@ import { expect, test } from 'bun:test';
 import { findListings } from '../src/found.js';
 
 const pages = {
-  'https://hn.algolia.com/api/v1/search?query=acme&tags=story&typoTolerance=false&hitsPerPage=30': JSON.stringify({ hits: [
+  'https://hn.algolia.com/api/v1/search?query=acme.dev&tags=story&typoTolerance=false&hitsPerPage=30': JSON.stringify({ hits: [
     { objectID: '7', title: 'Acme Corp sued', url: 'https://news.example/acme' },
-    { objectID: '8', title: 'Show HN: Acme – fast local stacks', url: 'https://github.com/acme/acme' },
+    { objectID: '9', title: 'Show HN: Acme – another thing', url: 'https://github.com/acme/acme' },
+    { objectID: '8', title: 'Show HN: Acme – fast local stacks', url: 'https://acme.dev/' },
   ] }),
   'https://www.saashub.com/acme': '<a href="https://acme.dev">acme.dev</a>',
   'https://toolradar.com/tools/acme-cli': 'Visit acme.dev',
@@ -23,4 +24,9 @@ test('finds Show HN and directory pages that name the domain', async () => {
 
 test('a site that is nowhere gives nothing', async () => {
   expect(await findListings('https://nobody.dev', { fetch: fakeFetch })).toEqual([]);
+});
+
+test('a Show HN with the same word but another site is not yours', async () => {
+  const f = async (u) => new Response(String(u).includes('hn.algolia') ? JSON.stringify({ hits: [{ objectID: '1', title: 'Show HN: Pages', url: 'https://other.example/' }] }) : '', { status: String(u).includes('hn.algolia') ? 200 : 404 });
+  expect(await findListings('https://pages.flisk.si', { fetch: f })).toEqual([]);
 });
