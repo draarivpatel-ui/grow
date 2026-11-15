@@ -29,3 +29,7 @@ crons = ["17 3 * * *"]
 [[routes]]
 pattern = "grow.flisk.si"
 custom_domain = true
+
+# Sign-in through login.flisk.si (flisk-sh/login): set LOGIN_PUBLIC_KEY to the value login.flisk.si/key shows and
+# no GitHub app or secret is needed here. Without it, grow falls back to its own GitHub app (GITHUB_CLIENT_ID/SECRET).
+# LOGIN_ORIGIN defaults to https://login.flisk.si.
