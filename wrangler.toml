@@ -1,0 +1,31 @@
+# grow.flisk.si on Cloudflare: paste a link, get a plan to find the first customers. Plans in D1, the model through
+# inference.flisk.si (service binding), the AI search check through Citable (service binding).
+# Deploy by hand from this folder: bunx wrangler@4 deploy. Secret: INFERENCE_KEY (a key from inference.flisk.si).
+name = "flisk-grow"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+# Each plan is one chat call (about 70 neurons) on the daily budget shared with chat.flisk.si.
+PLANS_PER_VISITOR = "3"
+PLANS_PER_DAY = "20"
+
+[[services]]
+binding = "INFERENCE"
+service = "flisk-inference"
+
+[[services]]
+binding = "CITABLE"
+service = "citable"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "flisk-grow"
+database_id = "REPLACE_AFTER_D1_CREATE"
+
+[triggers]
+crons = ["17 3 * * *"]
+
+[[routes]]
+pattern = "grow.flisk.si"
+custom_domain = true

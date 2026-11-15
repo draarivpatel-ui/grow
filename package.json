@@ -1,0 +1,10 @@
+{
+  "name": "flisk-grow",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "bun test",
+    "dev": "bun scripts/dev.mjs",
+    "deploy": "bunx wrangler@4 deploy"
+  }
+}
