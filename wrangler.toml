@@ -6,6 +6,7 @@ main = "src/index.js"
 compatibility_date = "2026-11-01"
 
 [vars]
+LOGIN_PUBLIC_KEY = "g_3cGlqaMDf4mM4Bgfv8EO6js7yW_bcSW7cOUpSwLc0"
 # Each plan is one chat call (about 70 neurons) on the daily budget shared with chat.flisk.si.
 PLANS_PER_VISITOR = "10"
 PLANS_PER_DAY = "50"
