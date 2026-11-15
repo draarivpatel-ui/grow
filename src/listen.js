@@ -60,13 +60,24 @@ export async function searchGitHub(q, since, fetchImpl) {
   }));
 }
 
-// A post counts only when every word of one phrase is in it as a whole word. Search engines also return
-// near misses ("flisk" -> "flicker"), so this check runs on what comes back.
+// A post counts only when a phrase appears in it as written: its words as whole words, side by side and in
+// order ("free page hosting" matches "Free page hosting!", not a post that only has "free", "page" and
+// "hosting" somewhere). Search engines AND the words in any order and also
+// return near misses ("flisk" -> "flicker"), so this check runs on what comes back.
 const esc = (w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const SEP = '[^\\p{L}\\p{N}]+';
 export function mentions(lead, keywords) {
   const hay = `${lead.title} ${lead.text}`.toLowerCase();
-  return keywords.some((k) => k.toLowerCase().split(' ').filter(Boolean).every((w) => new RegExp(`(^|[^\\p{L}\\p{N}])${esc(w)}($|[^\\p{L}\\p{N}])`, 'u').test(hay)));
+  return keywords.some((k) => {
+    const words = k.toLowerCase().split(' ').filter(Boolean);
+    if (!words.length) return false;
+    const body = words.map(esc).join(SEP);
+    return new RegExp(`(^|[^\\p{L}\\p{N}])${body}($|[^\\p{L}\\p{N}])`, 'u').test(hay);
+  });
 }
+
+// Copy-pasted promo posts (the same text from several accounts) count once.
+const gist = (l) => `${l.title} ${l.text}`.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim().slice(0, 80);
 
 // Your own posts and bots are not customers: drop authors you name, bots, and GitHub issues in repos
 // whose owner is one you name (or starts with it, so "flisk" also drops flisk-sh).
@@ -82,8 +93,9 @@ export async function listen(keywords, { fetch: fetchImpl, days = 30, now = Date
   const since = now - days * 864e5;
   const runs = keywords.flatMap((q) => [searchHN(q, since, fetchImpl), searchBluesky(q, since, fetchImpl), searchGitHub(q, since, fetchImpl)]);
   const seen = new Set();
+  const gists = new Set();
   return (await Promise.all(runs)).flat()
-    .filter((l) => l.url && l.at >= since && mentions(l, keywords) && notOwn(l, exclude) && !seen.has(l.url) && seen.add(l.url))
+    .filter((l) => l.url && l.at >= since && mentions(l, keywords) && notOwn(l, exclude) && !seen.has(l.url) && seen.add(l.url) && !gists.has(gist(l)) && gists.add(gist(l)))
     .sort((a, b) => b.at - a.at)
     .slice(0, 60);
 }

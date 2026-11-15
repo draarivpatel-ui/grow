@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { handle } from '../src/index.js';
-import { listen, parseKeywords } from '../src/listen.js';
+import { listen, mentions, parseKeywords } from '../src/listen.js';
 import { fakeD1 } from './fake-d1.js';
 
 const now = Date.now();
@@ -37,6 +37,20 @@ describe('listen', () => {
     ] } : String(u).includes('algolia') ? { hits: [{ objectID: '9', title: 'OLED flicker', author: 'x', created_at_i: Math.floor(now / 1000) }] } : {}));
     const out = await listen(['flisk'], { fetch: f, now, exclude: { owners: ['flisk'] } });
     expect(out.map((l) => l.url)).toEqual(['https://github.com/o/r/issues/3']);
+  });
+  test('a phrase must appear together, in order; scattered words do not count', () => {
+    const k = ['free page hosting', 'share code as link'];
+    const m = (text) => mentions({ title: '', text }, k);
+    expect(m('Looking for free page hosting for a demo')).toBe(true);
+    expect(m('Free Page-Hosting, anyone?')).toBe(true);
+    expect(m('We made a FREE 16-page Thanksgiving Hosting Guide with a little inspiration for your table')).toBe(false);
+    expect(m('I hope hosting becomes free and the page spam goes away')).toBe(false);
+    expect(m('Opening a ChatGPT share link could run code as you')).toBe(false);
+  });
+  test('the same promo text from several accounts counts once', async () => {
+    const post = (h) => ({ uri: `at://x/app.bsky.feed.post/${h}`, author: { handle: h }, record: { text: 'free page hosting, use coupon code BLUESKY26', createdAt: new Date(now).toISOString() } });
+    const f = async (u) => new Response(JSON.stringify(String(u).includes('bsky') ? { posts: [post('a'), post('b')] } : {}));
+    expect((await listen(['free page hosting'], { fetch: f, now })).length).toBe(1);
   });
   test('a failing source gives nothing, not an error', async () => {
     expect(await listen(['x y z'], { fetch: async () => { throw new Error('down'); }, now })).toEqual([]);
