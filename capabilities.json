@@ -1,0 +1,17 @@
+{
+  "service": "grow",
+  "origin": "https://grow.flisk.si",
+  "auth": "login.flisk.si",
+  "capabilities": [
+    {
+      "id": "grow",
+      "title": "Grow it",
+      "does": "Finds the first customers for a live site: who would buy, where they are, email drafts. Nothing is posted for the user.",
+      "input": { "url": "the live link of the site or app" },
+      "asks": ["Grow it", "find customers", "find users", "promote", "market", "advertise", "get more visitors", "get my first customers"],
+      "link": "https://grow.flisk.si/?url={url}",
+      "needsComputer": false,
+      "uses": ["citable.check"]
+    }
+  ]
+}
