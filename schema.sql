@@ -6,3 +6,4 @@ CREATE TABLE IF NOT EXISTS sites (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, ur
 CREATE INDEX IF NOT EXISTS sites_user ON sites (user_id);
 CREATE TABLE IF NOT EXISTS leads (site_id TEXT NOT NULL, url TEXT NOT NULL, source TEXT, title TEXT, text TEXT, author TEXT, author_url TEXT, at INTEGER, status TEXT NOT NULL DEFAULT 'new', found INTEGER, PRIMARY KEY (site_id, url));
 CREATE TABLE IF NOT EXISTS listings (site_id TEXT NOT NULL, place TEXT NOT NULL, status TEXT NOT NULL, link TEXT, updated INTEGER, PRIMARY KEY (site_id, place));
+CREATE TABLE IF NOT EXISTS posted (site_id TEXT NOT NULL, kind TEXT NOT NULL, job_id TEXT NOT NULL, link TEXT NOT NULL, title TEXT, at INTEGER NOT NULL, PRIMARY KEY (site_id, kind));

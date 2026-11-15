@@ -5,6 +5,7 @@ import { httpUrl, LISTINGS } from './plan.js';
 import { listen, mentions, notOwn, parseKeywords, redditSearch } from './listen.js';
 import { CSS } from './page.js';
 import { findListings } from './found.js';
+import { findRepo, jobsFor, postJobs } from './jobs.js';
 
 const COOKIE = 'grow_s';
 const YEAR = 365 * 864e5;
@@ -122,7 +123,7 @@ export async function cabinet(req, env, deps = {}) {
     return json(200, { id });
   }
 
-  const sm = /^\/api\/sites\/([0-9a-f]{12})(?:\/(leads|listen|delete|keywords))?$/.exec(path);
+  const sm = /^\/api\/sites\/([0-9a-f]{12})(?:\/(leads|listen|delete|keywords|jobs))?$/.exec(path);
   if (sm) {
     const site = await siteOf(env, uid, sm[1]);
     if (!site) return json(404, { error: 'This site is not in your cabinet.' });
@@ -131,6 +132,7 @@ export async function cabinet(req, env, deps = {}) {
       await env.DB.batch([
         env.DB.prepare('DELETE FROM leads WHERE site_id = ?').bind(site.id),
         env.DB.prepare('DELETE FROM listings WHERE site_id = ?').bind(site.id),
+        env.DB.prepare('DELETE FROM posted WHERE site_id = ?').bind(site.id),
         env.DB.prepare('DELETE FROM sites WHERE id = ?').bind(site.id),
       ]);
       return json(200, { ok: true });
@@ -169,10 +171,24 @@ export async function cabinet(req, env, deps = {}) {
       }
       return json(200, { added, next: Math.max(0, Math.ceil(wait / 60e3)) });
     }
+    if (req.method === 'POST' && action === 'jobs') {
+      if (!env.JOBS_KEY) return json(503, { error: 'Posting jobs is not set up yet.' });
+      // A gap posted in the last day is not posted again: the bot would give the same answer.
+      const { results: had } = await env.DB.prepare('SELECT kind FROM posted WHERE site_id = ? AND at > ?').bind(site.id, Date.now() - 864e5).all();
+      const repo = await findRepo(site.url, { fetch: fetchImpl });
+      const todo = jobsFor(site.url, repo).filter((j) => !(had || []).some((h) => h.kind === j.kind));
+      if (!todo.length) return json(200, { posted: [], repo, note: 'Already posted today. Open the jobs below to see the answers.' });
+      let posted;
+      try { posted = await postJobs(todo, env.JOBS_KEY, { fetch: fetchImpl }); } catch (e) { return json(502, { error: e.message }); }
+      await env.DB.batch(posted.map((p) => env.DB.prepare('INSERT INTO posted (site_id, kind, job_id, link, title, at) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(site_id, kind) DO UPDATE SET job_id = excluded.job_id, link = excluded.link, title = excluded.title, at = excluded.at')
+        .bind(site.id, p.kind, String(p.id), p.link, p.title, Date.now())));
+      return json(200, { posted, repo });
+    }
     if (req.method === 'GET' && action === 'leads') {
       const { results: leads } = await env.DB.prepare('SELECT url, source, title, text, author, author_url, at, status FROM leads WHERE site_id = ? ORDER BY at DESC LIMIT ?').bind(site.id, MAX_LEADS).all();
       const { results: listings } = await env.DB.prepare('SELECT place, status, link, updated FROM listings WHERE site_id = ?').bind(site.id).all();
-      return json(200, { site, leads, listings, reddit: redditSearch(parseKeywords(site.keywords)) });
+      const { results: jobs } = await env.DB.prepare('SELECT kind, title, link, at FROM posted WHERE site_id = ? ORDER BY at DESC').bind(site.id).all();
+      return json(200, { site, leads, listings, jobs: jobs || [], reddit: redditSearch(parseKeywords(site.keywords)) });
     }
   }
 
@@ -295,6 +311,14 @@ async function openSite(id) {
     r.append(a, sel, li); sec2.append(r);
   });
   box.append(sec2);
+
+  const secJ = el('section'); secJ.append(el('h2', '', 'Get it done for you'));
+  secJ.append(el('p', 'sub', 'Posts the checks a bot really does to jobs.flisk.si: can AI search find your site, and how good is your README (when the site links its GitHub repo). A bot takes them within about 5 minutes. Free and public.'));
+  const jr = el('div', 'acts');
+  jr.append(button('Post as jobs', async (ev) => { ev.target.disabled = true; try { const j = await api('/api/sites/' + id + '/jobs', {}); toast(j.note || (j.posted.length + ' jobs posted')); openSite(id); } catch (e) { toast(e.message); ev.target.disabled = false; } }, 'go'));
+  secJ.append(jr);
+  (d.jobs || []).forEach((j) => { const r = el('div', 'lst'); r.append(link(j.title, j.link), el('small', '', 'posted ' + ago(j.at))); secJ.append(r); });
+  box.append(secJ);
 
   const sec3 = el('section'); sec3.append(el('h2', '', 'This site'));
   const acts = el('div', 'acts'); acts.append(link('Open the site', s.url));
