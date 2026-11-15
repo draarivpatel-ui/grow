@@ -42,6 +42,18 @@ describe('routes', () => {
     expect((await s.get('/api/plan/000000000000')).status).toBe(404);
   });
 
+  test('home and plan pages load Flisk Analytics and the CSP allows it', async () => {
+    const s = setup();
+    const j = await (await s.post('https://a.com/')).json();
+    for (const p of ['/', '/p/' + j.id]) {
+      const r = await s.get(p);
+      const html = await r.text();
+      expect(html.slice(0, html.indexOf('</head>'))).toContain('<script defer data-domain="grow.flisk.si" src="https://flisk.sh/a.js"></script>');
+      expect(r.headers.get('content-security-policy')).toMatch(/script-src [^;]*https:\/\/flisk\.sh/);
+      expect(r.headers.get('content-security-policy')).toMatch(/connect-src [^;]*https:\/\/\*\.flisk\.si/);
+    }
+  });
+
   test('the same link within a day reuses the plan', async () => {
     const s = setup();
     const a = await (await s.post('https://a.com/')).json();

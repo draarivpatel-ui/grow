@@ -180,7 +180,8 @@ export function page({ planId = '', prefill = '' } = {}) {
 <link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="canonical" href="https://grow.flisk.si/">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,700;9..144,800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-<style>${CSS}</style></head><body>
+<style>${CSS}</style>
+<script defer data-domain="grow.flisk.si" src="https://flisk.sh/a.js"></script></head><body>
 <script src="https://flisk.si/assets/bar.js" defer></script>
 <div class="wrap">
 <header class="nav"><a class="brand" href="/"><img src="/icon.svg" alt="">Flisk Grow</a>
