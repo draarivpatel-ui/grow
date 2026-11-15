@@ -203,7 +203,15 @@ export async function cabinet(req, env, deps = {}) {
       return json(200, { posted, repo });
     }
     if (req.method === 'GET' && action === 'leads') {
-      const { results: leads } = await env.DB.prepare('SELECT url, source, title, text, author, author_url, at, status FROM leads WHERE site_id = ? ORDER BY at DESC LIMIT ?').bind(site.id, MAX_LEADS).all();
+      const { results: all } = await env.DB.prepare('SELECT url, source, title, text, author, author_url, at, status FROM leads WHERE site_id = ? ORDER BY at DESC LIMIT ?').bind(site.id, MAX_LEADS).all();
+      // Unanswered leads that do not really use a phrase (or are your own) are dropped on every read, so old
+      // loose matches vanish without waiting for the next search.
+      const me = uid.startsWith('gh_') ? await env.DB.prepare('SELECT login FROM users WHERE id = ?').bind(uid).first() : null;
+      const name = (() => { try { return new URL(site.url).hostname.replace(/^www\./, '').split('.')[0]; } catch { return ''; } })();
+      const kws = parseKeywords(site.keywords), ex = { authors: [me?.login], owners: [name, me?.login] };
+      const stale = (all || []).filter((l) => l.status === 'new' && (!mentions(l, kws) || !notOwn(l, ex)));
+      if (stale.length) await env.DB.batch(stale.map((l) => env.DB.prepare('DELETE FROM leads WHERE site_id = ? AND url = ?').bind(site.id, l.url)));
+      const leads = (all || []).filter((l) => !stale.includes(l));
       const { results: listings } = await env.DB.prepare('SELECT place, status, link, updated FROM listings WHERE site_id = ?').bind(site.id).all();
       const { results: jobs } = await env.DB.prepare('SELECT kind, title, link, at FROM posted WHERE site_id = ? ORDER BY at DESC').bind(site.id).all();
       return json(200, { site, leads, listings, jobs: jobs || [], reddit: redditSearch(parseKeywords(site.keywords)) });
