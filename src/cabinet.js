@@ -6,6 +6,7 @@ import { listen, mentions, notOwn, parseKeywords, redditSearch } from './listen.
 import { CSS } from './page.js';
 import { findListings } from './found.js';
 import { findRepo, jobsFor, postJobs } from './jobs.js';
+import { verifyLoginToken } from './login-token.js';
 
 const COOKIE = 'grow_s';
 const YEAR = 365 * 864e5;
@@ -47,6 +48,22 @@ async function keywordsFor(env, url) {
   return { keywords: name, plan };
 }
 
+// A signed-in person (from GitHub directly or from login.flisk.si): their browser's sites move into the account and
+// a long cookie keeps them signed in. `who` is { id, login }, id being GitHub's number.
+async function finishSignIn(req, env, who) {
+  if (!who?.id || !who?.login) return new Response(null, { status: 302, headers: { location: '/me?signin=failed' } });
+  const id = `gh_${who.id}`;
+  const before = await userId(req, env);
+  const stmts = [env.DB.prepare('INSERT INTO users (id, login, created) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET login = excluded.login').bind(id, String(who.login).slice(0, 60), Date.now())];
+  // The sites made in this browser before sign-in move into the account.
+  if (before.startsWith('a_')) stmts.push(env.DB.prepare('UPDATE sites SET user_id = ? WHERE user_id = ?').bind(id, before));
+  await env.DB.batch(stmts);
+  const h = new Headers({ location: '/me' });
+  h.append('set-cookie', await sessionCookie(env, id));
+  h.append('set-cookie', setCookie('grow_state', '', 0));
+  return new Response(null, { status: 302, headers: h });
+}
+
 // Routes under /me, /auth and /api/me|sites|leads|listings. Returns null when the path is not the cabinet's.
 export async function cabinet(req, env, deps = {}) {
   const url = new URL(req.url);
@@ -62,6 +79,13 @@ export async function cabinet(req, env, deps = {}) {
 
   // GitHub sign-in (an OAuth app with callback <origin>/auth/callback).
   if (path === '/auth/start') {
+    // One Flisk sign-in for every site (login.flisk.si): no GitHub app or secret of our own, only its public key.
+    if (env.LOGIN_PUBLIC_KEY) {
+      const s = rand(12);
+      const back = new URL('/auth/done', origin);
+      back.searchParams.set('s', s);
+      return new Response(null, { status: 302, headers: { location: `${env.LOGIN_ORIGIN || 'https://login.flisk.si'}/start?return=${encodeURIComponent(back.href)}`, 'set-cookie': setCookie('grow_state', s, 600) } });
+    }
     if (!signInReady(env)) return json(503, { error: 'GitHub sign-in is not set up yet.' });
     const state = rand(12);
     const u = new URL('https://github.com/login/oauth/authorize');
@@ -76,17 +100,11 @@ export async function cabinet(req, env, deps = {}) {
     if (!signInReady(env) || !code || url.searchParams.get('state') !== cookieOf(req, 'grow_state')) return new Response(null, { status: 302, headers: { location: '/me?signin=failed' } });
     const tok = await fetchImpl('https://github.com/login/oauth/access_token', { method: 'POST', headers: { accept: 'application/json', 'content-type': 'application/json' }, body: JSON.stringify({ client_id: env.GITHUB_CLIENT_ID, client_secret: env.GITHUB_CLIENT_SECRET, code, redirect_uri: `${origin}/auth/callback` }) }).then((r) => r.json()).catch(() => null);
     const gh = tok?.access_token ? await fetchImpl('https://api.github.com/user', { headers: { authorization: `Bearer ${tok.access_token}`, 'user-agent': 'flisk-grow', accept: 'application/vnd.github+json' } }).then((r) => (r.ok ? r.json() : null)).catch(() => null) : null;
-    if (!gh?.id) return new Response(null, { status: 302, headers: { location: '/me?signin=failed' } });
-    const id = `gh_${gh.id}`;
-    const before = await userId(req, env);
-    const stmts = [env.DB.prepare('INSERT INTO users (id, login, created) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET login = excluded.login').bind(id, String(gh.login).slice(0, 60), Date.now())];
-    // The sites made in this browser before sign-in move into the account.
-    if (before.startsWith('a_')) stmts.push(env.DB.prepare('UPDATE sites SET user_id = ? WHERE user_id = ?').bind(id, before));
-    await env.DB.batch(stmts);
-    const h = new Headers({ location: '/me' });
-    h.append('set-cookie', await sessionCookie(env, id));
-    h.append('set-cookie', setCookie('grow_state', '', 0));
-    return new Response(null, { status: 302, headers: h });
+    return finishSignIn(req, env, gh);
+  }
+  if (path === '/auth/done') {
+    const who = env.LOGIN_PUBLIC_KEY && url.searchParams.get('s') === cookieOf(req, 'grow_state') ? await verifyLoginToken(url.searchParams.get('flisk_token'), env.LOGIN_PUBLIC_KEY, origin, deps.now) : null;
+    return who ? finishSignIn(req, env, who) : new Response(null, { status: 302, headers: { location: '/me?signin=failed' } });
   }
   if (path === '/auth/out') {
     return new Response(null, { status: 302, headers: { location: '/me', 'set-cookie': setCookie(COOKIE, '', 0) } });

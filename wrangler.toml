@@ -6,6 +6,7 @@ main = "src/index.js"
 compatibility_date = "2026-11-01"
 
 [vars]
+LOGIN_PUBLIC_KEY = "g_3cGlqaMDf4mM4Bgfv8EO6js7yW_bcSW7cOUpSwLc0"
 # Each plan is one chat call (about 70 neurons) on the daily budget shared with chat.flisk.si.
 PLANS_PER_VISITOR = "10"
 PLANS_PER_DAY = "50"
@@ -29,3 +30,7 @@ crons = ["17 3 * * *"]
 [[routes]]
 pattern = "grow.flisk.si"
 custom_domain = true
+
+# Sign-in through login.flisk.si (flisk-sh/login): set LOGIN_PUBLIC_KEY to the value login.flisk.si/key shows and
+# no GitHub app or secret is needed here. Without it, grow falls back to its own GitHub app (GITHUB_CLIENT_ID/SECRET).
+# LOGIN_ORIGIN defaults to https://login.flisk.si.
