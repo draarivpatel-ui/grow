@@ -2,6 +2,7 @@
 import { httpUrl, makePlan } from './plan.js';
 import { page } from './page.js';
 import { cabinet } from './cabinet.js';
+import { withSecurityHeaders } from './security-headers.js';
 
 const DAY_MS = 864e5;
 const json = (status, body, extra = {}) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'access-control-allow-origin': '*', ...extra } });
@@ -32,7 +33,7 @@ async function visitorCount(ip, add, cache) {
   return n;
 }
 
-export async function handle(req, env, deps = {}) {
+async function route(req, env, deps = {}) {
   const url = new URL(req.url);
   const path = url.pathname;
   const fetchImpl = deps.fetch || fetch;
@@ -57,7 +58,7 @@ export async function handle(req, env, deps = {}) {
   const cab = await cabinet(req, env, { fetch: fetchImpl });
   if (cab) return cab;
 
-  if (req.method === 'GET' && (path === '/' || /^\/p\/[0-9a-f]{12}$/.test(path))) {
+  if ((req.method === 'GET' || req.method === 'HEAD') && (path === '/' || /^\/p\/[0-9a-f]{12}$/.test(path))) {
     // A link with ?url= only fills the box: a plan costs a model call, so a person presses the button.
     return html(page({ planId: path.startsWith('/p/') ? path.slice(3) : '', prefill: httpUrl(url.searchParams.get('url')) }), path === '/' && !url.search ? {} : { 'x-robots-tag': 'noindex, nofollow' });
   }
@@ -105,6 +106,11 @@ export async function handle(req, env, deps = {}) {
 
   if (path.startsWith('/api/')) return json(404, { error: 'not found' });
   return new Response('Not found', { status: 404, headers: { 'content-type': 'text/plain' } });
+}
+
+// Every response, whatever route made it, leaves with the baseline security headers.
+export async function handle(req, env, deps = {}) {
+  return withSecurityHeaders(await route(req, env, deps));
 }
 
 export default {
