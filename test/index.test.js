@@ -13,6 +13,13 @@ const setup = (vars = {}) => {
 };
 
 describe('routes', () => {
+  test('the sitemap lists the home page and robots points to it', async () => {
+    const r = await setup().get('/sitemap.xml');
+    expect(r.status).toBe(200);
+    expect(await r.text()).toContain('<loc>https://grow.flisk.si/</loc>');
+    expect(await (await setup().get('/robots.txt')).text()).toContain('Sitemap: https://grow.flisk.si/sitemap.xml');
+  });
+
   test('robots blocks plans, the API and query URLs', async () => {
     const t = await (await setup().get('/robots.txt')).text();
     expect(t).toContain('Disallow: /p/');
