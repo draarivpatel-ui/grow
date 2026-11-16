@@ -9,7 +9,7 @@ const html = (body, extra = {}) => new Response(body, { headers: { 'content-type
 const today = () => new Date().toISOString().slice(0, 10);
 const newId = () => [...crypto.getRandomValues(new Uint8Array(6))].map((b) => b.toString(16).padStart(2, '0')).join('');
 
-const ROBOTS = 'User-agent: *\nAllow: /$\nAllow: /llms.txt\nDisallow: /p/\nDisallow: /me\nDisallow: /auth/\nDisallow: /api/\nDisallow: /*?\n';
+const ROBOTS = 'User-agent: *\nAllow: /$\nAllow: /llms.txt\nDisallow: /p/\nDisallow: /me\nDisallow: /auth/\nDisallow: /api/\nDisallow: /*?\n\nSitemap: https://grow.flisk.si/sitemap.xml\n';
 const LLMS = `# Flisk Grow
 
 > Paste a link to something you made and get a plan to find its first customers: who would buy it, where they are,
@@ -40,6 +40,7 @@ export async function handle(req, env, deps = {}) {
 
   if (req.method === 'OPTIONS') return new Response(null, { headers: { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, POST', 'access-control-allow-headers': 'content-type' } });
   if (path === '/robots.txt') return new Response(ROBOTS, { headers: { 'content-type': 'text/plain' } });
+  if (path === '/sitemap.xml') return new Response('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://grow.flisk.si/</loc></url></urlset>', { headers: { 'content-type': 'application/xml' } });
   if (path === '/llms.txt') return new Response(LLMS, { headers: { 'content-type': 'text/plain; charset=utf-8' } });
   if (path === '/icon.svg' || path === '/favicon.ico') return new Response(ICON, { headers: { 'content-type': 'image/svg+xml', 'cache-control': 'max-age=86400' } });
   if (path === '/health') return json(200, { ok: true });
