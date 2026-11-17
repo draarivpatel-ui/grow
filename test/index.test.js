@@ -141,9 +141,16 @@ describe('model out of budget', () => {
     expect(j.plan.handle).toBe('brookservers');
     expect(j.id).toBeUndefined();
   });
-  test('any other link still gets the readable 429', async () => {
-    const r = await setup({ INFERENCE: { fetch: out } }).post('https://example.com/');
-    expect(r.status).toBe(429);
+  test('any other link gets the real checks and a general guide, not saved', async () => {
+    const s = setup({ INFERENCE: { fetch: out } });
+    const r = await s.post('https://example.com/');
+    expect(r.status).toBe(200);
+    const j = await r.json();
+    expect(j.generic).toBe(true);
+    expect(j.id).toBeUndefined();
+    expect(j.plan.places.length).toBeGreaterThan(2);
+    expect(j.plan.emails.length).toBeGreaterThan(0);
+    expect(j.plan.listings.length).toBeGreaterThan(5);
   });
 });
 
