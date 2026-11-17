@@ -116,6 +116,46 @@ export function cleanFollowers(i, profile) {
   return { kind: 'followers', network: profile.network, handle: profile.handle, account: str(i.account, 200), audience, bio: str(i.bio, 200), pinned: text(i.pinned, 300), today: str(i.today, 240), queries, accounts, week, posts, replies };
 }
 
+// Used when the free model is out of budget: the same shape, from a fixed playbook, so a profile link never dead-ends.
+export function genericFollowers(profile, about = '') {
+  const line = str(about, 120);
+  const topic = line || 'what your account is about';
+  return {
+    kind: 'followers', generic: true, network: profile.network, handle: profile.handle,
+    account: line ? 'An account about: ' + line : 'A general playbook. Press the button again tomorrow for a plan written for your account.',
+    audience: 'People who have the problem your account talks about and read posts about ' + topic + ' every day. Pick one narrow group and write only for them.',
+    bio: 'Who this is for, what they get from following, one proof. Under 160 characters, no emoji.',
+    pinned: 'One post that says who the account is for, shows your best result or story, and ends with what you post each week.',
+    today: 'Write the bio and pin one post that says who the account is for.',
+    queries: line ? [str(line, 60)] : [],
+    accounts: [
+      { name: 'Accounts one size bigger than you in your topic', why: 'Their readers already want what you post. Reply under their posts first.' },
+      { name: 'People who post questions about your topic', why: 'A useful answer gets read by everyone who follows them.' },
+      { name: 'Small accounts that reply to everyone', why: 'They follow back people who help and the circle grows.' },
+    ],
+    week: [
+      { day: 'Day 1', do: 'Write the bio, pick a clear photo and pin one post for one narrow group.' },
+      { day: 'Day 2', do: 'Follow 20 accounts your group reads and reply usefully to 5 of their posts.' },
+      { day: 'Day 3', do: 'Post one short story from your own work: what you tried, what happened.' },
+      { day: 'Day 4', do: 'Answer 5 questions on your topic with something specific, no link.' },
+      { day: 'Day 5', do: 'Post one tip someone can use in 5 minutes.' },
+      { day: 'Day 6', do: 'Post a plain opinion about your topic and answer every reply.' },
+      { day: 'Day 7', do: 'Look at your 3 best posts, write the next 3 in the same shape.' },
+    ],
+    posts: [
+      { title: 'A short story', body: 'Last week I tried [one thing] on [your topic]. What I expected: [x]. What happened: [y]. What I do now: [z].' },
+      { title: 'A useful tip', body: 'One thing that saves time on ' + topic + ': [the tip, in one or two lines]. It takes 5 minutes.' },
+      { title: 'A plain opinion', body: 'Unpopular opinion on ' + topic + ': [your view]. Here is why: [one reason].' },
+      { title: 'A question', body: 'People who work on ' + topic + ': what is the one thing that still wastes your week?' },
+      { title: 'A result with numbers', body: 'This month: [number] [what you measured]. What moved it most: [one thing].' },
+    ],
+    replies: [
+      { to: 'A post asking for help on your topic', body: 'What worked for me: [one specific step]. It helps because [reason]. Happy to say more.' },
+      { to: 'A post from a bigger account in your topic', body: 'Adding one thing from my own work: [a real detail they did not say].' },
+    ],
+  };
+}
+
 export function parseJson(s) {
   const t = String(s ?? '').replace(/```(?:json)?/g, '');
   const a = t.indexOf('{'), b = t.lastIndexOf('}');

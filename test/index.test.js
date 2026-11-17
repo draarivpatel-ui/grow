@@ -128,3 +128,21 @@ test('home page names the networks: X now, the rest soon', async () => {
   expect(html).toContain('class="socials nologo"');
   expect(html).toContain('Instagram<em>soon</em>');
 });
+
+describe('model out of budget', () => {
+  const out = async () => new Response(JSON.stringify({ error: { message: 'Daily budget used' } }), { status: 429, headers: { 'content-type': 'application/json' } });
+  test('an X profile still gets a general followers playbook, not saved', async () => {
+    const s = setup({ INFERENCE: { fetch: out } });
+    const r = await s.post('https://x.com/brookservers');
+    expect(r.status).toBe(200);
+    const j = await r.json();
+    expect(j.generic).toBe(true);
+    expect(j.plan.kind).toBe('followers');
+    expect(j.plan.handle).toBe('brookservers');
+    expect(j.id).toBeUndefined();
+  });
+  test('any other link still gets the readable 429', async () => {
+    const r = await setup({ INFERENCE: { fetch: out } }).post('https://example.com/');
+    expect(r.status).toBe(429);
+  });
+});

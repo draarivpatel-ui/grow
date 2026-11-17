@@ -96,7 +96,10 @@ function drawFollowers(id, plan) {
   const head = section('A followers plan for @' + plan.handle, plan.account || '');
   const share = el('div', 'share');
   share.append(button('Save to my cabinet', () => fetch('/me').then(() => fetch('/api/sites', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: plan.url, plan: id }) })).then((r) => r.json()).then((j) => { location.href = '/me?site=' + j.id; })), button('Copy link to this plan', () => copy(location.origin + '/p/' + id)), link('Open the profile', plan.url), el('span', '', 'Kept 30 days. Nothing is posted for you.'));
-  head.append(share); out.append(head);
+  if (!id) share.querySelectorAll('button')[1].remove();
+  head.append(share);
+  if (plan.generic) head.append(el('p', 'note', 'Made without the model: its free budget is used up today (it resets at 00:00 UTC). This is a general playbook with blanks to fill. Press the button again tomorrow for a plan written for your account.'));
+  out.append(head);
 
   const a = section('Who should follow you');
   const two = el('div', 'two'); const l = el('div'); l.append(el('p', 'pitch', plan.bio || '')); l.append(el('div', 'acts', ''));
@@ -242,8 +245,8 @@ async function make(ev) {
       .catch((e) => { throw new Error(e.name === 'TimeoutError' ? 'The plan took too long. Press the button again in a minute.' : 'Could not reach the server. Check your connection and press the button again.'); });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || 'Something went wrong. Press the button again.');
-    history.pushState(null, '', '/p/' + j.id);
-    st.textContent = j.reused ? 'This link got a plan today already; here it is.' : 'Done. The plan is below.';
+    if (j.id) history.pushState(null, '', '/p/' + j.id);
+    st.textContent = j.generic ? 'The model is out of budget today, so this is a general playbook.' : j.reused ? 'This link got a plan today already; here it is.' : 'Done. The plan is below.';
     draw(j.id, j.plan); document.getElementById('plan').scrollIntoView({ behavior: 'smooth' });
   } catch (e) { st.className = 'status err'; st.textContent = e.message; }
   finally { clearInterval(tick); go.disabled = false; }
