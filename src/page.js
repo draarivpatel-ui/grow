@@ -285,10 +285,10 @@ export function page({ planId = '', prefill = '' } = {}) {
 <form id="form" novalidate><input id="url" type="url" inputmode="url" autocomplete="url" placeholder="https://your-site.com" aria-label="Link to your site" value="${esc(prefill)}"><button id="go" class="btn go" type="submit">Make my plan</button></form>
 <input id="about-me" class="aboutme" maxlength="300" placeholder="Optional: what is this account about?" aria-label="What the account is about" hidden>
 <p id="status" class="status" role="status" aria-live="polite"></p>
-<p class="socials"><span>Followers plan for a profile:</span>
+<p class="socials nologo"><span>Followers plan for a profile:</span>
 <span class="soc on"><img src="/logo/x.com" alt="" width="16" height="16">X</span>
 <span class="soc"><img src="/logo/linkedin.com" alt="" width="16" height="16">LinkedIn<em>soon</em></span>
-<span class="soc"><img src="/logo/instagram.com" alt="" width="16" height="16">Instagram<em>soon</em></span>
+<span class="soc"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><defs><linearGradient id="ig" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#f9a825"/><stop offset=".5" stop-color="#e1306c"/><stop offset="1" stop-color="#5b51d8"/></linearGradient></defs><rect x="1" y="1" width="14" height="14" rx="4" fill="url(#ig)"/><circle cx="8" cy="8" r="3" fill="none" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="4" r="1" fill="#fff"/></svg>Instagram<em>soon</em></span>
 <span class="soc"><img src="/logo/tiktok.com" alt="" width="16" height="16">TikTok<em>soon</em></span>
 <span class="soc"><img src="/logo/youtube.com" alt="" width="16" height="16">YouTube<em>soon</em></span>
 <span class="soc"><img src="/logo/bsky.app" alt="" width="16" height="16">Bluesky<em>soon</em></span></p>

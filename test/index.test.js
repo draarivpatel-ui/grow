@@ -125,5 +125,6 @@ test('home page names the networks: X now, the rest soon', async () => {
   const { handle } = await import('../src/index.js');
   const html = await (await handle(new Request('https://grow.flisk.si/'), {})).text();
   expect(html).toContain('/logo/x.com');
+  expect(html).toContain('class="socials nologo"');
   expect(html).toContain('Instagram<em>soon</em>');
 });
