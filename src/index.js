@@ -1,5 +1,5 @@
 // grow.flisk.si: paste a link, get a plan to find the first customers. No sign-in. Plans are kept 30 days at /p/<id>.
-import { httpUrl, makePlan } from './plan.js';
+import { genericFollowers, httpUrl, makePlan, profileOf } from './plan.js';
 import { page } from './page.js';
 import { cabinet } from './cabinet.js';
 import { withSecurityHeaders } from './security-headers.js';
@@ -93,6 +93,7 @@ async function route(req, env, deps = {}) {
     const citable = env.CITABLE ? (u, init) => env.CITABLE.fetch(u, init) : fetchImpl;
     const out = await makePlan(link, { fetch: fetchImpl, model, citable, key: env.INFERENCE_KEY, about });
     if (out.error === 'timeout') return json(504, { error: 'The model took too long to answer. Press the button again in a minute.' });
+    if (out.error === 'busy' && profileOf(link)) return json(200, { plan: { url: link, ...genericFollowers(profileOf(link), about), tools: [] }, generic: true });
     if (out.error === 'busy') return json(429, { error: 'The free model is out of its daily budget. Come back tomorrow (00:00 UTC).' });
     if (out.error) return json(502, { error: 'The model did not give a usable plan. Press the button again.', detail: out.message });
 
