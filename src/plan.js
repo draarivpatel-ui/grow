@@ -26,6 +26,9 @@ export const LISTINGS = [
   { name: 'Uneed', why: 'A daily launch list for new tools.', url: 'https://www.uneed.best/submit-a-tool' },
   { name: 'DevHunt', why: 'A launch list for developer tools.', url: 'https://devhunt.org/' },
   { name: 'AIChief', why: 'An AI tools directory with a page per tool.', url: 'https://aichief.com/submit-tool/' },
+  { name: 'FoundrList', why: 'A launch list for founders, with a badge you can put on your site.', url: 'https://www.foundrlist.com/' },
+  { name: 'LaunchAmp', why: 'A European launch directory that approves each tool and gives a badge.', url: 'https://launchamp.eu/' },
+  { name: 'ToolPotion', why: 'An AI tools directory with ranked pages per tool.', url: 'https://toolpotion.ai/' },
   { name: 'SourceForge', why: 'Mirrors your releases and lists the project for people browsing open source.', url: 'https://sourceforge.net/create/' },
 ];
 
