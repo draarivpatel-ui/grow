@@ -76,8 +76,9 @@ async function route(req, env, deps = {}) {
     const link = httpUrl(body?.url);
     if (!link) return json(400, { error: 'Paste a full link that starts with https://' });
 
-    // The same link within a day gets the plan already made: no second model call.
-    const known = await env.DB.prepare('SELECT id, data, created FROM plans WHERE url = ? AND created > ? ORDER BY created DESC LIMIT 1').bind(link, Date.now() - DAY_MS).first();
+    const about = String(body?.about ?? '').replace(/[\u0000-\u001f]+/g, ' ').trim().slice(0, 300);
+    // The same link within a day gets the plan already made: no second model call (unless the owner added a line).
+    const known = about ? null : await env.DB.prepare('SELECT id, data, created FROM plans WHERE url = ? AND created > ? ORDER BY created DESC LIMIT 1').bind(link, Date.now() - DAY_MS).first();
     if (known) return json(200, { id: known.id, created: known.created, plan: JSON.parse(known.data), reused: true });
 
     const perVisitor = Number(env.PLANS_PER_VISITOR) || 3;
@@ -90,7 +91,7 @@ async function route(req, env, deps = {}) {
 
     const model = env.INFERENCE ? (u, init) => env.INFERENCE.fetch(u, init) : fetchImpl;
     const citable = env.CITABLE ? (u, init) => env.CITABLE.fetch(u, init) : fetchImpl;
-    const out = await makePlan(link, { fetch: fetchImpl, model, citable, key: env.INFERENCE_KEY });
+    const out = await makePlan(link, { fetch: fetchImpl, model, citable, key: env.INFERENCE_KEY, about });
     if (out.error === 'timeout') return json(504, { error: 'The model took too long to answer. Press the button again in a minute.' });
     if (out.error === 'busy') return json(429, { error: 'The free model is out of its daily budget. Come back tomorrow (00:00 UTC).' });
     if (out.error) return json(502, { error: 'The model did not give a usable plan. Press the button again.', detail: out.message });

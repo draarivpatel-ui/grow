@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { cleanPlan, httpUrl, makePlan, parseJson, readPage } from '../src/plan.js';
+import { cleanFollowers, cleanPlan, httpUrl, makePlan, parseJson, profileOf, readPage } from '../src/plan.js';
 import { MODEL_PLAN, fakeFetch } from './fixtures.js';
 
 describe('plan', () => {
@@ -51,5 +51,44 @@ describe('plan', () => {
   test('makePlan reports a used-up budget as busy', async () => {
     const out = await makePlan('https://a.com/', { fetch: fakeFetch(), model: fakeFetch({ modelStatus: 429, modelError: 'Daily limit reached' }), key: 'k' });
     expect(out.error).toBe('busy');
+  });
+});
+
+describe('followers plan for a profile link', () => {
+  const FOLLOWERS = {
+    account: 'A hosting account', audience: 'Indie devs who run servers.', bio: 'Servers without the pain.', pinned: 'Pinned.', today: 'Pin the post.',
+    queries: ['vps for side project', 'x'], accounts: [{ name: 'Indie hackers', why: 'fit' }],
+    week: [{ day: 'Day 1', do: 'Set the bio' }], posts: [{ title: 'Tip', body: 'One tip.' }], replies: [{ to: 'a hosting question', body: 'Try this.' }],
+  };
+  const model = () => { const calls = []; const f = async (url, init) => { calls.push({ url, init }); return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify(FOLLOWERS) } }] }), { headers: { 'content-type': 'application/json' } }); }; f.calls = calls; return f; };
+
+  test('profileOf reads X and Twitter handles and skips app paths', () => {
+    expect(profileOf('https://x.com/brookservers')).toEqual({ network: 'X', handle: 'brookservers' });
+    expect(profileOf('https://twitter.com/a_b/status/1')).toEqual({ network: 'X', handle: 'a_b' });
+    expect(profileOf('https://x.com/home')).toBeNull();
+    expect(profileOf('https://x.com/')).toBeNull();
+    expect(profileOf('https://example.com/brookservers')).toBeNull();
+  });
+
+  test('makePlan builds a followers plan without reading the page or calling Citable', async () => {
+    const page = fakeFetch(), citable = fakeFetch(), m = model();
+    const out = await makePlan('https://x.com/brookservers', { fetch: page, model: m, citable, key: 'k', about: 'cheap servers' });
+    expect(out.plan.kind).toBe('followers');
+    expect(out.plan.handle).toBe('brookservers');
+    expect(out.plan.queries).toEqual(['vps for side project']);
+    expect(out.plan.check).toBeUndefined();
+    expect(page.calls).toHaveLength(0);
+    expect(citable.calls).toHaveLength(0);
+    const sent = JSON.parse(m.calls[0].init.body);
+    expect(sent.messages[0].content).toContain('followers');
+    expect(sent.messages[1].content).toContain('@brookservers');
+    expect(sent.messages[1].content).toContain('cheap servers');
+  });
+
+  test('cleanFollowers needs an audience, posts and a week', () => {
+    const p = { network: 'X', handle: 'a' };
+    expect(cleanFollowers({ ...FOLLOWERS, posts: [] }, p)).toBeNull();
+    expect(cleanFollowers({ ...FOLLOWERS, week: [] }, p)).toBeNull();
+    expect(cleanFollowers({ ...FOLLOWERS, audience: '' }, p)).toBeNull();
   });
 });

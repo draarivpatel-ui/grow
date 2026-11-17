@@ -74,6 +74,48 @@ You get a link and the text of its page. Answer with ONE JSON object and nothing
 Give 5 to 8 places, 5 emails, 3 posts (one for each of X, Reddit and Hacker News). Only real places; never invent an address.
 Plain words, no emoji, no hashtags. If the page says little, guess from the link and say so in "product".`;
 
+// A link to a person's or brand's profile on a social network. Its page is behind a login, so it cannot be read and a
+// "who would buy it" plan makes no sense: the goal there is followers.
+const RESERVED = new Set(['home', 'i', 'search', 'explore', 'intent', 'share', 'login', 'signup', 'settings', 'messages', 'notifications', 'compose', 'hashtag', 'tos', 'privacy']);
+export function profileOf(url) {
+  try {
+    const u = new URL(url);
+    if (!/^(www\.|mobile\.)?(x|twitter)\.com$/i.test(u.hostname)) return null;
+    const handle = u.pathname.split('/').filter(Boolean)[0] || '';
+    if (!/^[A-Za-z0-9_]{1,15}$/.test(handle) || RESERVED.has(handle.toLowerCase())) return null;
+    return { network: 'X', handle };
+  } catch { return null; }
+}
+
+export const FOLLOWERS_SYSTEM = `You help a person grow the followers of their X (Twitter) account, with no ads and no bots.
+You get the handle and, maybe, a line from the owner about what the account is for. You cannot open the profile.
+If you do not know the account, build the plan from the handle and the owner's line, and say so in "account". Never invent facts about it.
+Answer with ONE JSON object and nothing else:
+{"account": "what the account is for, one short sentence",
+ "audience": "who should follow it: a narrow group, what they care about, why they would follow (2 sentences)",
+ "bio": "a bio under 160 characters that says who it is for and what they get",
+ "pinned": "a pinned post under 270 characters that makes a stranger press Follow",
+ "today": "the one step to take today, one sentence",
+ "queries": ["2 to 4 short search phrases (2-4 words) the audience writes in posts, to find them and reply"],
+ "accounts": [{"name": "a type of account to follow and reply to, or a real well-known account if you are sure", "why": "why its followers fit"}],
+ "week": [{"day": "Day 1", "do": "one concrete task of about 20 minutes"}],
+ "posts": [{"title": "angle, 3 to 6 words", "body": "an X post under 270 characters, plain"}],
+ "replies": [{"to": "what kind of post to answer", "body": "a useful reply under 240 characters that adds something, no pitch"}]}
+Give 5 accounts, 7 week days (Day 1 to Day 7), 10 posts, 5 replies. The posts mix: a short story, a useful tip, a plain opinion, a question, a result with numbers.
+Plain words, no emoji, no hashtags, no "follow me" begging, no buying followers. Say what to do again every week after the first.`;
+
+export function cleanFollowers(i, profile) {
+  if (!i || typeof i !== 'object') return null;
+  const accounts = (Array.isArray(i.accounts) ? i.accounts : []).slice(0, 8).map((a) => ({ name: str(a?.name, 80), why: str(a?.why, 200) })).filter((a) => a.name);
+  const week = (Array.isArray(i.week) ? i.week : []).slice(0, 7).map((d, n) => ({ day: str(d?.day, 20) || 'Day ' + (n + 1), do: str(d?.do, 240) })).filter((d) => d.do);
+  const posts = (Array.isArray(i.posts) ? i.posts : []).slice(0, 12).map((p) => ({ title: str(p?.title, 80), body: text(p?.body, 290) })).filter((p) => p.body);
+  const replies = (Array.isArray(i.replies) ? i.replies : []).slice(0, 8).map((r) => ({ to: str(r?.to, 120), body: text(r?.body, 260) })).filter((r) => r.body);
+  const audience = str(i.audience, 500);
+  if (!audience || !posts.length || !week.length) return null;
+  const queries = (Array.isArray(i.queries) ? i.queries : []).map((q) => str(q, 60)).filter((q) => q.length >= 3).slice(0, 4);
+  return { kind: 'followers', network: profile.network, handle: profile.handle, account: str(i.account, 200), audience, bio: str(i.bio, 200), pinned: text(i.pinned, 300), today: str(i.today, 240), queries, accounts, week, posts, replies };
+}
+
 export function parseJson(s) {
   const t = String(s ?? '').replace(/```(?:json)?/g, '');
   const a = t.indexOf('{'), b = t.lastIndexOf('}');
@@ -98,15 +140,18 @@ export function cleanPlan(i) {
 }
 
 // The whole plan. `model` and `citable` are fetch-like functions (service bindings in production).
-export async function makePlan(url, { fetch: fetchImpl, model, citable, key }) {
-  const [page, check] = await Promise.all([readPage(url, fetchImpl), checkCitable(url, citable || fetchImpl)]);
-  const about = page ? `Title: ${page.title}\nDescription: ${page.desc}\nText: ${page.body}` : '(the page could not be read)';
+export async function makePlan(url, { fetch: fetchImpl, model, citable, key, about: ownerLine = '' }) {
+  const profile = profileOf(url);
+  const [page, check] = profile ? [null, null] : await Promise.all([readPage(url, fetchImpl), checkCitable(url, citable || fetchImpl)]);
+  const about = profile
+    ? `Handle: @${profile.handle}\nOwner says: ${str(ownerLine, 300) || '(nothing)'}`
+    : page ? `Title: ${page.title}\nDescription: ${page.desc}\nText: ${page.body}` : '(the page could not be read)';
   let r;
   try {
     r = await model('https://inference.flisk.si/v1/chat/completions', {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
-    body: JSON.stringify({ model: MODEL, temperature: 0.4, max_tokens: 2048, messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: `Link: ${url}\n${about}` }] }),
+    body: JSON.stringify({ model: MODEL, temperature: 0.4, max_tokens: profile ? 3500 : 2048, messages: [{ role: 'system', content: profile ? FOLLOWERS_SYSTEM : SYSTEM }, { role: 'user', content: `Link: ${url}\n${about}` }] }),
     signal: AbortSignal.timeout(60000),
   });
   } catch (e) {
@@ -117,7 +162,12 @@ export async function makePlan(url, { fetch: fetchImpl, model, citable, key }) {
     const msg = str(j?.error?.message, 300);
     return { error: /daily|budget|limit/i.test(msg) ? 'busy' : 'model', message: msg || `model answered ${r.status}` };
   }
-  const plan = cleanPlan(parseJson(j?.choices?.[0]?.message?.content));
+  const raw = parseJson(j?.choices?.[0]?.message?.content);
+  if (profile) {
+    const f = cleanFollowers(raw, profile);
+    return f ? { plan: { url, ...f, tools: TOOLS } } : { error: 'model', message: 'the model did not give a usable plan' };
+  }
+  const plan = cleanPlan(raw);
   if (!plan) return { error: 'model', message: 'the model did not give a usable plan' };
   return { plan: { url, ...plan, check, listings: LISTINGS, tools: TOOLS } };
 }

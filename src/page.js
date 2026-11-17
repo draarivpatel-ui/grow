@@ -26,7 +26,7 @@ button,input{font:inherit;color:inherit}:focus-visible{outline:2px solid var(--a
 .kicker{font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--faint)}
 .hero h1{font-size:clamp(36px,4.4vw,56px);line-height:1;margin:20px 0}
 .lead{font-size:18px;color:var(--mut);max-width:32em;margin:0 0 26px}
-form{display:flex;max-width:600px}form input{flex:1;min-width:0;height:48px;padding:0 14px;border:1px solid var(--line2);border-right:0;border-radius:0;background:var(--panel);font:14px var(--mono)}form input:focus{outline:2px solid var(--acc);outline-offset:-2px}form .btn{height:48px}
+form{display:flex;max-width:600px}form input{flex:1;min-width:0;height:48px;padding:0 14px;border:1px solid var(--line2);border-right:0;border-radius:0;background:var(--panel);font:14px var(--mono)}form input:focus{outline:2px solid var(--acc);outline-offset:-2px}form .btn{height:48px}.aboutme{display:block;width:100%;max-width:600px;margin-top:8px;height:44px;padding:0 14px;border:1px solid var(--line2);background:var(--panel);font:14px var(--mono)}.aboutme[hidden]{display:none}
 .proof{display:flex;flex-wrap:wrap;gap:6px 18px;list-style:none;padding:0;margin:20px 0 0;color:var(--faint);font:500 12px var(--mono)}.proof li::before{content:"";display:inline-block;width:7px;height:7px;background:var(--acc);margin-right:9px;vertical-align:1px}
 .band{background:repeating-linear-gradient(-45deg,var(--acc) 0 2px,transparent 2px 11px);min-height:120px}
 .status{margin:14px 0 0;font:500 12.5px var(--mono);color:var(--mut);min-height:1.5em}.status.err{color:var(--red)}
@@ -89,7 +89,61 @@ const button = (label, fn) => { const b = el('button', 'btn', label); b.type = '
 function section(title, sub) { const s = el('section'); s.append(el('h2', '', title)); if (sub) s.append(el('p', 'sub', sub)); return s; }
 function host(u) { try { return new URL(u).host; } catch (e) { return u; } }
 
+const XQ = (q) => 'https://x.com/search?f=live&q=' + encodeURIComponent(q);
+function drawFollowers(id, plan) {
+  const out = $('#plan'); out.replaceChildren();
+  document.title = 'Followers plan for @' + plan.handle + ' · Flisk Grow';
+  const head = section('A followers plan for @' + plan.handle, plan.account || '');
+  const share = el('div', 'share');
+  share.append(button('Save to my cabinet', () => fetch('/me').then(() => fetch('/api/sites', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: plan.url, plan: id }) })).then((r) => r.json()).then((j) => { location.href = '/me?site=' + j.id; })), button('Copy link to this plan', () => copy(location.origin + '/p/' + id)), link('Open the profile', plan.url), el('span', '', 'Kept 30 days. Nothing is posted for you.'));
+  head.append(share); out.append(head);
+
+  const a = section('Who should follow you');
+  const two = el('div', 'two'); const l = el('div'); l.append(el('p', 'pitch', plan.bio || '')); l.append(el('div', 'acts', ''));
+  if (plan.bio) l.lastChild.append(button('Copy bio', () => copy(plan.bio)));
+  const r = el('div'); r.append(el('p', '', plan.audience));
+  if (plan.today) { const t = el('div', 'today'); t.append(el('small', '', 'Do this today'), el('div', '', plan.today)); r.append(t); }
+  two.append(l, r); a.append(two); out.append(a);
+
+  if (plan.pinned) {
+    const pn = section('Your pinned post', 'The first thing a stranger sees. Pin it, then send people to your profile.');
+    const d = el('div', 'mail'); d.append(el('pre', '', plan.pinned));
+    const ac = el('div', 'acts'); ac.append(link('Open in X', 'https://x.com/intent/post?text=' + encodeURIComponent(plan.pinned), 'go'), button('Copy', () => copy(plan.pinned)));
+    d.append(ac); pn.append(d); out.append(pn);
+  }
+
+  const w = section('Your first 7 days', 'About 20 minutes a day. Keep going every week after: followers come from showing up.');
+  const wg = el('div', 'grid');
+  plan.week.forEach((x) => { const c = el('div'); c.append(el('h3', '', x.day), el('p', '', x.do)); wg.append(c); });
+  w.append(wg); out.append(w);
+
+  const p = section('Posts to write (' + plan.posts.length + ')', 'Opens the post box with the text filled in. You read it, change it and post it yourself.');
+  const pg = el('div', 'grid');
+  plan.posts.forEach((x) => {
+    const d = el('div', 'mail'); d.append(el('h3', '', x.title), el('pre', '', x.body));
+    const ac = el('div', 'acts'); ac.append(link('Open in X', 'https://x.com/intent/post?text=' + encodeURIComponent(x.body), 'go'), button('Copy', () => copy(x.body)));
+    d.append(ac); pg.append(d);
+  });
+  p.append(pg); out.append(p);
+
+  if (plan.queries.length || plan.replies.length) {
+    const rp = section('Replies that bring followers', 'Answer people who are asking right now. A useful reply is read by everyone who follows the post. No pitch.');
+    if (plan.queries.length) { const qa = el('div', 'acts'); plan.queries.forEach((q) => qa.append(link('Find: ' + q, XQ(q)))); rp.append(qa); }
+    const rg = el('div', 'grid');
+    plan.replies.forEach((x) => { const d = el('div', 'mail'); d.append(el('div', 'to', 'To: ' + (x.to || 'a post that fits')), el('pre', '', x.body)); const ac = el('div', 'acts'); ac.append(button('Copy', () => copy(x.body))); d.append(ac); rg.append(d); });
+    rp.append(rg); out.append(rp);
+  }
+
+  if (plan.accounts.length) {
+    const ag = el('div', 'grid');
+    plan.accounts.forEach((x) => { const c = el('div'); c.append(el('h3', '', x.name), el('p', '', x.why)); ag.append(c); });
+    const as = section('Accounts to follow and answer', 'Reply under their posts first. Their readers are your audience.'); as.append(ag); out.append(as);
+  }
+  out.hidden = false; $('#about').hidden = true;
+}
+
 function draw(id, plan) {
+  if (plan.kind === 'followers') return drawFollowers(id, plan);
   const out = $('#plan'); out.replaceChildren();
   document.title = 'Grow plan for ' + host(plan.url) + ' · Flisk Grow';
 
@@ -174,6 +228,7 @@ function draw(id, plan) {
   out.hidden = false; $('#about').hidden = true;
 }
 
+const isProfile = (u) => /^https?:[/][/](www[.]|mobile[.])?(x|twitter)[.]com[/][A-Za-z0-9_]+/i.test(u.trim());
 const STEPS = ['Reading the page', 'Checking if AI search can read it', 'Finding who would buy it', 'Writing the emails', 'Writing the posts'];
 async function make(ev) {
   ev.preventDefault();
@@ -183,7 +238,7 @@ async function make(ev) {
   go.disabled = true; let i = 0; st.textContent = STEPS[0] + '...';
   const tick = setInterval(() => { i = Math.min(i + 1, STEPS.length - 1); st.textContent = STEPS[i] + '...'; }, 4000);
   try {
-    const r = await fetch('/api/plan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url }), signal: AbortSignal.timeout(100000) })
+    const r = await fetch('/api/plan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url, about: $('#about-me').value.trim() }), signal: AbortSignal.timeout(100000) })
       .catch((e) => { throw new Error(e.name === 'TimeoutError' ? 'The plan took too long. Press the button again in a minute.' : 'Could not reach the server. Check your connection and press the button again.'); });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || 'Something went wrong. Press the button again.');
@@ -204,6 +259,8 @@ async function load(id) {
 }
 
 $('#form').addEventListener('submit', make);
+$('#url').addEventListener('input', () => { $('#about-me').hidden = !isProfile($('#url').value); });
+$('#about-me').hidden = !isProfile($('#url').value);
 if (window.PLAN_ID) load(window.PLAN_ID);
 `;
 
@@ -226,6 +283,7 @@ export function page({ planId = '', prefill = '' } = {}) {
 <h1>Find your first customers.</h1>
 <p class="lead">Paste a link to what you made. Get who would buy it, where they are, emails and posts to send, whether AI search can read your page, and where to list it.</p>
 <form id="form" novalidate><input id="url" type="url" inputmode="url" autocomplete="url" placeholder="https://your-site.com" aria-label="Link to your site" value="${esc(prefill)}"><button id="go" class="btn go" type="submit">Make my plan</button></form>
+<input id="about-me" class="aboutme" maxlength="300" placeholder="Optional: what is this account about?" aria-label="What the account is about" hidden>
 <p id="status" class="status" role="status" aria-live="polite"></p>
 <ul class="proof"><li>About 20 seconds</li><li>Nothing is sent for you</li><li>Plans kept 30 days</li></ul>
 </div><div class="band" aria-hidden="true"></div></div>
