@@ -26,7 +26,7 @@ button,input{font:inherit;color:inherit}:focus-visible{outline:2px solid var(--a
 .kicker{font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--faint)}
 .hero h1{font-size:clamp(36px,4.4vw,56px);line-height:1;margin:20px 0}
 .lead{font-size:18px;color:var(--mut);max-width:32em;margin:0 0 26px}
-form{display:flex;max-width:600px}form input{flex:1;min-width:0;height:48px;padding:0 14px;border:1px solid var(--line2);border-right:0;border-radius:0;background:var(--panel);font:14px var(--mono)}form input:focus{outline:2px solid var(--acc);outline-offset:-2px}form .btn{height:48px}.aboutme{display:block;width:100%;max-width:600px;margin-top:8px;height:44px;padding:0 14px;border:1px solid var(--line2);background:var(--panel);font:14px var(--mono)}.aboutme[hidden]{display:none}
+form{display:flex;max-width:600px}form input{flex:1;min-width:0;height:48px;padding:0 14px;border:1px solid var(--line2);border-right:0;border-radius:0;background:var(--panel);font:14px var(--mono)}form input:focus{outline:2px solid var(--acc);outline-offset:-2px}form .btn{height:48px}.socials{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0 0;font-size:13px;color:var(--mute,#666)}.soc{display:inline-flex;gap:6px;align-items:center;padding:4px 10px;border:1px solid var(--line2);background:var(--panel);opacity:.6}.soc.on{opacity:1;font-weight:600}.soc em{font:600 10px var(--mono);text-transform:uppercase;letter-spacing:.06em;font-style:normal}.aboutme{display:block;width:100%;max-width:600px;margin-top:8px;height:44px;padding:0 14px;border:1px solid var(--line2);background:var(--panel);font:14px var(--mono)}.aboutme[hidden]{display:none}
 .proof{display:flex;flex-wrap:wrap;gap:6px 18px;list-style:none;padding:0;margin:20px 0 0;color:var(--faint);font:500 12px var(--mono)}.proof li::before{content:"";display:inline-block;width:7px;height:7px;background:var(--acc);margin-right:9px;vertical-align:1px}
 .band{background:repeating-linear-gradient(-45deg,var(--acc) 0 2px,transparent 2px 11px);min-height:120px}
 .status{margin:14px 0 0;font:500 12.5px var(--mono);color:var(--mut);min-height:1.5em}.status.err{color:var(--red)}
@@ -285,6 +285,13 @@ export function page({ planId = '', prefill = '' } = {}) {
 <form id="form" novalidate><input id="url" type="url" inputmode="url" autocomplete="url" placeholder="https://your-site.com" aria-label="Link to your site" value="${esc(prefill)}"><button id="go" class="btn go" type="submit">Make my plan</button></form>
 <input id="about-me" class="aboutme" maxlength="300" placeholder="Optional: what is this account about?" aria-label="What the account is about" hidden>
 <p id="status" class="status" role="status" aria-live="polite"></p>
+<p class="socials"><span>Followers plan for a profile:</span>
+<span class="soc on"><img src="/logo/x.com" alt="" width="16" height="16">X</span>
+<span class="soc"><img src="/logo/linkedin.com" alt="" width="16" height="16">LinkedIn<em>soon</em></span>
+<span class="soc"><img src="/logo/instagram.com" alt="" width="16" height="16">Instagram<em>soon</em></span>
+<span class="soc"><img src="/logo/tiktok.com" alt="" width="16" height="16">TikTok<em>soon</em></span>
+<span class="soc"><img src="/logo/youtube.com" alt="" width="16" height="16">YouTube<em>soon</em></span>
+<span class="soc"><img src="/logo/bsky.app" alt="" width="16" height="16">Bluesky<em>soon</em></span></p>
 <ul class="proof"><li>About 20 seconds</li><li>Nothing is sent for you</li><li>Plans kept 30 days</li></ul>
 </div><div class="band" aria-hidden="true"></div></div>
 <div id="plan" hidden></div>
