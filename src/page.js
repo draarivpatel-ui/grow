@@ -89,7 +89,9 @@ const button = (label, fn) => { const b = el('button', 'btn', label); b.type = '
 function section(title, sub) { const s = el('section'); s.append(el('h2', '', title)); if (sub) s.append(el('p', 'sub', sub)); return s; }
 function host(u) { try { return new URL(u).host; } catch (e) { return u; } }
 
-const XQ = (q) => 'https://x.com/search?f=live&q=' + encodeURIComponent(q);
+const BSKY = (n) => n === 'Bluesky';
+const XQ = (q, n) => BSKY(n) ? 'https://bsky.app/search?q=' + encodeURIComponent(q) : 'https://x.com/search?f=live&q=' + encodeURIComponent(q);
+const POST = (t, n) => (BSKY(n) ? 'https://bsky.app/intent/compose?text=' : 'https://x.com/intent/post?text=') + encodeURIComponent(t);
 function drawFollowers(id, plan) {
   const out = $('#plan'); out.replaceChildren();
   document.title = 'Followers plan for @' + plan.handle + ' · Flisk Grow';
@@ -111,7 +113,7 @@ function drawFollowers(id, plan) {
   if (plan.pinned) {
     const pn = section('Your pinned post', 'The first thing a stranger sees. Pin it, then send people to your profile.');
     const d = el('div', 'mail'); d.append(el('pre', '', plan.pinned));
-    const ac = el('div', 'acts'); ac.append(link('Open in X', 'https://x.com/intent/post?text=' + encodeURIComponent(plan.pinned), 'go'), button('Copy', () => copy(plan.pinned)));
+    const ac = el('div', 'acts'); ac.append(link('Open in ' + plan.network, POST(plan.pinned, plan.network), 'go'), button('Copy', () => copy(plan.pinned)));
     d.append(ac); pn.append(d); out.append(pn);
   }
 
@@ -124,14 +126,14 @@ function drawFollowers(id, plan) {
   const pg = el('div', 'grid');
   plan.posts.forEach((x) => {
     const d = el('div', 'mail'); d.append(el('h3', '', x.title), el('pre', '', x.body));
-    const ac = el('div', 'acts'); ac.append(link('Open in X', 'https://x.com/intent/post?text=' + encodeURIComponent(x.body), 'go'), button('Copy', () => copy(x.body)));
+    const ac = el('div', 'acts'); ac.append(link('Open in ' + plan.network, POST(x.body, plan.network), 'go'), button('Copy', () => copy(x.body)));
     d.append(ac); pg.append(d);
   });
   p.append(pg); out.append(p);
 
   if (plan.queries.length || plan.replies.length) {
     const rp = section('Replies that bring followers', 'Answer people who are asking right now. A useful reply is read by everyone who follows the post. No pitch.');
-    if (plan.queries.length) { const qa = el('div', 'acts'); plan.queries.forEach((q) => qa.append(link('Find: ' + q, XQ(q)))); rp.append(qa); }
+    if (plan.queries.length) { const qa = el('div', 'acts'); plan.queries.forEach((q) => qa.append(link('Find: ' + q, XQ(q, plan.network)))); rp.append(qa); }
     const rg = el('div', 'grid');
     plan.replies.forEach((x) => { const d = el('div', 'mail'); d.append(el('div', 'to', 'To: ' + (x.to || 'a post that fits')), el('pre', '', x.body)); const ac = el('div', 'acts'); ac.append(button('Copy', () => copy(x.body))); d.append(ac); rg.append(d); });
     rp.append(rg); out.append(rp);
@@ -233,7 +235,7 @@ function draw(id, plan) {
   out.hidden = false; $('#about').hidden = true;
 }
 
-const isProfile = (u) => /^https?:[/][/](www[.]|mobile[.])?(x|twitter)[.]com[/][A-Za-z0-9_]+/i.test(u.trim());
+const isProfile = (u) => /^https?:[/][/](((www[.]|mobile[.])?(x|twitter)[.]com[/][A-Za-z0-9_]+)|((www[.])?bsky[.]app[/]profile[/][A-Za-z0-9.-]+))/i.test(u.trim());
 const STEPS = ['Reading the page', 'Checking if AI search can read it', 'Finding who would buy it', 'Writing the emails', 'Writing the posts'];
 async function make(ev) {
   ev.preventDefault();
@@ -296,7 +298,7 @@ export function page({ planId = '', prefill = '' } = {}) {
 <span class="soc"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><defs><linearGradient id="ig" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#f9a825"/><stop offset=".5" stop-color="#e1306c"/><stop offset="1" stop-color="#5b51d8"/></linearGradient></defs><rect x="1" y="1" width="14" height="14" rx="4" fill="url(#ig)"/><circle cx="8" cy="8" r="3" fill="none" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="4" r="1" fill="#fff"/></svg>Instagram<em>soon</em></span>
 <span class="soc"><img src="/logo/tiktok.com" alt="" width="16" height="16">TikTok<em>soon</em></span>
 <span class="soc"><img src="/logo/youtube.com" alt="" width="16" height="16">YouTube<em>soon</em></span>
-<span class="soc"><img src="/logo/bsky.app" alt="" width="16" height="16">Bluesky<em>soon</em></span></p>
+<span class="soc on"><img src="/logo/bsky.app" alt="" width="16" height="16">Bluesky</span></p>
 <ul class="proof"><li>About 20 seconds</li><li>Nothing is sent for you</li><li>Plans kept 30 days</li></ul>
 </div><div class="band" aria-hidden="true"></div></div>
 <div id="plan" hidden></div>

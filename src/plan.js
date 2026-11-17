@@ -83,6 +83,11 @@ const RESERVED = new Set(['home', 'i', 'search', 'explore', 'intent', 'share', '
 export function profileOf(url) {
   try {
     const u = new URL(url);
+    if (/^(www\.)?bsky\.app$/i.test(u.hostname)) {
+      const [seg, handle = ''] = u.pathname.split('/').filter(Boolean);
+      if (seg !== 'profile' || !/^[A-Za-z0-9][A-Za-z0-9.-]{0,251}[A-Za-z0-9]$/.test(handle) || !handle.includes('.')) return null;
+      return { network: 'Bluesky', handle: handle.toLowerCase() };
+    }
     if (!/^(www\.|mobile\.)?(x|twitter)\.com$/i.test(u.hostname)) return null;
     const handle = u.pathname.split('/').filter(Boolean)[0] || '';
     if (!/^[A-Za-z0-9_]{1,15}$/.test(handle) || RESERVED.has(handle.toLowerCase())) return null;
@@ -90,6 +95,7 @@ export function profileOf(url) {
   } catch { return null; }
 }
 
+export const followersSystem = (network = 'X') => FOLLOWERS_SYSTEM.replace('their X (Twitter) account', network === 'Bluesky' ? 'their Bluesky account' : 'their X (Twitter) account').replace('an X post under 270', (network === 'Bluesky' ? 'a Bluesky post under 270' : 'an X post under 270'));
 export const FOLLOWERS_SYSTEM = `You help a person grow the followers of their X (Twitter) account, with no ads and no bots.
 You get the handle and, maybe, a line from the owner about what the account is for. You cannot open the profile.
 If you do not know the account, build the plan from the handle and the owner's line, and say so in "account". Never invent facts about it.
@@ -223,7 +229,7 @@ export async function makePlan(url, { fetch: fetchImpl, model, citable, key, abo
     r = await model('https://inference.flisk.si/v1/chat/completions', {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
-    body: JSON.stringify({ model: MODEL, temperature: 0.4, max_tokens: profile ? 3500 : 2048, messages: [{ role: 'system', content: profile ? FOLLOWERS_SYSTEM : SYSTEM }, { role: 'user', content: `Link: ${url}\n${about}` }] }),
+    body: JSON.stringify({ model: MODEL, temperature: 0.4, max_tokens: profile ? 3500 : 2048, messages: [{ role: 'system', content: profile ? followersSystem(profile.network) : SYSTEM }, { role: 'user', content: `Link: ${url}\n${about}` }] }),
     signal: AbortSignal.timeout(60000),
   });
   } catch (e) {

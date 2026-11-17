@@ -1,7 +1,7 @@
 // The cabinet at /me: your sites, the people talking about the problem each one solves (social listening), and where
 // you listed it. A visitor gets a cabinet in this browser at once (signed cookie); GitHub sign-in keeps it across
 // browsers and moves the browser's sites into the account. Nothing is posted or sent for anyone.
-import { httpUrl, LISTINGS } from './plan.js';
+import { httpUrl, LISTINGS, profileOf } from './plan.js';
 import { listen, mentions, notOwn, parseKeywords, redditSearch } from './listen.js';
 import { CSS } from './page.js';
 import { findListings } from './found.js';
@@ -44,7 +44,8 @@ async function keywordsFor(env, url) {
   const row = await env.DB.prepare('SELECT data FROM plans WHERE url = ? ORDER BY created DESC LIMIT 1').bind(url).first();
   const plan = row ? JSON.parse(row.data) : null;
   if (plan?.queries?.length) return { keywords: plan.queries.join(', '), plan };
-  const name = new URL(url).hostname.replace(/^www\./, '').split('.')[0].replace(/[-_]/g, ' ');
+  const pr = profileOf(url);
+  const name = pr ? pr.handle.split('.')[0].replace(/[-_]/g, ' ') : new URL(url).hostname.replace(/^www\./, '').split('.')[0].replace(/[-_]/g, ' ');
   return { keywords: name, plan };
 }
 
@@ -280,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => logoize(document.body));
 const toast = (t) => { const n = $('#toast'); n.textContent = t; n.classList.add('show'); setTimeout(() => n.classList.remove('show'), 1800); };
 const link = (label, href, cls) => { const a = el('a', 'btn' + (cls ? ' ' + cls : ''), label); a.href = href; a.target = '_blank'; a.rel = 'noopener'; return a; };
 const button = (label, fn, cls) => { const b = el('button', 'btn' + (cls ? ' ' + cls : ''), label); b.type = 'button'; b.onclick = fn; return b; };
-const host = (u) => { try { return new URL(u).host; } catch (e) { return u; } };
+const host = (u) => { try { const x = new URL(u), h = x.host.replace(/^(www|mobile)[.]/, ''), p = x.pathname.split('/').filter(Boolean); if (/^(x|twitter)[.]com$/.test(h) && p[0]) return '@' + p[0] + ' on X'; if (h === 'bsky.app' && p[0] === 'profile' && p[1]) return '@' + p[1] + ' on Bluesky'; return x.host; } catch (e) { return u; } };
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : Math.round(m / 1440) + ' d ago'; };
 async function api(path, body) {
   const r = await fetch(path, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : {});

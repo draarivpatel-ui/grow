@@ -70,6 +70,20 @@ describe('followers plan for a profile link', () => {
     expect(profileOf('https://example.com/brookservers')).toBeNull();
   });
 
+  test('profileOf reads Bluesky profile links', () => {
+    expect(profileOf('https://bsky.app/profile/brookservers.bsky.social')).toEqual({ network: 'Bluesky', handle: 'brookservers.bsky.social' });
+    expect(profileOf('https://bsky.app/profile/Brook.Dev/post/3k')).toEqual({ network: 'Bluesky', handle: 'brook.dev' });
+    expect(profileOf('https://bsky.app/profile/')).toBeNull();
+    expect(profileOf('https://bsky.app/search?q=a')).toBeNull();
+  });
+
+  test('a Bluesky link gets a Bluesky plan', async () => {
+    const m = model();
+    const out = await makePlan('https://bsky.app/profile/brookservers.bsky.social', { fetch: fakeFetch(), model: m, citable: fakeFetch(), key: 'k' });
+    expect(out.plan.network).toBe('Bluesky');
+    expect(JSON.parse(m.calls[0].init.body).messages[0].content).toContain('Bluesky account');
+  });
+
   test('makePlan builds a followers plan without reading the page or calling Citable', async () => {
     const page = fakeFetch(), citable = fakeFetch(), m = model();
     const out = await makePlan('https://x.com/brookservers', { fetch: page, model: m, citable, key: 'k', about: 'cheap servers' });
