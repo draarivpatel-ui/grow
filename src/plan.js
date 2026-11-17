@@ -156,6 +156,35 @@ export function genericFollowers(profile, about = '') {
   };
 }
 
+// Used when the free model is out of budget: the real AI-search check and listings, plus a fixed playbook with blanks.
+export function genericCustomers(url, page, check) {
+  let host = url; try { host = new URL(url).host; } catch { /* keep the link */ }
+  const name = str(page?.title, 120) || host;
+  return {
+    generic: true, url, product: name, queries: [],
+    buyers: 'The model is out of budget today, so this is a general guide. Pick ONE narrow group who has the problem your product solves today, name their job, and write only for them.',
+    pitch: 'For [who], [your product] does [one result] without [the pain they have now].',
+    today: 'Write the one-line pitch above with real words and send it to 5 people who fit.',
+    places: [
+      { name: 'Reddit', why: 'Search for the subreddit where your buyers ask for help. Read the rules first.', url: 'https://www.reddit.com/' },
+      { name: 'Hacker News', why: 'Developers and early adopters. Show HN fits a working product.', url: 'https://news.ycombinator.com/' },
+      { name: 'Indie Hackers', why: 'Makers who share what they built and give feedback.', url: 'https://www.indiehackers.com/' },
+      { name: 'dev.to', why: 'Developers read how-to posts; a short honest post about the problem works.', url: 'https://dev.to/' },
+      { name: 'A newsletter your buyers read', why: 'Write to its author with one useful fact and one small ask.', url: '' },
+    ],
+    emails: [
+      { to: 'Someone who has the problem', subject: 'Quick question about [their problem]', body: 'Hi [name],\n\nI saw you [what they did or wrote]. I made ' + name + ' to [one result]. Would you try it and tell me the one thing that is missing?\n\nThanks,\n[your name]' },
+      { to: 'The author of a newsletter your buyers read', subject: 'A tool for your readers: ' + name, body: 'Hi [name],\n\nYour readers [have this problem]. ' + name + ' [does one result]. If it fits, I can write a short note for them.\n\n[your name]' },
+    ],
+    posts: [
+      { where: 'X', title: 'Launch post', body: 'I built ' + name + ' for [who]. It [one result]. Try it and tell me what is missing: ' + url },
+      { where: 'Reddit', title: 'I built a tool for [problem]', body: 'I kept hitting [problem], so I made ' + name + '. It [one result]. I would like honest feedback.' },
+      { where: 'Hacker News', title: 'Show HN: ' + name, body: 'What it is, why I built it, and what I want feedback on, in three short lines.' },
+    ],
+    check, listings: LISTINGS, tools: TOOLS,
+  };
+}
+
 export function parseJson(s) {
   const t = String(s ?? '').replace(/```(?:json)?/g, '');
   const a = t.indexOf('{'), b = t.lastIndexOf('}');
@@ -200,7 +229,8 @@ export async function makePlan(url, { fetch: fetchImpl, model, citable, key, abo
   const j = await r.json().catch(() => null);
   if (!r.ok) {
     const msg = str(j?.error?.message, 300);
-    return { error: /daily|budget|limit/i.test(msg) ? 'busy' : 'model', message: msg || `model answered ${r.status}` };
+    const busy = /daily|budget|limit/i.test(msg);
+    return { error: busy ? 'busy' : 'model', message: msg || `model answered ${r.status}`, ...(busy && !profile ? { fallback: genericCustomers(url, page, check) } : {}) };
   }
   const raw = parseJson(j?.choices?.[0]?.message?.content);
   if (profile) {

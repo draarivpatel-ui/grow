@@ -153,8 +153,10 @@ function draw(id, plan) {
   const head = section('A plan for ' + host(plan.url), plan.product || '');
   const share = el('div', 'share');
   const here = location.origin + '/p/' + id;
-  share.append(button('Save to my cabinet', () => fetch('/me').then(() => fetch('/api/sites', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: plan.url, plan: id }) })).then((r) => r.json()).then((j) => { location.href = '/me?site=' + j.id; })), button('Copy link to this plan', () => copy(here)), link('Open the site', plan.url), el('span', '', 'Kept 30 days: ' + here));
+  share.append(button('Save to my cabinet', () => fetch('/me').then(() => fetch('/api/sites', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: plan.url, plan: id }) })).then((r) => r.json()).then((j) => { location.href = '/me?site=' + j.id; })), button('Copy link to this plan', () => copy(here)), link('Open the site', plan.url), el('span', '', id ? 'Kept 30 days: ' + here : 'Not saved: it is a general guide.'));
+  if (!id) share.querySelectorAll('button')[1].remove();
   head.append(share);
+  if (plan.generic) head.append(el('p', 'note', 'Made without the model: its free budget is used up today (it resets at 00:00 UTC). The AI-search check and the listings are real; the rest is a general guide with blanks to fill. Press the button again tomorrow for a plan written for your page.'));
   const gap = el('div', 'gaps');
   gap.append(el('h3', '', 'Get the gaps done'), el('p', '', 'Posts the checks a bot really does to jobs.flisk.si: can AI search find your site, and how good is your README (when the site links its GitHub repo). A bot takes them within about 5 minutes. Free and public.'));
   const gres = el('div'); const gb = button('Post as jobs on jobs.flisk.si', async () => {
