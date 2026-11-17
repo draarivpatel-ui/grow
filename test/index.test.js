@@ -146,3 +146,15 @@ describe('model out of budget', () => {
     expect(r.status).toBe(429);
   });
 });
+
+describe('traces', () => {
+  test('a budget-out plan sends one capped trace and no prompt or link', async () => {
+    const sent = [];
+    const out = async () => new Response(JSON.stringify({ error: { message: 'Daily budget used' } }), { status: 429, headers: { 'content-type': 'application/json' } });
+    const s = setup({ INFERENCE: { fetch: out }, TRACE_KEY: 'k', TRACES: { fetch: async (u, init) => { sent.push(JSON.parse(init.body)); return new Response('{}'); } } });
+    await s.post('https://x.com/brookservers');
+    expect(sent).toHaveLength(1);
+    expect(sent[0]).toMatchObject({ route: '/api/plan', kind: 'capped', actual: 'playbook' });
+    expect(JSON.stringify(sent[0])).not.toContain('brookservers');
+  });
+});
