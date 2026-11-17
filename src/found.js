@@ -9,6 +9,9 @@ const PROBES = [
   { place: 'Toolradar', url: (s) => `https://toolradar.com/tools/${s}` },
   { place: 'Uneed', url: (s) => `https://www.uneed.best/tool/${s}` },
   { place: 'DevHunt', url: (s) => `https://devhunt.org/tool/${s}` },
+  { place: 'FoundrList', url: (s) => `https://www.foundrlist.com/product/${s}` },
+  { place: 'LaunchAmp', url: (s) => `https://launchamp.eu/tools/${s}` },
+  { place: 'ToolPotion', url: (s) => `https://toolpotion.ai/en/ai-apps/${s}` },
 ];
 
 export function siteName(url) {
