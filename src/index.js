@@ -3,6 +3,7 @@ import { genericFollowers, httpUrl, makePlan, profileOf } from './plan.js';
 import { page } from './page.js';
 import { cabinet } from './cabinet.js';
 import { withSecurityHeaders } from './security-headers.js';
+import { sendTrace, traced } from './trace.js';
 
 const DAY_MS = 864e5;
 const json = (status, body, extra = {}) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'access-control-allow-origin': '*', ...extra } });
@@ -93,6 +94,7 @@ async function route(req, env, deps = {}) {
     const citable = env.CITABLE ? (u, init) => env.CITABLE.fetch(u, init) : fetchImpl;
     const out = await makePlan(link, { fetch: fetchImpl, model, citable, key: env.INFERENCE_KEY, about });
     if (out.error === 'timeout') return json(504, { error: 'The model took too long to answer. Press the button again in a minute.' });
+    if (out.error === 'busy') await sendTrace(env, { route: '/api/plan', kind: 'capped', why: profileOf(link) ? 'the model budget is used up: served the general followers playbook' : 'the model budget is used up: plan refused', status: profileOf(link) ? 200 : 429, expected: 'model', actual: profileOf(link) ? 'playbook' : 'refused' });
     if (out.error === 'busy' && profileOf(link)) return json(200, { plan: { url: link, ...genericFollowers(profileOf(link), about), tools: [] }, generic: true });
     if (out.error === 'busy') return json(429, { error: 'The free model is out of its daily budget. Come back tomorrow (00:00 UTC).' });
     if (out.error) return json(502, { error: 'The model did not give a usable plan. Press the button again.', detail: out.message });
@@ -116,7 +118,7 @@ export async function handle(req, env, deps = {}) {
 }
 
 export default {
-  fetch: (req, env) => handle(req, env),
+  fetch: traced((req, env) => handle(req, env)),
   // Daily: drop plans older than 30 days and old day counters.
   async scheduled(_e, env) {
     await env.DB.batch([
