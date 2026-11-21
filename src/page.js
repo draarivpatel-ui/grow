@@ -98,6 +98,14 @@ const link = (label, href, cls) => { const a = el('a', 'btn' + (cls ? ' ' + cls 
 const button = (label, fn) => { const b = el('button', 'btn', label); b.type = 'button'; b.onclick = fn; return b; };
 function section(title, sub) { const s = el('section'); s.append(el('h2', '', title)); if (sub) s.append(el('p', 'sub', sub)); return s; }
 function host(u) { try { return new URL(u).host; } catch (e) { return u; } }
+// A repo link (github.com/owner/repo) is a plan for the repo, not for the code host.
+function planName(u) {
+  try {
+    const x = new URL(u); const h = x.host.replace(/^www\./, '');
+    if (/^(github\.com|gitlab\.com|bitbucket\.org)$/.test(h)) { const p = x.pathname.split('/').filter(Boolean); if (p[1]) return p[1].replace(/\.git$/, ''); }
+    return x.host;
+  } catch (e) { return u; }
+}
 
 const BSKY = (n) => n === 'Bluesky';
 const XQ = (q, n) => BSKY(n) ? 'https://bsky.app/search?q=' + encodeURIComponent(q) : 'https://x.com/search?f=live&q=' + encodeURIComponent(q);
@@ -160,9 +168,9 @@ function drawFollowers(id, plan) {
 function draw(id, plan) {
   if (plan.kind === 'followers') return drawFollowers(id, plan);
   const out = $('#plan'); out.replaceChildren();
-  document.title = 'Grow plan for ' + host(plan.url) + ' · Flisk Grow';
+  document.title = 'Grow plan for ' + planName(plan.url) + ' · Flisk Grow';
 
-  const head = section('A plan for ' + host(plan.url), plan.product || '');
+  const head = section('A plan for ' + planName(plan.url), plan.product || '');
   const share = el('div', 'share');
   const here = location.origin + '/p/' + id;
   share.append(button('Save to my cabinet', () => fetch('/me').then(() => fetch('/api/sites', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: plan.url, plan: id }) })).then((r) => r.json()).then((j) => { location.href = '/me?site=' + j.id; })), shareBtn(id), link('Open the site', plan.url), el('span', '', id ? 'Kept 30 days: ' + here : 'Not saved: it is a general guide.'));
