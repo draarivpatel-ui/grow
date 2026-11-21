@@ -263,18 +263,17 @@ function draw(id, plan) {
 
 const isProfile = (u) => /^https?:[/][/](((www[.]|mobile[.])?(x|twitter)[.]com[/][A-Za-z0-9_]+)|((www[.])?bsky[.]app[/]profile[/][A-Za-z0-9.-]+))/i.test(u.trim());
 const STEPS = ['Reading the page', 'Checking if AI search can read it', 'Finding who would buy it', 'Writing the emails', 'Writing the posts'];
-const AT = [0, 4, 10, 22, 45]; // seconds when each step usually starts; the free model takes 20-90 s
 function loader(on) {
   const box = $('#prog'); box.hidden = !on; if (!on) return () => {};
   box.querySelector('ol').innerHTML = STEPS.map((x) => '<li><b></b>' + x + '</li>').join('');
   const li = [...box.querySelectorAll('li')], bar = box.querySelector('.bar i'), sec = box.querySelector('[data-sec]'), note = box.querySelector('[data-note]'), t0 = Date.now();
   const draw = () => {
-    const s = (Date.now() - t0) / 1000, n = AT.filter((a) => s >= a).length - 1;
-    li.forEach((e, k) => { e.className = k < n ? 'ok' : k === n ? 'on' : ''; e.firstChild.textContent = k < n ? '✓' : ''; });
+    const s = (Date.now() - t0) / 1000; // every step runs at the same time on the server, so all of them spin together
+    li.forEach((e) => { e.className = 'on'; });
     bar.style.width = Math.min(95, 100 * (1 - Math.exp(-s / 35))) + '%';
     sec.textContent = Math.floor(s) + ' s';
     note.textContent = s > 40 ? 'The free model is slow right now. Keep this tab open; it can take up to 90 seconds.' : 'Usually 20 to 60 seconds.';
-    $('#status').textContent = s > 40 ? 'Still writing. The free model is slow right now; this can take up to 90 seconds.' : STEPS[n] + '...';
+    $('#status').textContent = s > 40 ? 'Still writing. The free model is slow right now; this can take up to 90 seconds.' : 'Working on all of it at once...';
   };
   draw(); const t = setInterval(draw, 1000);
   return (ok) => { clearInterval(t); if (ok) { li.forEach((e) => { e.className = 'ok'; e.firstChild.textContent = '✓'; }); bar.style.width = '100%'; } setTimeout(() => { box.hidden = true; }, ok ? 600 : 0); };

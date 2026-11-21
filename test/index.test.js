@@ -78,7 +78,7 @@ describe('routes', () => {
     const b = await (await s.post('https://a.com/', '2.2.2.2')).json();
     expect(b.id).toBe(a.id);
     expect(b.reused).toBe(true);
-    expect(s.modelCalls()).toBe(2); // one plan is two model calls (plan and emails), asked together
+    expect(s.modelCalls()).toBe(3); // one plan is three model calls (buyers, emails, posts), asked together
   });
 
   test('a visitor gets PLANS_PER_VISITOR plans a day', async () => {
