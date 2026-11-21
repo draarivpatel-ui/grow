@@ -86,7 +86,8 @@ const linkKey = (u) => String(u).replace(/^https?:[/][/](www[.])?/i, '').replace
 export function cleanLinks(list, main) {
   const seen = new Set([linkKey(main || '')]); const out = [];
   for (const v of Array.isArray(list) ? list : []) {
-    const u = httpUrl(v); if (!u || seen.has(linkKey(u))) continue;
+    // A link to a file in a repo (its LICENSE, a README) becomes the repo page.
+    const r = githubRepo(v); const u = r ? 'https://github.com/' + r : httpUrl(v); if (!u || seen.has(linkKey(u))) continue;
     seen.add(linkKey(u)); out.push(u); if (out.length >= 12) break;
   }
   return out;
