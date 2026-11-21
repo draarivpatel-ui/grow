@@ -98,11 +98,18 @@ export function cleanLinks(list, main) {
   return out;
 }
 // Profile links a page points at (its GitHub, X, LinkedIn ...), not share or intent buttons.
-export function profileLinks(html) {
-  const out = [];
-  for (const m of String(html).matchAll(/href=["'](https?:[/][/][^"'#\s<>]+)["']/gi)) {
+// A link counts as the site's own when it sits in the header, nav or footer, or names the site
+// (github.com/flisk-sh/flisk for flisk.sh). An adopter's LinkedIn in the page body is not the maker's.
+const flat = (v) => String(v).toLowerCase().replace(/[^a-z0-9]/g, '');
+export function profileLinks(html, site) {
+  html = String(html); const out = [];
+  let name = ''; try { name = flat(new URL(site).hostname.replace(/^www[.]/, '').split('.')[0]); } catch { /* no site: chrome only */ }
+  const chrome = [...html.matchAll(/<(header|nav|footer)\b[\s\S]*?<[/]\1>/gi)].map((m) => [m.index, m.index + m[0].length]);
+  for (const m of html.matchAll(/href=["'](https?:[/][/][^"'#\s<>]+)["']/gi)) {
     const u = httpUrl(m[1]); const k = u && linkKind(u);
     if (!k || k === 'Other' || /[/](intent|share|sharer|submit|search|login|signup)\b|[?&](text|url)=/i.test(u) || new URL(u).pathname.length < 2) continue;
+    const own = (name.length >= 3 && flat(new URL(u).pathname).includes(name)) || chrome.some(([a, b]) => m.index > a && m.index < b);
+    if (!own) continue;
     if (!out.some((x) => linkKind(x) === k)) out.push(u); // one page per kind: the first GitHub link, not all the repos
   }
   return cleanLinks(out).slice(0, 8);
@@ -117,7 +124,7 @@ export async function readPage(url, fetchImpl) {
     const desc = str(/<meta[^>]+name=["']description["'][^>]*content=["']([^"']*)["']/i.exec(html)?.[1], 300);
     const body = html.replace(/<(script|style|noscript|svg|title)[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]+>/g, ' ')
       .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#?\w+;/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 3000);
-    return { title, desc, body, links: profileLinks(html) };
+    return { title, desc, body, links: profileLinks(html, url) };
   } catch { return null; }
 }
 
