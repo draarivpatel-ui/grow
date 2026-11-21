@@ -46,7 +46,7 @@ describe('plan', () => {
   });
 
   test('a page gives its profile links, not share buttons', () => {
-    const html = '<a href="https://github.com/acme/tool">gh</a><a href="https://x.com/intent/post?text=hi">share</a><a href="https://x.com/acme">x</a><a href="https://example.com/blog">blog</a><a href="https://www.linkedin.com/">li</a>';
+    const html = '<a href="https://github.com/acme/tool">gh</a><a href="https://x.com/intent/post?text=hi">share</a><a href="https://x.com/acme">x</a><a href="https://example.com/blog">blog</a><a href="https://www.linkedin.com/">li</a><a href="https://github.com/acme/other">gh2</a>';
     expect(profileLinks(html)).toEqual(['https://github.com/acme/tool', 'https://x.com/acme']);
   });
 
