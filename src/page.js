@@ -26,7 +26,8 @@ button,input{font:inherit;color:inherit}:focus-visible{outline:2px solid var(--a
 .kicker{font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--faint)}
 .hero h1{font-size:clamp(36px,4.4vw,56px);line-height:1;margin:20px 0}
 .lead{font-size:18px;color:var(--mut);max-width:32em;margin:0 0 26px}
-form{display:flex;max-width:600px}form input{flex:1;min-width:0;height:48px;padding:0 14px;border:1px solid var(--line2);border-right:0;border-radius:0;background:var(--panel);font:14px var(--mono)}form input:focus{outline:2px solid var(--acc);outline-offset:-2px}form .btn{height:48px}.socials{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0 0;font-size:13px;color:var(--mute,#666)}.soc{display:inline-flex;gap:6px;align-items:center;padding:4px 10px;border:1px solid var(--line2);background:var(--panel);opacity:.6}.soc.on{opacity:1;font-weight:600}.soc em{font:600 10px var(--mono);text-transform:uppercase;letter-spacing:.06em;font-style:normal}.aboutme{display:block;width:100%;max-width:600px;margin-top:8px;height:44px;padding:0 14px;border:1px solid var(--line2);background:var(--panel);font:14px var(--mono)}.aboutme[hidden]{display:none}
+form{display:flex;max-width:600px}form input{flex:1;min-width:0;height:48px;padding:0 14px;border:1px solid var(--line2);border-right:0;border-radius:0;background:var(--panel);font:14px var(--mono)}form input:focus{outline:2px solid var(--acc);outline-offset:-2px}form .btn{height:48px}.socials{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0 0;font-size:13px;color:var(--mute,#666)}.soc{display:inline-flex;gap:6px;align-items:center;padding:4px 10px;border:1px solid var(--line2);background:var(--panel);opacity:.6}.soc.on{opacity:1;font-weight:600}.soc em{font:600 10px var(--mono);text-transform:uppercase;letter-spacing:.06em;font-style:normal}.aboutme{display:block;width:100%;max-width:600px;margin-top:8px;height:44px;padding:0 14px;border:1px solid var(--line2);background:var(--panel);font:14px var(--mono)}.aboutme[hidden]{display:none}.brief{max-width:600px;margin-top:8px;font:13px var(--mono)}.brief[hidden]{display:none}.brief summary{cursor:pointer;color:var(--faint);padding:4px 0}.brief .bq{display:grid;gap:6px;margin-top:6px}.brief input{height:40px;padding:0 12px;border:1px solid var(--line2);background:var(--panel);font:13px var(--mono)}.example-link{display:inline-block;margin-top:12px;font:600 13px var(--mono);color:var(--ink)}
+.fb{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:6px;font:11px var(--mono);color:var(--faint)}.fb .ib{padding:2px 6px}.fb .ib.on{background:var(--acc);color:var(--acctext,#000);border-color:var(--acc)}.fb .worked{display:none;gap:4px;align-items:center;flex-wrap:wrap}.rw.done .fb .worked{display:inline-flex}.fb .sep{width:1px;height:14px;background:var(--line2);margin:0 4px}.rw.busy{opacity:.5;pointer-events:none}
 .proof{display:flex;flex-wrap:wrap;gap:6px 18px;list-style:none;padding:0;margin:20px 0 0;color:var(--faint);font:500 12px var(--mono)}.proof li::before{content:"";display:inline-block;width:7px;height:7px;background:var(--acc);margin-right:9px;vertical-align:1px}
 .band{background:repeating-linear-gradient(-45deg,var(--acc) 0 2px,transparent 2px 11px);min-height:120px}
 .status{margin:14px 0 0;font:500 12.5px var(--mono);color:var(--mut);min-height:1.5em}.status.err{color:var(--red)}
@@ -373,6 +374,11 @@ const ICON = {
   post: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
   x: '<path d="M18 6 6 18M6 6l12 12"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  up: '<path d="M7 10v11H3V10z"/><path d="M7 10l4-8a3 3 0 0 1 3 3v4h5a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 17.6 21H7"/>',
+  down: '<path d="M17 14V3h4v11z"/><path d="M17 14l-4 8a3 3 0 0 1-3-3v-4H5a2 2 0 0 1-2-2.3l1.4-8A2 2 0 0 1 6.4 3H17"/>',
+  redo: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+  cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  down2: '<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>',
 };
 const svg = (k) => { const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('class', 'i'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true'); s.innerHTML = ICON[k]; return s; };
 const tip = (n, t) => { n.setAttribute('data-tip', t); return n; };
@@ -387,6 +393,41 @@ const doneKey = (id) => 'grow-done:' + (id || 'guide');
 function loadDone(id) { try { return new Set(JSON.parse(localStorage.getItem(doneKey(id)) || '[]')); } catch (e) { return new Set(); } }
 function saveDone() { try { localStorage.setItem(doneKey(J.id), JSON.stringify([...J.done])); } catch (e) {} }
 
+// Feedback on one item: thumbs up or down, and once it is ticked, did it work. Sent to /api/feedback as counts only,
+// remembered in this browser so a second click does not count twice.
+const FB = /^(mail|post|place|promo|list)\d+$/;
+const fbKey = (id) => 'grow-fb:' + id;
+function fbLoad(id) { try { return JSON.parse(localStorage.getItem(fbKey(id)) || '{}'); } catch (e) { return {}; } }
+function fbSend(key, slot, value, box) {
+  const m = J.fb[key] = J.fb[key] || {}; if (m[slot] === value) return; m[slot] = value;
+  try { localStorage.setItem(fbKey(J.id), JSON.stringify(J.fb)); } catch (e) {}
+  box.querySelectorAll('[data-' + slot + ']').forEach((b) => b.classList.toggle('on', b.dataset[slot] === value));
+  fetch('/api/feedback', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ plan: J.id, item: key, value }) }).catch(() => {});
+  toast(slot === 't' ? 'Thanks. This helps the next plans.' : 'Noted. Thanks.');
+}
+function fbBar(key) {
+  const box = el('div', 'fb'); const m = J.fb[key] || {};
+  const thumb = (v, label, icon, t) => { const b = ibtn(label, icon, t, () => fbSend(key, 't', v, box)); b.dataset.t = v; if (m.t === v) b.classList.add('on'); return b; };
+  box.append(thumb('up', 'Good', 'up', 'A good suggestion'), thumb('down', 'Bad', 'down', 'A bad suggestion: wrong place, wrong people or bad text'));
+  const w = el('span', 'worked'); w.append(el('span', 'sep'), el('span', '', 'Did it work?'));
+  [['reply', 'Reply'], ['signup', 'Signup'], ['upvotes', 'Upvotes'], ['nothing', 'Nothing yet']].forEach(([v, l]) => { const b = el('button', 'ib'); b.type = 'button'; b.textContent = l; b.dataset.w = v; if (m.w === v) b.classList.add('on'); b.onclick = () => fbSend(key, 'w', v, box); w.append(b); });
+  box.append(w); return box;
+}
+// Rewrite one email, post or place; the rest of the plan stays as it is.
+function rewriteBtn(kind, index) {
+  if (!J.canEdit) return null;
+  return ibtn('Rewrite', 'redo', 'Write this one again with a new angle. The rest of the plan stays.', async (e) => {
+    const rw = e.currentTarget.closest('.rw'); rw.classList.add('busy'); toast('Rewriting...');
+    try {
+      const r = await fetch('/api/rewrite', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: J.id, kind, index }) });
+      const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || 'The rewrite did not work. Press again.');
+      const y = scrollY, key = (kind === 'email' ? 'mail' : kind) + index; J.done.delete(key); saveDone(); delete J.fb[key];
+      draw(J.id, j.plan); scrollTo(0, y); const n = document.querySelector('.rw input[data-k="' + key + '"]'); if (n) n.closest('.rw').classList.add('open');
+      toast('Rewritten');
+    } catch (err) { rw.classList.remove('busy'); toast(err.message); }
+  });
+}
+
 // One task: tick box, a logo or dot, the text (click to read all of it), about how long it takes, and its actions.
 function row(key, lead, title, sub, acts, under, m) {
   const r = el('div', 'rw'); const c = el('input'); c.type = 'checkbox'; c.dataset.k = key; c.setAttribute('aria-label', 'Done: ' + title); tip(c, 'Tick when done. Kept in this browser.');
@@ -396,7 +437,8 @@ function row(key, lead, title, sub, acts, under, m) {
   t.onclick = (e) => { if (!e.target.closest('a,button,input')) r.classList.toggle('open'); };
   const ck = el('label', 'ck'); ck.append(c); r.append(ck); if (lead) r.append(lead); r.append(t);
   if (m) { const ms = el('span', 'm', mins(m)); tip(ms, 'Takes about ' + mins(m)); r.dataset.m = m; r.append(ms); }
-  if (acts && acts.length) { const a = el('div', 'ra'); a.append(...acts); (under ? t : r).append(a); }
+  if (acts && acts.length) { const a = el('div', 'ra'); a.append(...acts.filter(Boolean)); (under ? t : r).append(a); }
+  if (J.canEdit && FB.test(key)) t.append(fbBar(key));
   return r;
 }
 const FOLD = 4; // rows a pane shows before Show all
@@ -505,21 +547,64 @@ function linksBar(plan) {
 }
 const mins = (m) => (m >= 60 ? Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '') : m + ' min');
 
+// Export: the plan as a Markdown to-do list, and the email days as calendar events. Both are made in the browser.
+function planLink(id) { return id === 'example' ? location.origin + '/example' : id ? location.origin + '/p/' + id : location.origin; }
+function saveFile(name, type, text) {
+  const a = el('a'); a.href = URL.createObjectURL(new Blob([text], { type: type + ';charset=utf-8' })); a.download = name.replace(/[^A-Za-z0-9._-]+/g, '-');
+  document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function planMd(id, plan) {
+  const L = ['# Grow plan for ' + planName(plan.url), '', plan.url + (plan.product ? ': ' + plan.product : ''), 'Plan: ' + planLink(id), ''];
+  if (plan.buyers) L.push('**Who would buy it:** ' + plan.buyers, '');
+  if (plan.pitch) L.push('**Pitch:** ' + plan.pitch, '');
+  if (plan.today) L.push('**Do this today:** ' + plan.today, '');
+  const sec = (t, rows) => { if (rows.length) L.push('## ' + t, '', ...rows, ''); };
+  sec('1. Get ready', ((plan.check && plan.check.fixes) || []).filter((f) => f.status !== 'pass').map((f) => '- [ ] Fix: ' + f.title + ' (' + f.summary + ')'));
+  sec('2. Find buyers', plan.places.map((x) => '- [ ] ' + x.name + (x.url ? ' <' + x.url + '>' : '') + ': ' + x.why));
+  sec('3. Reach out', plan.emails.flatMap((e, i) => ['- [ ] Day ' + [1, 1, 3, 3, 5][Math.min(i, 4)] + ', email ' + (e.to ? 'to ' + e.to : '') + ': **' + e.subject + '**', ...(e.find ? ['  - Find them: ' + e.find] : []), '', '  > ' + e.body.split('\n').join('\n  > '), ...(e.followup ? ['', '  - [ ] Day 7 follow-up if no reply: ' + e.followup.split('\n').join(' ')] : []), '']));
+  sec('4. Post', (plan.posts || []).flatMap((x) => ['- [ ] ' + x.where + (x.title ? ': **' + x.title + '**' : ''), '', '  > ' + x.body.split('\n').join('\n  > '), '']));
+  sec('5. Get listed', plan.listings.map((x) => '- [ ] ' + x.name + ' <' + x.url + '>'));
+  return L.join('\n');
+}
+function planIcs(id, plan) {
+  const day = (n) => { const d = new Date(); d.setDate(d.getDate() + n - 1); return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0'); };
+  const esc2 = (t) => String(t).replace(/[\\;,]/g, (c) => '\\' + c).replace(/\r?\n/g, '\\n');
+  const fold = (line) => { const out = []; for (let i = 0; i < line.length; i += 70) out.push((i ? ' ' : '') + line.slice(i, i + 70)); return out.join('\r\n'); };
+  const link = planLink(id), name = planName(plan.url), stamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z';
+  const mails = (a, b) => plan.emails.slice(a, b).map((e) => '- Email ' + (e.to || '') + ': ' + e.subject);
+  const p = (w) => (plan.posts || []).filter((x) => x.where === w).map((x) => '- Post on ' + w + ': ' + (x.title || clip(x.body, 60)));
+  const f0 = plan.check && plan.check.fixes.find((f) => f.status !== 'pass');
+  const ev = [
+    [1, 'Day 1: first emails', [...mails(0, 2), ...(f0 ? ['- Fix: ' + f0.title] : []), ...p('X')]],
+    [3, 'Day 3: next emails and Reddit', [...mails(2, 4), ...p('Reddit'), ...p('Discord')]],
+    [5, 'Day 5: last emails, Hacker News and listings', [...mails(4, 99), ...p('Hacker News'), ...plan.listings.slice(0, 3).map((x) => '- List it on ' + x.name)]],
+    [8, 'Day 8: follow up the Day 1 emails', plan.emails.slice(0, 2).filter((e) => e.followup).map((e) => '- Re: ' + e.subject)],
+    [10, 'Day 10: follow up the Day 3 emails', plan.emails.slice(2, 4).filter((e) => e.followup).map((e) => '- Re: ' + e.subject)],
+    [12, 'Day 12: follow up the Day 5 emails', plan.emails.slice(4).filter((e) => e.followup).map((e) => '- Re: ' + e.subject)],
+  ].filter((e) => e[2].length);
+  const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Flisk//Grow//EN', 'CALSCALE:GREGORIAN'];
+  ev.forEach(([n, t, rows], k) => L.push('BEGIN:VEVENT', 'UID:' + (id || 'guide') + '-' + k + '-' + day(1) + '@grow.flisk.si', 'DTSTAMP:' + stamp, 'DTSTART;VALUE=DATE:' + day(n), 'DTEND;VALUE=DATE:' + day(n + 1), fold('SUMMARY:' + esc2('Grow · ' + name + ' · ' + t)), fold('DESCRIPTION:' + esc2(rows.join('\n') + '\n\nThe plan: ' + link)), fold('URL:' + link), 'END:VEVENT'));
+  L.push('END:VCALENDAR'); return L.join('\r\n') + '\r\n';
+}
+
 function draw(id, plan) {
   if (plan.kind === 'followers') { J = null; return drawFollowers(id, plan); }
   const out = $('#plan'); out.replaceChildren();
   document.title = 'Grow plan for ' + planName(plan.url) + ' · Flisk Grow';
-  J = { id, done: loadDone(id), cur: 0, lock: 0 };
+  const ex = id === 'example';
+  J = { id, done: loadDone(id), cur: 0, lock: 0, fb: id ? fbLoad(id) : {}, canEdit: !!id && !ex && !plan.generic };
 
   const head = el('div', 'jhead');
-  head.append(el('div', 'kicker', id ? 'Your plan · kept 30 days' : 'A general guide'), (() => { const h = el('h2', '', 'A plan for '); const a = el('a', 'hl', planName(plan.url)); a.href = plan.url; a.dataset.c = 'site name'; a.target = '_blank'; a.rel = 'noopener'; tip(a, 'Open ' + host(plan.url) + ' in a new tab'); h.append(a); return h; })());
+  head.append(el('div', 'kicker', ex ? 'An example plan · paste your own link above' : id ? 'Your plan · kept 30 days' : 'A general guide'), (() => { const h = el('h2', '', 'A plan for '); const a = el('a', 'hl', planName(plan.url)); a.href = plan.url; a.dataset.c = 'site name'; a.target = '_blank'; a.rel = 'noopener'; tip(a, 'Open ' + host(plan.url) + ' in a new tab'); h.append(a); return h; })());
   if (plan.product) head.append(el('p', 'sub', plan.product));
   head.append(linksBar(plan));
   const bar = el('div', 'jbar');
   J.count = el('span', 'jcount'); tip(J.count, 'Tasks done across all 5 steps');
   const cnt = el('span', 'jcwrap'); cnt.append(svg('check'), J.count);
-  bar.append(cnt, ibtn('Save to my cabinet', 'save', 'Keep this plan in your cabinet and watch new places to post', () => saveSite(id, plan).then((j) => { location.href = '/me?site=' + j.id; })));
-  if (id) bar.append(ibtn('Share this plan', 'share', 'Send a link to this plan to your team', () => { const u = location.origin + '/p/' + id; if (navigator.share) navigator.share({ title: document.title, url: u }).catch(() => {}); else copy(u); }, true));
+  bar.append(cnt); if (!ex) bar.append(ibtn('Save to my cabinet', 'save', 'Keep this plan in your cabinet and watch new places to post', () => saveSite(id, plan).then((j) => { location.href = '/me?site=' + j.id; })));
+  if (id) bar.append(ibtn('Share this plan', 'share', 'Send a link to this plan to your team', () => { const u = location.origin + (ex ? '/example' : '/p/' + id); if (navigator.share) navigator.share({ title: document.title, url: u }).catch(() => {}); else copy(u); }, true));
+  bar.append(ibtn('Calendar', 'cal', 'Download the Day 1, 3 and 5 tasks and the follow-ups as calendar events (.ics) for Google Calendar, Outlook or Apple', () => saveFile(planName(plan.url) + '-grow-plan.ics', 'text/calendar', planIcs(id, plan))));
+  bar.append(ibtn('Export', 'down2', 'Download the plan as a Markdown to-do list (pastes into Notion, Obsidian, GitHub). The text is copied too.', () => { const md = planMd(id, plan); saveFile(planName(plan.url) + '-grow-plan.md', 'text/markdown', md); copy(md); }));
   bar.append(iopen('Open the site', plan.url, 'Open ' + host(plan.url) + ' in a new tab'));
   head.append(bar);
   if (plan.generic) head.append(el('p', 'note', 'Made without the model: its free budget is used up or it is too slow right now (the budget resets at 00:00 UTC). The AI-search check and the listings are real; the rest is a general guide with blanks to fill. Press the button again tomorrow for a plan written for your page.'));
@@ -576,7 +661,7 @@ function draw(id, plan) {
 
   // 2. Find buyers
   const buyers = [card('Who would buy it', null, [el('p', 'pitch', plan.pitch || ''), el('p', '', plan.buyers || ''), plan.today ? (() => { const t = el('div', 'today'); t.append(el('small', '', 'Do this today'), el('div', '', plan.today)); return t; })() : null, plan.pitch ? (() => { const a = el('div', 'ra'); a.append(icopy(plan.pitch, 'Copy the one-line pitch')); return a; })() : null], 'The first group to sell to')];
-  buyers.push(pane('Where to find them', null, plan.places.map((x, i) => row('place' + i, logo(x.name, x.url), x.name, x.why, x.url ? [iopen('Open', x.url, 'Open ' + x.name + '. Read its rules before you post.')] : [], false, 10)), 'Places these buyers already talk'));
+  buyers.push(pane('Where to find them', null, plan.places.map((x, i) => row('place' + i, logo(x.name, x.url), x.name, x.why, [x.url ? iopen('Open', x.url, 'Open ' + x.name + '. Read its rules before you post.') : null, rewriteBtn('place', i)], false, 10)), 'Places these buyers already talk'));
   if (plan.promo && plan.promo.length) buyers.push(pane('Where you may promote yourself', null, plan.promo.map((x, i) => row('promo' + i, logo(x.where || x.name, x.url), x.name, x.rule, [iopen('Open', x.url, 'Open ' + x.name + ' and read its rule first')], false, 10)), 'Communities with a place for your own work, each with its own rule'));
 
   // 3. Reach out: the emails, a few a day
@@ -585,14 +670,14 @@ function draw(id, plan) {
     const mt = 'mailto:?subject=' + encodeURIComponent(e.subject) + '&body=' + encodeURIComponent(e.body);
     // The Day 7 follow-up goes in the same thread: same subject with Re:, sent only when there was no reply.
     const fu = e.followup && iopen('Day 7 follow-up', 'https://mail.google.com/mail/?view=cm&fs=1&su=' + encodeURIComponent('Re: ' + e.subject) + '&body=' + encodeURIComponent(e.followup), 'Seven days later, if there was no reply: open the follow-up in Gmail', false);
-    return row('mail' + i, svg('mail'), e.subject, 'To: ' + (e.to || 'someone who fits') + '. ' + (e.find ? 'Find them: ' + e.find + ' ' : '') + e.body + (e.followup ? '\n\nDay 7, if no reply: ' + e.followup : ''), [iopen('Gmail', gm, 'Open a Gmail draft with this email. Add the address and press Send.', true, 'mail'), fu, iopen('Mail app', mt, 'Open a draft in your own mail app'), icopy(e.subject + '\n\n' + e.body, 'Copy the subject and the email text')].filter(Boolean), true, 5);
+    return row('mail' + i, svg('mail'), e.subject, 'To: ' + (e.to || 'someone who fits') + '. ' + (e.find ? 'Find them: ' + e.find + ' ' : '') + e.body + (e.followup ? '\n\nDay 7, if no reply: ' + e.followup : ''), [iopen('Gmail', gm, 'Open a Gmail draft with this email. Add the address and press Send.', true, 'mail'), fu, iopen('Mail app', mt, 'Open a draft in your own mail app'), icopy(e.subject + '\n\n' + e.body, 'Copy the subject and the email text'), rewriteBtn('email', i)].filter(Boolean), true, 5);
   });
   const days = [['Day 1 · today', 0, 2], ['Day 3', 2, 4], ['Day 5', 4, 99]];
   const reach = mails.length > 2 ? days.map((d) => [d[0], mails.slice(d[1], d[2])]).filter((d) => d[1].length).map((d) => pane(d[0], svg('mail'), d[1], 'Send these on ' + d[0].replace(' · today', ', today') + '. Nothing is sent for you.')) : [pane('Emails to send', svg('mail'), mails, 'Drafts only. Nothing is sent for you.')];
 
   // 4. Post: one column per place
   const byWhere = {}; (plan.posts || []).forEach((x, i) => { (byWhere[x.where] = byWhere[x.where] || []).push([x, i]); });
-  const posts = Object.keys(byWhere).map((w) => pane(w, logo(w, ''), byWhere[w].map(([x, i]) => row('post' + i, null, x.title || clip(x.body, 60), x.body, [postLink(x, plan), icopy((x.title ? x.title + '\n\n' : '') + x.body + (x.where === 'Discord' ? ' ' + (plan.site || plan.url) : ''), 'Copy this post, ready to paste on ' + w)].filter(Boolean), true, 10)), 'Opens the post box with the text filled in. You read it, change it and post it yourself.'));
+  const posts = Object.keys(byWhere).map((w) => pane(w, logo(w, ''), byWhere[w].map(([x, i]) => row('post' + i, null, x.title || clip(x.body, 60), x.body, [postLink(x, plan), icopy((x.title ? x.title + '\n\n' : '') + x.body + (x.where === 'Discord' ? ' ' + (plan.site || plan.url) : ''), 'Copy this post, ready to paste on ' + w), rewriteBtn('post', i)].filter(Boolean), true, 10)), 'Opens the post box with the text filled in. You read it, change it and post it yourself.'));
   if (!posts.length) posts.push(card('Posts to write', null, [el('p', '', 'No post drafts this time. Press the button again for drafts for X, Reddit and Hacker News.')]));
 
   // 5. Get listed
@@ -716,7 +801,7 @@ async function make(ev) {
   go.disabled = true; const label = go.textContent; go.textContent = 'Working...';
   const stop = loader(true); let ok = false;
   try {
-    const r = await fetch('/api/plan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url, about: $('#about-me').value.trim() }), signal: AbortSignal.timeout(120000) })
+    const r = await fetch('/api/plan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url, about: $('#about-me').value.trim(), ...(isProfile(url) ? {} : { brief: { who: $('#q-who').value.trim(), price: $('#q-price').value.trim(), name: $('#q-name').value.trim() } }) }), signal: AbortSignal.timeout(120000) })
       .catch((e) => { throw new Error(e.name === 'TimeoutError' ? 'The plan took too long. Press the button again in a minute.' : 'Could not reach the server. Check your connection and press the button again.'); });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || 'Something went wrong. Press the button again.');
@@ -733,7 +818,7 @@ async function load(id) {
   try {
     const r = await fetch('/api/plan/' + id); const j = await r.json();
     if (!r.ok) throw new Error(j.error);
-    $('#url').value = j.plan.url; st.textContent = ''; draw(id, j.plan);
+    if (id !== 'example') $('#url').value = j.plan.url; st.textContent = ''; draw(id, j.plan);
   } catch (e) { st.className = 'status err'; st.textContent = e.message || 'This plan is not here.'; }
 }
 
@@ -798,8 +883,8 @@ function coolToast(msg) {
 }
 
 $('#form').addEventListener('submit', make);
-$('#url').addEventListener('input', () => { $('#about-me').hidden = !isProfile($('#url').value); });
-$('#about-me').hidden = !isProfile($('#url').value);
+const sideAsk = () => { const p = isProfile($('#url').value); $('#about-me').hidden = !p; $('#brief').hidden = p; };
+$('#url').addEventListener('input', sideAsk); sideAsk();
 $('#paste').addEventListener('click', async () => {
   const u = $('#url');
   try { const t = (await navigator.clipboard.readText()).trim(); if (!t) { toast('Clipboard is empty'); return; } u.value = t; u.dispatchEvent(new Event('input')); u.focus(); }
@@ -817,7 +902,7 @@ export function page({ planId = '', prefill = '', share = null } = {}) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(share ? ogTitle + ' · Flisk Grow' : 'Flisk Grow: find your first customers')}</title>
 <meta name="description" content="Paste a link to what you made. Get who would buy it, where they are, 5 email drafts, 3 post drafts, an AI search check and where to list it. Free, no sign-in.">
-<meta property="og:title" content="${esc(ogTitle)}"><meta property="og:description" content="${esc(ogDesc)}"><meta property="og:type" content="website"><meta property="og:url" content="https://grow.flisk.si${planId ? '/p/' + planId : '/'}"><meta name="twitter:card" content="summary">
+<meta property="og:title" content="${esc(ogTitle)}"><meta property="og:description" content="${esc(ogDesc)}"><meta property="og:type" content="website"><meta property="og:url" content="https://grow.flisk.si${planId === 'example' ? '/example' : planId ? '/p/' + planId : '/'}"><meta name="twitter:card" content="summary">
 <link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="canonical" href="https://grow.flisk.si/">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Old+Standard+TT:ital@1&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
@@ -836,6 +921,10 @@ export function page({ planId = '', prefill = '', share = null } = {}) {
 <p class="byline">By our plan desk · Edition ready in about 20 seconds</p>
 <form id="form" novalidate><input id="url" type="url" inputmode="url" autocomplete="url" placeholder="https://your-site.com" aria-label="Link to your site" value="${esc(prefill)}"><button id="paste" class="btn paste" type="button" title="Paste a link from your clipboard">Paste</button><button id="go" class="btn go" type="submit">Make my plan</button></form>
 <input id="about-me" class="aboutme" maxlength="300" placeholder="Optional: what is this account about?" aria-label="What the account is about" hidden>
+<details id="brief" class="brief"><summary>Optional: tell it who it is for, the price and your name</summary><div class="bq">
+<input id="q-who" maxlength="160" placeholder="Who is it for? e.g. dentists with a small clinic" aria-label="Who it is for">
+<input id="q-price" maxlength="160" placeholder="Price? e.g. $19 a month, or free" aria-label="The price">
+<input id="q-name" maxlength="60" autocomplete="given-name" placeholder="Your name, to sign the emails" aria-label="Your name"></div></details>
 <p id="status" class="status" role="status" aria-live="polite"></p>
 <div id="prog" class="prog" hidden aria-hidden="true"><div class="bar"><i></i></div><ol></ol><div class="meta"><span data-note></span><span data-sec></span></div></div>
 <p class="socials nologo"><span>Followers plan for a profile:</span>
@@ -846,6 +935,7 @@ export function page({ planId = '', prefill = '', share = null } = {}) {
 <span class="soc"><img src="/logo/youtube.com" alt="" width="16" height="16">YouTube<em>soon</em></span>
 <span class="soc on"><img src="/logo/bsky.app" alt="" width="16" height="16">Bluesky</span></p>
 <ul class="proof"><li>About 20 seconds</li><li>Nothing is sent for you</li><li>Plans kept 30 days</li></ul>
+<a class="example-link" href="/example" data-c="example plan">See an example plan →</a>
 </div><aside class="band" aria-label="Inside today's edition"><h4>Inside today's edition</h4><ol>
 <li><span>Front page<small>Can AI search find you, and the fixes</small></span></li>
 <li><span>The Market<small>Who would buy it, and the one-line pitch</small></span></li>
