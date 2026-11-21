@@ -564,7 +564,7 @@ export function page({ planId = '', prefill = '', share = null } = {}) {
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,700;9..144,800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>${CSS}</style>
 <script defer data-domain="grow.flisk.si" src="https://flisk.sh/a.js"></script></head><body>
-<script src="https://flisk.si/assets/bar.js" defer></script>
+<script src="https://flisk.si/assets/bar.js" data-product="Grow" data-icon="grow" data-accent="#22c55e" data-siblings="Cilytics,Ranker" data-text="Find your first customers with a plan made from your link." defer></script>
 <div class="wrap">
 <header class="nav"><a class="brand" href="/"><img src="/icon.svg" alt="">Flisk Grow</a>
 <nav class="navr"><a href="/me">My cabinet</a><a href="#api" class="hide-s">API</a><a href="https://github.com/flisk-sh/grow" class="hide-s">GitHub</a><a href="https://flisk.si">More from Flisk</a></nav></header>
