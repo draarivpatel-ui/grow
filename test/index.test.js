@@ -68,6 +68,7 @@ describe('routes', () => {
       expect(html.slice(0, html.indexOf('</head>'))).toContain('<script defer data-domain="grow.flisk.si" src="https://flisk.sh/a.js"></script>');
       expect(r.headers.get('content-security-policy')).toMatch(/script-src [^;]*https:\/\/flisk\.sh/);
       expect(r.headers.get('content-security-policy')).toMatch(/connect-src [^;]*https:\/\/\*\.flisk\.si/);
+      expect(r.headers.get('content-security-policy')).toMatch(/img-src [^;]*https:\/\/ranker\.flisk\.si/);
     }
   });
 
