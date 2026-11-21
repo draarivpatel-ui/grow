@@ -210,3 +210,18 @@ describe('traces', () => {
     expect(JSON.stringify(sent[0])).not.toContain('brookservers');
   });
 });
+
+describe('motion layer', () => {
+  test('the page script parses, calls cool() after draw, and respects reduced motion', async () => {
+    const { handle } = await import('../src/index.js');
+    const html = await (await handle(new Request('https://grow.flisk.si/'), {})).text();
+    const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+    const main = scripts.find((s) => s.includes('function draw('));
+    expect(main).toBeDefined();
+    expect(() => new Function(main)).not.toThrow();
+    expect(main).toContain("classList.add('has-plan'); cool();");
+    expect(main).toContain("matchMedia('(prefers-reduced-motion: reduce)').matches");
+    expect(html).toContain('.cool-tick');
+    expect(html).toMatch(/@media \(prefers-reduced-motion:reduce\)\{\s*\.cool-in/);
+  });
+});

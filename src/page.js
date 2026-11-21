@@ -98,6 +98,85 @@ svg.i{width:12px;height:12px;flex:none;stroke:currentColor;fill:none;stroke-widt
 @media(max-width:860px){.jhead,.jtabs,.stage{margin:0 -16px}.jhead,.stage{padding-left:16px;padding-right:16px}.jtab{justify-content:center;padding:8px 4px}.jtab .tx,.jtab .pg{display:none}
  .cols{grid-template-columns:1fr;grid-auto-rows:auto}.pn .bd{max-height:380px}.jlead .pg{margin-left:0}}
 body.has-plan .hero{grid-template-columns:1fr}body.has-plan .hero>div:first-child{padding:14px 36px;border-right:0}body.has-plan .hero h1,body.has-plan .hero .lead,body.has-plan .hero .kicker,body.has-plan .proof,body.has-plan .socials,body.has-plan .band{display:none}body.has-plan form{max-width:none}
+/* ---- Grow "cool layer": static, vanilla, no build ---- */
+/* ruled paper + grain */
+body{background-image:
+  linear-gradient(var(--line) 1px,transparent 1px),
+  linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:48px 48px;background-position:-1px -1px;background-attachment:fixed}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;opacity:.07;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* headline: green marker sweep under the product name */
+.jhead h2 .hl{background:linear-gradient(var(--acc),var(--acc)) 0 88%/0 .28em no-repeat;animation:sweep .9s .55s cubic-bezier(.7,0,.2,1) forwards}
+@keyframes sweep{to{background-size:100% .28em}}
+
+/* load reveal */
+.cool-in{opacity:0;transform:translateY(10px);animation:rise .6s cubic-bezier(.2,.7,.2,1) forwards;animation-delay:calc(var(--i,0) * 45ms)}
+@keyframes rise{to{opacity:1;transform:none}}
+
+/* tabs: sliding underline instead of per-tab inset */
+.jtabs{position:sticky}
+.jtab[aria-selected=true]{box-shadow:none}
+.jtabs .slide{position:absolute;left:0;bottom:-1px;height:3px;background:var(--acc);pointer-events:none;
+  transition:transform .45s cubic-bezier(.6,0,.2,1),width .45s cubic-bezier(.6,0,.2,1)}
+.jtab .b2 i{transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.jtab.fin .num{animation:pop .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{0%{transform:scale(.4) rotate(-90deg)}100%{transform:none}}
+
+/* panels: cursor spotlight + crisp hard shadow on hover */
+.pn{position:relative;transition:transform .2s,box-shadow .2s}
+.pn::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .25s;
+  background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%),color-mix(in srgb,var(--acc) 14%,transparent),transparent 70%)}
+.pn:hover::before{opacity:1}
+.pn:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ink);z-index:2}
+
+/* rows: growing accent rule on the left */
+.rw{position:relative}
+.rw::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--acc);transform:scaleY(0);transform-origin:top;transition:transform .22s}
+.rw:hover::before{transform:scaleY(1)}
+
+/* custom square check that draws itself */
+.rw>input{appearance:none;-webkit-appearance:none;position:relative;width:16px;height:16px;border:1.5px solid var(--line2);background:var(--bg);display:grid;place-items:center;transition:background .2s,border-color .2s}
+.rw>input::after{content:"";width:9px;height:5px;border:2px solid var(--accink,#000);border-top:0;border-right:0;transform:translateY(-1px) rotate(-45deg) scale(0);transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+.rw>input:checked{background:var(--acc);border-color:var(--acc)}
+.rw>input:checked::after{transform:translateY(-1px) rotate(-45deg) scale(1)}
+.rw>input:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* animated strike-through */
+.rw.done .t b{text-decoration:none;background:linear-gradient(currentColor,currentColor) 0 55%/100% 1.5px no-repeat}
+.rw.cool-justdone .t b{animation:strike .4s ease-out}
+@keyframes strike{from{background-size:0 1.5px}to{background-size:100% 1.5px}}
+
+/* minutes pill */
+.rw .m{border:1px solid var(--line);padding:1px 5px}
+.rw.done .m{opacity:.4}
+
+/* link chips: logo greys out until hover */
+.lk{transition:transform .15s,box-shadow .15s}
+.lk:hover{transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}
+
+/* square confetti */
+.cool-bit{position:fixed;width:7px;height:7px;pointer-events:none;z-index:60;will-change:transform,opacity}
+
+/* step-finished toast */
+.cool-toast{position:fixed;left:50%;bottom:22px;z-index:61;transform:translate(-50%,140%);background:var(--ink);color:var(--bg);
+  font:600 12px var(--mono);padding:10px 14px;border:1px solid var(--ink);box-shadow:4px 4px 0 var(--acc);transition:transform .45s cubic-bezier(.3,1.4,.5,1)}
+.cool-toast.on{transform:translate(-50%,0)}
+
+/* marquee ticker under the head */
+.cool-tick{overflow:hidden;border-bottom:1px solid var(--line2);margin:0 -36px;background:var(--ink);color:var(--bg)}
+.cool-tick div{display:flex;gap:28px;width:max-content;padding:6px 0;font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;animation:mq 38s linear infinite}
+.cool-tick span::before{content:"■ ";color:var(--acc)}
+@keyframes mq{to{transform:translateX(-50%)}}
+@media (max-width:700px){.cool-tick{margin:0 -16px}}
+
+@media (prefers-reduced-motion:reduce){
+  .cool-in,.jhead h2 .hl,.cool-tick div,.rw.cool-justdone .t b,.jtab.fin .num{animation:none!important;opacity:1;transform:none}
+  .jhead h2 .hl{background-size:100% .28em}
+  .jtabs .slide,.pn,.rw::before,.cool-toast{transition:none}
+  .pn:hover{transform:none}
+}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 `;
 
@@ -458,7 +537,7 @@ function draw(id, plan) {
     st.append(ld, cols); out.append(st); J.stages.push(st);
   });
   prog();
-  out.hidden = false; $('#about').hidden = true; document.body.classList.add('has-plan');
+  out.hidden = false; $('#about').hidden = true; document.body.classList.add('has-plan'); cool();
   const h = +(location.hash.match(/step-([1-5])/) || [])[1]; if (h) requestAnimationFrame(() => goStep(h - 1));
 }
 
@@ -544,6 +623,66 @@ async function load(id) {
     if (!r.ok) throw new Error(j.error);
     $('#url').value = j.plan.url; st.textContent = ''; draw(id, j.plan);
   } catch (e) { st.className = 'status err'; st.textContent = e.message || 'This plan is not here.'; }
+}
+
+// The motion layer: reveal, sliding tab line, spotlight, ticked rows, confetti when a step is done.
+// Turned off by prefers-reduced-motion. Called at the end of draw().
+const CALM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let coolPlace = null;
+function countUp(node, to, ms) {
+  if (CALM) { node.textContent = String(to); return; }
+  const t0 = performance.now();
+  const f = (t) => { const p = Math.min(1, (t - t0) / ms); node.textContent = String(Math.round(to * (1 - Math.pow(1 - p, 3)))); if (p < 1) requestAnimationFrame(f); };
+  requestAnimationFrame(f);
+}
+function cool() {
+  const out = $('#plan'); if (!out) return;
+  const h2 = out.querySelector('.jhead h2');
+  if (h2 && h2.textContent.indexOf('A plan for ') === 0 && !h2.querySelector('.hl')) { const n = h2.textContent.slice(11); h2.textContent = 'A plan for '; h2.append(el('span', 'hl', n)); }
+  const head = out.querySelector('.jhead');
+  if (head && !out.querySelector('.cool-tick')) {
+    const words = ['Find your first customers', 'One page for week one', 'Made from your own page', 'Tick it, ship it', 'Five steps, no fluff'];
+    const tk = el('div', 'cool-tick'); tk.setAttribute('aria-hidden', 'true'); const row = el('div');
+    words.concat(words, words, words).forEach((w) => row.append(el('span', '', w)));
+    tk.append(row); head.after(tk);
+  }
+  let i = 0;
+  out.querySelectorAll('.jhead > *, .jtab, .pn').forEach((n) => { n.classList.add('cool-in'); n.style.setProperty('--i', String(i++)); });
+  out.querySelectorAll('.pn').forEach((pn) => { let k = 0; pn.querySelectorAll('.rw').forEach((r) => { r.classList.add('cool-in'); r.style.setProperty('--i', String(Math.min(i + k++, 40))); }); });
+  out.querySelectorAll('.score b').forEach((b) => { const v = parseInt(b.textContent, 10); if (!isNaN(v)) countUp(b, v, 1100); });
+  const tabs = out.querySelector('.jtabs');
+  if (tabs && !tabs.querySelector('.slide')) {
+    const bar = el('span', 'slide'); tabs.append(bar);
+    coolPlace = () => { const on = tabs.querySelector('.jtab[aria-selected=true]'); if (!on) return; bar.style.width = on.offsetWidth + 'px'; bar.style.transform = 'translateX(' + on.offsetLeft + 'px)'; };
+    new MutationObserver(coolPlace).observe(tabs, { attributes: true, subtree: true, attributeFilter: ['aria-selected'] });
+    coolPlace();
+  }
+  if (out.dataset.cool) return; out.dataset.cool = '1';
+  addEventListener('resize', () => { if (coolPlace) coolPlace(); });
+  out.addEventListener('pointermove', (e) => { const pn = e.target.closest && e.target.closest('.pn'); if (!pn) return; const r = pn.getBoundingClientRect(); pn.style.setProperty('--mx', (e.clientX - r.left) + 'px'); pn.style.setProperty('--my', (e.clientY - r.top) + 'px'); });
+  out.addEventListener('change', (e) => {
+    const cb = e.target; if (!cb.matches || !cb.matches('.rw > input') || !cb.checked) return;
+    const rw = cb.closest('.rw'); rw.classList.remove('cool-justdone'); void rw.offsetWidth; rw.classList.add('cool-justdone');
+    const box = cb.closest('.stage'); if (!box) return;
+    const all = box.querySelectorAll('.rw > input').length; const done = box.querySelectorAll('.rw > input:checked').length;
+    const r = cb.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, all === done ? 70 : 10);
+    if (all === done) coolToast('Step done. On to the next one.');
+  });
+}
+function burst(x, y, n) {
+  if (CALM) return;
+  const cs = getComputedStyle(document.documentElement);
+  const cols = [cs.getPropertyValue('--acc'), cs.getPropertyValue('--ink'), cs.getPropertyValue('--acctext')];
+  for (let k = 0; k < n; k++) {
+    const d = el('i', 'cool-bit'); d.style.left = x + 'px'; d.style.top = y + 'px'; d.style.background = cols[k % 3]; document.body.append(d);
+    const a = Math.random() * Math.PI * 2; const v = (n > 20 ? 140 : 50) + Math.random() * (n > 20 ? 220 : 60);
+    d.animate([{ transform: 'translate(-50%,-50%) rotate(0)', opacity: 1 }, { transform: 'translate(' + (Math.cos(a) * v) + 'px,' + (Math.sin(a) * v + 120) + 'px) rotate(' + (Math.random() * 540) + 'deg)', opacity: 0 }], { duration: 700 + Math.random() * 600, easing: 'cubic-bezier(.2,.7,.4,1)' }).onfinish = () => d.remove();
+  }
+}
+let coolToastT;
+function coolToast(msg) {
+  let t = $('.cool-toast'); if (!t) { t = el('div', 'cool-toast'); t.setAttribute('role', 'status'); document.body.append(t); }
+  t.textContent = msg; requestAnimationFrame(() => t.classList.add('on')); clearTimeout(coolToastT); coolToastT = setTimeout(() => t.classList.remove('on'), 2400);
 }
 
 $('#form').addEventListener('submit', make);
