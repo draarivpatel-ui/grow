@@ -67,6 +67,16 @@ footer{margin:0 -36px;padding:22px 36px 40px;font:500 11px var(--mono);text-tran
 .jtab .tx{flex:1;min-width:0}.jtab .tt{display:block;font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.jtab .st{display:block;font:500 10.5px var(--mono);color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .jtab .b2{display:block;height:3px;background:var(--line);margin-top:5px}.jtab .b2 i{display:block;height:100%;width:0;background:var(--acc);transition:width .3s}.jtab .pg{flex:none;font:600 10.5px var(--mono);color:var(--faint)}
 .stage{margin:0 -36px;padding:14px 36px 18px;border-bottom:1px solid var(--line2)}
+.jlinks{margin-top:12px;border:1px solid var(--line2)}.ltop{display:flex;align-items:center;gap:8px;padding:6px 8px}.lh{font:600 10.5px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--faint);flex:none}
+.lks{display:flex;gap:4px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none}.lks::-webkit-scrollbar{display:none}
+.lk{display:inline-flex;align-items:center;gap:5px;flex:none;padding:3px 7px;border:1px solid var(--line2);background:var(--bg);font:12px var(--sans,inherit);white-space:nowrap;cursor:pointer;color:inherit}.lk:hover{border-color:var(--ink)}
+.lk.empty{border-style:dashed;color:var(--mut)}.lk.empty img{filter:grayscale(1);opacity:.55}.lk img{width:14px;height:14px}
+.jdrawer{border-top:1px solid var(--line2);padding:8px;display:grid;gap:6px}.jdrawer[hidden]{display:none}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:4px}
+.lin{display:flex;align-items:center;gap:6px;border:1px solid var(--line2);padding:3px 7px;background:var(--bg)}.lin img{width:14px;height:14px}.lin .k{font:600 10px var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--mut);min-width:84px}
+.lin input{flex:1;min-width:0;border:0;background:transparent;outline:0;font:12px var(--mono);color:inherit;padding:3px 0}.lin:focus-within{border-color:var(--acc)}.lin input[readonly]{color:var(--mut)}
+.jdrawer textarea{border:1px dashed var(--line2);background:transparent;color:inherit;font:12px var(--mono);padding:6px 8px;resize:vertical}.jdrawer .note{margin:0}
+.rw .m{flex:none;font:600 10px var(--mono);color:var(--faint);padding-top:2px;white-space:nowrap}
 .jlead{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px;margin-bottom:10px}.jlead h3{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.02em}.jlead .say{color:var(--mut);font-size:14px}.jlead .pg{margin-left:auto;font:600 11px var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.06em}
 .cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));grid-auto-rows:300px;padding:0 1px 1px 0}
 .pn{display:flex;flex-direction:column;min-width:0;min-height:0;margin:0 -1px -1px 0;background:var(--panel);border:1px solid var(--line2)}
@@ -207,6 +217,8 @@ const ICON = {
   send: '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
   post: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
 };
 const svg = (k) => { const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('class', 'i'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true'); s.innerHTML = ICON[k]; return s; };
 const tip = (n, t) => { n.setAttribute('data-tip', t); return n; };
@@ -221,14 +233,15 @@ const doneKey = (id) => 'grow-done:' + (id || 'guide');
 function loadDone(id) { try { return new Set(JSON.parse(localStorage.getItem(doneKey(id)) || '[]')); } catch (e) { return new Set(); } }
 function saveDone() { try { localStorage.setItem(doneKey(J.id), JSON.stringify([...J.done])); } catch (e) {} }
 
-// One task: tick box, a logo or dot, the text (click to read all of it), and its actions.
-function row(key, lead, title, sub, acts, under) {
+// One task: tick box, a logo or dot, the text (click to read all of it), about how long it takes, and its actions.
+function row(key, lead, title, sub, acts, under, m) {
   const r = el('div', 'rw'); const c = el('input'); c.type = 'checkbox'; c.dataset.k = key; c.setAttribute('aria-label', 'Done: ' + title); tip(c, 'Tick when done. Kept in this browser.');
   if (J.done.has(key)) { c.checked = true; r.classList.add('done'); }
   const t = el('div', 't' + (lead && lead.classList && lead.classList.contains('logo') ? ' nologo' : '')); t.append(el('b', '', title)); if (sub) t.append(el('small', '', sub));
   tip(t, clip(sub ? title + ': ' + sub : title, 280) + (sub && sub.length > 60 ? ' (click to read all)' : ''));
   t.onclick = (e) => { if (!e.target.closest('a,button,input')) r.classList.toggle('open'); };
   r.append(c); if (lead) r.append(lead); r.append(t);
+  if (m) { const ms = el('span', 'm', mins(m)); tip(ms, 'Takes about ' + mins(m)); r.dataset.m = m; r.append(ms); }
   if (acts && acts.length) { const a = el('div', 'ra'); a.append(...acts); (under ? t : r).append(a); }
   return r;
 }
@@ -249,6 +262,89 @@ const postLink = (x, plan) => {
 };
 const saveSite = (id, plan) => fetch('/me').then(() => fetch('/api/sites', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: plan.url, plan: id }) })).then((r) => r.json());
 
+// Your links: the pages the plan read (the site, then its GitHub, X ...). Click one, or Edit links, to add
+// more; a new plan reads them too. Pasted links go to their place by host.
+const SLOTS = [['GitHub', 'github.com'], ['X', 'x.com'], ['LinkedIn', 'linkedin.com'], ['Product Hunt', 'producthunt.com'], ['Hacker News', 'news.ycombinator.com'], ['Reddit', 'reddit.com'], ['YouTube', 'youtube.com'], ['Docs', ''], ['npm', 'npmjs.com'], ['PyPI', 'pypi.org'], ['Discord', 'discord.com'], ['Bluesky', 'bsky.app']];
+const SLOT_RE = { GitHub: /(^|[.])github[.]com$/, X: /(^|[.])(x|twitter)[.]com$/, LinkedIn: /(^|[.])linkedin[.]com$/, 'Product Hunt': /(^|[.])producthunt[.]com$/, 'Hacker News': /^news[.]ycombinator[.]com$/, Reddit: /(^|[.])reddit[.]com$/, YouTube: /(^|[.])(youtube[.]com|youtu[.]be)$/, npm: /(^|[.])npmjs[.]com$/, PyPI: /^pypi[.]org$/, Discord: /(^|[.])(discord[.]gg|discord[.]com)$/, Bluesky: /^bsky[.]app$/ };
+function slotOf(u) {
+  let x; try { x = new URL(u); } catch (e) { return ''; }
+  const h = x.hostname.toLowerCase(); const k = Object.keys(SLOT_RE).find((s) => SLOT_RE[s].test(h));
+  return k || (/^(docs|developer|developers)[.]/.test(h) || /[/]docs([/]|$)/.test(x.pathname) ? 'Docs' : '');
+}
+const asLink = (v) => {
+  v = String(v || '').trim().replace(/[),;]+$/, ''); if (!v) return '';
+  if (!/^https?:[/][/]/i.test(v)) v = 'https://' + v.replace(/^[/]+/, '');
+  try { const u = new URL(v); return u.hostname.includes('.') ? u.href : ''; } catch (e) { return ''; }
+};
+const short = (u) => String(u).replace(/^https?:[/][/](www[.])?/, '').replace(/[/]$/, '');
+
+function linksBar(plan) {
+  const by = {}; const other = [];
+  (Array.isArray(plan.links) ? plan.links : []).forEach((u) => { const k = slotOf(u); if (k && !by[k]) by[k] = u; else other.push(u); });
+  const wrap = el('div', 'jlinks nologo'); const top = el('div', 'ltop'); const strip = el('div', 'lks');
+  const drawer = el('div', 'jdrawer'); drawer.hidden = true;
+  const openDrawer = (k) => {
+    drawer.hidden = false; ed.setAttribute('aria-expanded', 'true');
+    const f = k && drawer.querySelector('input[data-k="' + k + '"]');
+    (f && !f.readOnly ? f : drawer.querySelector('input:not([readonly])')).focus();
+  };
+  const chip = (label, u, hint) => {
+    const b = el('button', 'lk' + (u ? '' : ' empty')); b.type = 'button';
+    b.append(logo(label, u || (hint ? 'https://' + hint : '')), el('span', '', u ? label : '+ ' + label));
+    tip(b, u ? label + ': ' + short(u) + ' · click to edit' : 'Add your ' + label + ' link to get more ideas');
+    b.onclick = () => openDrawer(label); return b;
+  };
+  strip.append(chip('Website', plan.url, ''));
+  SLOTS.forEach(([k, h]) => strip.append(chip(k, by[k], h)));
+  other.forEach((u) => strip.append(chip(host(u).replace(/^www[.]/, ''), u, '')));
+  const ed = ibtn('Edit links', 'post', 'Add or change your links. Paste many at once.', () => { if (drawer.hidden) openDrawer(); else close(); });
+  ed.setAttribute('aria-expanded', 'false');
+  top.append(el('span', 'lh', 'Your links'), strip, ed);
+
+  const grid = el('div', 'lgrid');
+  const field = (k, v, h, ro) => {
+    const l = el('label', 'lin'); l.append(logo(k, v || (h ? 'https://' + h : '')), el('span', 'k', k));
+    const i = el('input'); i.type = 'text'; i.inputMode = 'url'; i.value = v || ''; i.dataset.k = k; i.placeholder = ro ? '' : (h || 'docs.your-site.com') + '/...';
+    i.setAttribute('aria-label', k + ' link'); if (ro) { i.readOnly = true; tip(l, 'The page this plan is for'); } l.append(i); return l;
+  };
+  grid.append(field('Website', plan.url, '', true), ...SLOTS.map(([k, h]) => field(k, by[k], h, false)));
+  const ta = el('textarea'); ta.rows = 2; ta.value = other.join('\n'); ta.setAttribute('aria-label', 'More links');
+  ta.placeholder = 'Paste many links here, one per line. Each one goes to its place above.';
+  // Pasted links fill the empty places they belong to; the rest stay in the box.
+  const sortPaste = () => {
+    const keep = [];
+    ta.value.split(/[\s,]+/).map(asLink).filter(Boolean).forEach((u) => {
+      const f = grid.querySelector('input[data-k="' + slotOf(u) + '"]');
+      if (f && !f.readOnly && !f.value.trim()) f.value = u; else keep.push(u);
+    });
+    ta.value = keep.join('\n');
+  };
+  ta.addEventListener('blur', sortPaste); ta.addEventListener('paste', () => setTimeout(sortPaste, 0));
+  const msg = el('p', 'note'); msg.hidden = true;
+  const LABEL = 'Make a new plan with these links';
+  const go = ibtn(LABEL, 'send', 'Makes a new plan that also reads these links. It counts as one of your plans today.', async () => {
+    sortPaste();
+    const ls = [...grid.querySelectorAll('input:not([readonly])')].map((i) => asLink(i.value)).concat(ta.value.split(/[\s,]+/).map(asLink)).filter(Boolean);
+    if (!ls.length) { msg.hidden = false; msg.textContent = 'Add at least one link first.'; return; }
+    go.disabled = true; go.lastChild.textContent = 'Making the plan...'; msg.hidden = false; msg.textContent = 'Reading your links. This takes about 20 seconds.';
+    try {
+      const r = await fetch('/api/plan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: plan.url, links: ls }), signal: AbortSignal.timeout(120000) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.id) throw new Error(j.error || 'Something went wrong. Press the button again.');
+      location.href = '/p/' + j.id;
+    } catch (e) {
+      go.disabled = false; go.lastChild.textContent = LABEL;
+      msg.textContent = e.name === 'TimeoutError' ? 'The plan took too long. Press the button again in a minute.' : e.message;
+    }
+  }, true);
+  const close = () => { drawer.hidden = true; ed.setAttribute('aria-expanded', 'false'); };
+  const acts = el('div', 'ra'); acts.append(go, ibtn('Cancel', 'x', 'Close without changes', close));
+  drawer.append(grid, ta, acts, msg);
+  drawer.addEventListener('keydown', (e) => { if (e.key === 'Escape') { close(); ed.focus(); } });
+  wrap.append(top, drawer); return wrap;
+}
+const mins = (m) => (m >= 60 ? Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '') : m + ' min');
+
 function draw(id, plan) {
   if (plan.kind === 'followers') { J = null; return drawFollowers(id, plan); }
   const out = $('#plan'); out.replaceChildren();
@@ -258,6 +354,7 @@ function draw(id, plan) {
   const head = el('div', 'jhead');
   head.append(el('div', 'kicker', id ? 'Your plan · kept 30 days' : 'A general guide'), el('h2', '', 'A plan for ' + planName(plan.url)));
   if (plan.product) head.append(el('p', 'sub', plan.product));
+  head.append(linksBar(plan));
   const bar = el('div', 'jbar');
   J.count = el('span', 'jcount'); tip(J.count, 'Tasks done across all 5 steps');
   const cnt = el('span', 'jcwrap'); cnt.append(svg('check'), J.count);
@@ -273,7 +370,7 @@ function draw(id, plan) {
   if (plan.check) {
     const sc = el('div', 'big'); sc.append(String(plan.check.score), el('small', '', '/100 · ' + plan.check.grade));
     ready.push(card('Can AI search find it', logo('Citable', 'https://citable.flisk.si'), [sc, el('p', '', 'ChatGPT, Claude and Perplexity answer from pages they can read. Citable checks yours.'), (() => { const a = el('div', 'ra'); a.append(iopen('Full report', plan.check.report, 'Open the full Citable report for your page', true)); return a; })()], 'The AI-search score from Citable'));
-    const fx = plan.check.fixes.map((f, i) => row('fix' + i, dot(f.status === 'pass' ? 'ok' : f.status === 'warn' ? 'warn' : 'bad', f.status === 'warn' ? 'Should fix soon' : 'Fix first: this hurts most'), f.title, f.summary, [icopy(f.title + ': ' + f.summary, 'Copy this fix to send to whoever edits your site')]));
+    const fx = plan.check.fixes.map((f, i) => row('fix' + i, dot(f.status === 'pass' ? 'ok' : f.status === 'warn' ? 'warn' : 'bad', f.status === 'warn' ? 'Should fix soon' : 'Fix first: this hurts most'), f.title, f.summary, [icopy(f.title + ': ' + f.summary, 'Copy this fix to send to whoever edits your site')], false, 15));
     ready.push(pane('Fix your page', logo('', plan.url), fx.length ? fx : [row('fix-none', dot('ok', 'Fine as it is'), 'Nothing to fix', 'AI search can read this page.')], 'What stops AI search from quoting your page'));
   } else ready.push(card('Can AI search find it', logo('Citable', 'https://citable.flisk.si'), [el('p', '', 'The check did not answer this time.'), (() => { const a = el('div', 'ra'); a.append(iopen('Try on Citable', 'https://citable.flisk.si', 'Run the AI-search check on Citable')); return a; })()]));
   const gres = el('div', 'ra');
@@ -297,7 +394,7 @@ function draw(id, plan) {
     const a = el('div', 'ra'); a.append(iopen(k.listed ? 'Open on Ranker' : 'List it on Ranker', k.url, 'See your repo on Ranker', true)); if (k.markdown) a.append(icopy(k.markdown, 'Copy the badge as Markdown for your README')); kids.push(a);
     ready.push(card('Your rank on Ranker', null, kids, 'GitHub repos ranked by stars gained each day'));
   }
-  ready.push(pane('More free checks', null, plan.tools.map((x, i) => row('tool' + i, logo(x.name, x.url), x.name, x.why, [iopen('Open', x.url, 'Open ' + x.name + ' in a new tab')])), 'Free Flisk checks for your page'));
+  ready.push(pane('More free checks', null, plan.tools.map((x, i) => row('tool' + i, logo(x.name, x.url), x.name, x.why, [iopen('Open', x.url, 'Open ' + x.name + ' in a new tab')], false, 2)), 'Free Flisk checks for your page'));
   const SKILL_SOURCES = [
     { name: 'Flisk Tools', why: 'Free agent skills from GitHub, sorted by stars, with search and categories.', url: (q) => 'https://tools.flisk.si/skills' + (q ? '?q=' + encodeURIComponent(q) : '') },
     { name: 'skills.sh', why: 'The open skills directory that the npx skills command installs from.', url: (q) => 'https://skills.sh/' + (q ? '?q=' + encodeURIComponent(q) : '') },
@@ -318,26 +415,26 @@ function draw(id, plan) {
 
   // 2. Find buyers
   const buyers = [card('Who would buy it', null, [el('p', 'pitch', plan.pitch || ''), el('p', '', plan.buyers || ''), plan.today ? (() => { const t = el('div', 'today'); t.append(el('small', '', 'Do this today'), el('div', '', plan.today)); return t; })() : null, plan.pitch ? (() => { const a = el('div', 'ra'); a.append(icopy(plan.pitch, 'Copy the one-line pitch')); return a; })() : null], 'The first group to sell to')];
-  buyers.push(pane('Where to find them', null, plan.places.map((x, i) => row('place' + i, logo(x.name, x.url), x.name, x.why, x.url ? [iopen('Open', x.url, 'Open ' + x.name + '. Read its rules before you post.')] : [])), 'Places these buyers already talk'));
-  if (plan.promo && plan.promo.length) buyers.push(pane('Where you may promote yourself', null, plan.promo.map((x, i) => row('promo' + i, logo(x.where || x.name, x.url), x.name, x.rule, [iopen('Open', x.url, 'Open ' + x.name + ' and read its rule first')])), 'Communities with a place for your own work, each with its own rule'));
+  buyers.push(pane('Where to find them', null, plan.places.map((x, i) => row('place' + i, logo(x.name, x.url), x.name, x.why, x.url ? [iopen('Open', x.url, 'Open ' + x.name + '. Read its rules before you post.')] : [], false, 10)), 'Places these buyers already talk'));
+  if (plan.promo && plan.promo.length) buyers.push(pane('Where you may promote yourself', null, plan.promo.map((x, i) => row('promo' + i, logo(x.where || x.name, x.url), x.name, x.rule, [iopen('Open', x.url, 'Open ' + x.name + ' and read its rule first')], false, 10)), 'Communities with a place for your own work, each with its own rule'));
 
   // 3. Reach out: the emails, a few a day
   const mails = plan.emails.map((e, i) => {
     const gm = 'https://mail.google.com/mail/?view=cm&fs=1&su=' + encodeURIComponent(e.subject) + '&body=' + encodeURIComponent(e.body);
     const mt = 'mailto:?subject=' + encodeURIComponent(e.subject) + '&body=' + encodeURIComponent(e.body);
-    return row('mail' + i, svg('mail'), e.subject, 'To: ' + (e.to || 'someone who fits') + '. ' + e.body, [iopen('Gmail', gm, 'Open a Gmail draft with this email. Add the address and press Send.', true, 'mail'), iopen('Mail app', mt, 'Open a draft in your own mail app'), icopy(e.subject + '\n\n' + e.body, 'Copy the subject and the email text')], true);
+    return row('mail' + i, svg('mail'), e.subject, 'To: ' + (e.to || 'someone who fits') + '. ' + e.body, [iopen('Gmail', gm, 'Open a Gmail draft with this email. Add the address and press Send.', true, 'mail'), iopen('Mail app', mt, 'Open a draft in your own mail app'), icopy(e.subject + '\n\n' + e.body, 'Copy the subject and the email text')], true, 5);
   });
   const days = [['Day 1 · today', 0, 2], ['Day 3', 2, 4], ['Day 5', 4, 99]];
   const reach = mails.length > 2 ? days.map((d) => [d[0], mails.slice(d[1], d[2])]).filter((d) => d[1].length).map((d) => pane(d[0], svg('mail'), d[1], 'Send these on ' + d[0].replace(' · today', ', today') + '. Nothing is sent for you.')) : [pane('Emails to send', svg('mail'), mails, 'Drafts only. Nothing is sent for you.')];
 
   // 4. Post: one column per place
   const byWhere = {}; (plan.posts || []).forEach((x, i) => { (byWhere[x.where] = byWhere[x.where] || []).push([x, i]); });
-  const posts = Object.keys(byWhere).map((w) => pane(w, logo(w, ''), byWhere[w].map(([x, i]) => row('post' + i, null, x.title || clip(x.body, 60), x.body, [postLink(x, plan), icopy((x.title ? x.title + '\n\n' : '') + x.body + (x.where === 'Discord' ? ' ' + plan.url : ''), 'Copy this post, ready to paste on ' + w)].filter(Boolean), true)), 'Opens the post box with the text filled in. You read it, change it and post it yourself.'));
+  const posts = Object.keys(byWhere).map((w) => pane(w, logo(w, ''), byWhere[w].map(([x, i]) => row('post' + i, null, x.title || clip(x.body, 60), x.body, [postLink(x, plan), icopy((x.title ? x.title + '\n\n' : '') + x.body + (x.where === 'Discord' ? ' ' + plan.url : ''), 'Copy this post, ready to paste on ' + w)].filter(Boolean), true, 10)), 'Opens the post box with the text filled in. You read it, change it and post it yourself.'));
   if (!posts.length) posts.push(card('Posts to write', null, [el('p', '', 'No post drafts this time. Press the button again for drafts for X, Reddit and Hacker News.')]));
 
   // 5. Get listed
   const ls = plan.listings.map((x, i) => [x, i]);
-  const lrow = ([x, i]) => row('list' + i, logo(x.name, x.url), x.name, x.why, [iopen('Submit', x.url, 'Open the ' + x.name + ' submit page')]);
+  const lrow = ([x, i]) => row('list' + i, logo(x.name, x.url), x.name, x.why, [iopen('Submit', x.url, 'Open the ' + x.name + ' submit page')], false, 10);
   const listed = [pane('Launch sites', null, ls.filter(([x]) => LAUNCH.test(x.name)).map(lrow), 'Launch lists: one day of attention, best on a weekday'), pane('Directories', null, ls.filter(([x]) => !LAUNCH.test(x.name)).map(lrow), 'Directories people search; they keep sending visitors')];
 
   const steps = [
@@ -364,15 +461,17 @@ function draw(id, plan) {
 }
 
 function prog() {
-  if (!J) return; let D = 0, T = 0;
+  if (!J) return; let D = 0, T = 0, L = 0;
   J.stages.forEach((st, i) => {
     const b = [...st.querySelectorAll('.rw input')]; const d = b.filter((x) => x.checked).length; D += d; T += b.length;
     const tb = J.tabs[i]; const fin = b.length > 0 && d === b.length;
     tb.classList.toggle('fin', fin); tb.querySelector('.num').textContent = fin ? '✓' : String(i + 1);
     tb.querySelector('.b2 i').style.width = (b.length ? d / b.length * 100 : 0) + '%'; tb.querySelector('.pg').textContent = d + '/' + b.length;
-    tb.setAttribute('aria-selected', String(i === J.cur)); st.querySelector('.jlead .pg').textContent = d + '/' + b.length + ' done';
+    tb.setAttribute('aria-selected', String(i === J.cur));
+    const left = b.filter((x) => !x.checked).reduce((a, x) => a + (+x.closest('.rw').dataset.m || 0), 0); L += left;
+    st.querySelector('.jlead .pg').textContent = d + '/' + b.length + ' done' + (left ? ' · ' + mins(left) + ' left' : '');
   });
-  J.count.textContent = D + '/' + T + ' done';
+  J.count.textContent = D + '/' + T + ' done' + (L ? ' · about ' + mins(L) + ' left' : '');
 }
 function goStep(i) {
   if (!J) return; J.cur = Math.max(0, Math.min(J.stages.length - 1, i)); J.lock = Date.now();

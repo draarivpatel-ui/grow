@@ -1,5 +1,5 @@
 // grow.flisk.si: paste a link, get a plan to find the first customers. No sign-in. Plans are kept 30 days at /p/<id>.
-import { genericFollowers, httpUrl, makePlan, profileOf, rankerFor } from './plan.js';
+import { cleanLinks, genericFollowers, githubRepo, httpUrl, makePlan, profileOf, rankerFor } from './plan.js';
 import { page } from './page.js';
 import { cabinet } from './cabinet.js';
 import { withSecurityHeaders } from './security-headers.js';
@@ -91,7 +91,9 @@ async function route(req, env, deps = {}) {
     const about = String(body?.about ?? '').replace(/[\u0000-\u001f]+/g, ' ').trim().slice(0, 300);
     // The same link within a day gets the plan already made: no second model call (unless the owner added a line).
     // A saved general guide is never reused: pressing again should try for a plan written for the page.
-    const known = about ? null : await env.DB.prepare("SELECT id, data, created FROM plans WHERE url = ? AND created > ? AND data NOT LIKE '%\"generic\":true%' ORDER BY created DESC LIMIT 1").bind(link, Date.now() - DAY_MS).first();
+    // Extra links (GitHub, X, docs ...) from the links bar: they make a new plan that reads them too.
+    const links = profileOf(link) ? [] : cleanLinks(body?.links, link);
+    const known = about || links.length ? null : await env.DB.prepare("SELECT id, data, created FROM plans WHERE url = ? AND created > ? AND data NOT LIKE '%\"generic\":true%' ORDER BY created DESC LIMIT 1").bind(link, Date.now() - DAY_MS).first();
     if (known) return json(200, { id: known.id, created: known.created, plan: JSON.parse(known.data), reused: true });
 
     const perVisitor = Number(env.PLANS_PER_VISITOR) || 3;
@@ -111,7 +113,7 @@ async function route(req, env, deps = {}) {
       try { await env.DB.prepare('INSERT INTO plans (id, url, data, created) VALUES (?, ?, ?, ?)').bind(id, link, JSON.stringify(plan), created).run(); } catch { return { plan }; }
       return { id, created, plan };
     };
-    const [out, rank] = await Promise.all([makePlan(link, { fetch: fetchImpl, model, citable, key: env.INFERENCE_KEY, about }), rankerFor(link, ranker)]);
+    const [out, rank] = await Promise.all([makePlan(link, { fetch: fetchImpl, model, citable, key: env.INFERENCE_KEY, about, links }), rankerFor(githubRepo(link) ? link : links.find(githubRepo) || link, ranker)]);
     if (rank) for (const x of [out.plan, out.fallback]) if (x) x.ranker = rank;
     if (out.error === 'timeout' && profileOf(link)) return json(200, { ...(await keep({ url: link, ...genericFollowers(profileOf(link), about), tools: [] })), generic: true, slow: true });
     if (out.error === 'timeout' && out.fallback) return json(200, { ...(await keep(out.fallback)), generic: true, slow: true });
