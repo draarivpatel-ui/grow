@@ -161,26 +161,34 @@ export async function checkCitable(url, call) {
 
 // One model answer for the whole plan is about 2000 tokens, which the free model needs more than 60 s to write. Two
 // smaller answers, asked at the same time, come back in about half the time.
-const RULES = `Plain words, no emoji, no hashtags. If the page says little, guess from the link and say so in "product".`;
-export const SYSTEM = `You help a maker find the first people who would pay for what they made.
+const RULES = `Plain words, no emoji, no hashtags. If the page says little, guess from the link and say so in "product".
+Write your own sentences: never copy headings, button labels or feature names from the page text.`;
+// Who writes: the maker. Small models flip this and write as a buyer asking the maker about the product.
+const VOICE = `You write AS THE MAKER of this product, never as a buyer, user, investor or fan of it. The maker made it and wants people to try it.`;
+const BUYER = `The buyers are ONE narrow group you could find this week, with a job and a situation, for example "solo developers who just put a project on GitHub and have under 50 stars". Never a list like "makers, entrepreneurs, small business owners".`;
+export const SYSTEM = `You help a maker find the first people who would pay for what they made. ${VOICE}
 You get a link and the text of its page. Answer with ONE JSON object and nothing else:
 {"product": "what it is, one short sentence",
- "buyers": "who would pay first: a narrow group, their job, the problem they have today (2 sentences)",
+ "buyers": "who would pay first: one narrow group, their job, the problem they have today (2 sentences)",
  "pitch": "one line a buyer would care about, no hype",
- "today": "the one step to take today, one sentence",
+ "today": "the one step THE MAKER takes today to reach a first buyer, one sentence (never a step for the buyer, like signing up)",
  "queries": ["2 to 4 short search phrases (2-4 words) a buyer would write in a post when they have the problem"],
  "places": [{"name": "a real community, forum, subreddit, newsletter, event or group where those buyers are", "why": "why there", "url": "its address if you are sure, else empty"}]}
-Give 5 to 8 places. Only real places; never invent an address.
+${BUYER}
+Give 5 to 8 places. Only real places that match those buyers; never invent an address.
 ${RULES}`;
-export const SYSTEM_POSTS = `You help a maker find the first people who would pay for what they made.
+export const SYSTEM_POSTS = `You help a maker find the first people who would pay for what they made. ${VOICE}
 You get a link and the text of its page. Answer with ONE JSON object and nothing else:
-{"posts": [{"where": "X" | "Reddit" | "Hacker News" | "Discord", "title": "post title", "body": "the post, plain, under 60 words"}]}
+{"posts": [{"where": "X" | "Reddit" | "Hacker News" | "Discord", "title": "post title", "body": "the post in the maker's voice (I built ...), plain, under 60 words"}]}
 Give 4 posts, one for each of X, Reddit, Hacker News and Discord; the Discord one is a friendly message for a show-your-work channel.
+Do not put a subreddit name or a link in the post: the page adds the link.
 ${RULES}`;
-export const SYSTEM_EMAILS = `You help a maker find the first people who would pay for what they made.
+export const SYSTEM_EMAILS = `You help a maker find the first people who would pay for what they made. ${VOICE}
+The maker writes each email TO one person who has the problem the product solves. The reader has never heard of the product.
 You get a link and the text of its page. Answer with ONE JSON object and nothing else:
-{"emails": [{"to": "who to write to (a role, not a made-up name)", "subject": "short", "body": "a short plain email under 90 words: why them, what it does for them, one small ask; sign it [your name]"}]}
-Give 5 emails, each to a different kind of person who would pay first.
+{"emails": [{"to": "who to write to: a role in the narrow buyer group", "find": "where to find real people like that this week (for example: people who posted Show HN this week, people asking how to get first users on r/SideProject), one sentence", "subject": "short", "body": "a short plain email from the maker under 90 words: what you saw they are doing, what the product does for them, one small ask; sign it [your name]", "followup": "a 2 to 3 sentence follow-up from the maker to send 7 days later if there was no reply"}]}
+Give 5 emails, each to a different kind of person in or close to the buyer group.
+${BUYER}
 ${RULES}`;
 
 // A link to a person's or brand's profile on a social network. Its page is behind a login, so it cannot be read and a
@@ -272,11 +280,12 @@ export function genericFollowers(profile, about = '') {
 }
 
 // Used when the free model is out of budget: the real AI-search check and listings, plus a fixed playbook with blanks.
-export function genericCustomers(url, page, check) {
+export function genericCustomers(url, page, check, site = '') {
+  const live = site || url;
   let host = url; try { host = new URL(url).host; } catch { /* keep the link */ }
   const name = str(page?.title, 120) || host;
   return {
-    generic: true, url, product: name, queries: [],
+    generic: true, url, ...(site ? { site } : {}), product: name, queries: [],
     buyers: 'The model is out of budget today, so this is a general guide. Pick ONE narrow group who has the problem your product solves today, name their job, and write only for them.',
     pitch: 'For [who], [your product] does [one result] without [the pain they have now].',
     today: 'Write the one-line pitch above with real words and send it to 5 people who fit.',
@@ -292,10 +301,10 @@ export function genericCustomers(url, page, check) {
       { to: 'The author of a newsletter your buyers read', subject: 'A tool for your readers: ' + name, body: 'Hi [name],\n\nYour readers [have this problem]. ' + name + ' [does one result]. If it fits, I can write a short note for them.\n\n[your name]' },
     ],
     posts: [
-      { where: 'X', title: 'Launch post', body: 'I built ' + name + ' for [who]. It [one result]. Try it and tell me what is missing: ' + url },
+      { where: 'X', title: 'Launch post', body: 'I built ' + name + ' for [who]. It [one result]. Try it and tell me what is missing: ' + live },
       { where: 'Reddit', title: 'I built a tool for [problem]', body: 'I kept hitting [problem], so I made ' + name + '. It [one result]. I would like honest feedback.' },
       { where: 'Hacker News', title: 'Show HN: ' + name, body: 'What it is, why I built it, and what I want feedback on, in three short lines.' },
-      { where: 'Discord', title: 'Show your work', body: 'Hi all, I built ' + name + ' for [who]. It [one result]. Link: ' + url + '. What would you change?' },
+      { where: 'Discord', title: 'Show your work', body: 'Hi all, I built ' + name + ' for [who]. It [one result]. Link: ' + live + '. What would you change?' },
     ],
     check, listings: LISTINGS, promo: PROMO, tools: TOOLS,
   };
@@ -318,15 +327,19 @@ export function parseJson(s) {
   try { return JSON.parse(fixed.replace(/,(\s*[}\]])/g, '$1')); } catch { return null; }
 }
 
+// The model names a subreddit it made up ("r/WeAreTheMusicMakers: ...") or pastes a link; the page picks the place
+// (checked subreddits in PROMO) and adds the product's own link, so both come out of the draft.
+export const unsub = (t) => String(t).replace(/^\s*[/]?r[/]\w+\s*[:\-|]\s*/i, '').trim();
+export const unlink = (t) => String(t).replace(/\s*https?:[/][/]\S+/g, '').trim();
 // Keep only what the page can draw safely. Returns null when the model gave too little to be useful.
 export function cleanPlan(i) {
   if (!i || typeof i !== 'object') return null;
   const places = (Array.isArray(i.places) ? i.places : []).slice(0, 10)
     .map((p) => ({ name: str(p?.name, 80), why: str(p?.why, 200), url: httpUrl(p?.url) })).filter((p) => p.name);
   const emails = (Array.isArray(i.emails) ? i.emails : []).slice(0, 8)
-    .map((e) => ({ to: str(e?.to, 80), subject: str(e?.subject, 120), body: text(e?.body, 1500) })).filter((e) => e.subject && e.body);
+    .map((e) => ({ to: str(e?.to, 80), find: str(e?.find, 240), subject: str(e?.subject, 120), body: text(e?.body, 1500), followup: text(e?.followup, 800) })).filter((e) => e.subject && e.body);
   const posts = (Array.isArray(i.posts) ? i.posts : []).slice(0, 6)
-    .map((p) => ({ where: ['X', 'Reddit', 'Hacker News', 'Discord'].includes(p?.where) ? p.where : 'X', title: str(p?.title, 120), body: text(p?.body, 600) }))
+    .map((p) => ({ where: ['X', 'Reddit', 'Hacker News', 'Discord'].includes(p?.where) ? p.where : 'X', title: unsub(str(p?.title, 120)), body: unlink(text(p?.body, 600)) }))
     .filter((p) => p.title || p.body);
   const buyers = str(i.buyers, 500);
   if (!buyers || !places.length || !emails.length) return null;
@@ -341,17 +354,31 @@ export async function makePlan(url, opts) {
   delete out.links;
   return out;
 }
+// The product's own website when the link is a GitHub repo: the repo's homepage field, else a non-profile link the
+// maker gave. '' when there is none. The AI-search check and the post links use it, since nobody can fix github.com.
+export async function repoSite(repo, given, fetchImpl) {
+  const own = (given || []).find((u) => linkKind(u) === 'Other');
+  if (own) return own;
+  try {
+    const r = await fetchImpl('https://api.github.com/repos/' + repo, { headers: { accept: 'application/vnd.github+json', 'user-agent': 'flisk-grow' }, signal: AbortSignal.timeout(6000) });
+    const h = r.ok ? httpUrl((await r.json())?.homepage) : '';
+    return h && linkKind(h) === 'Other' ? h : '';
+  } catch { return ''; }
+}
 async function makePlanFor(url, { fetch: fetchImpl, model, citable, key, about: ownerLine = '', links: given = [] }) {
   const profile = profileOf(url);
-  // Everything starts at once: Citable runs beside the model calls instead of holding them back.
-  const checking = profile ? Promise.resolve(null) : checkCitable(url, citable || fetchImpl);
+  const repo = profile ? '' : githubRepo(url);
+  const site = repo ? await repoSite(repo, cleanLinks(given, url), fetchImpl) : '';
+  // Everything starts at once: Citable runs beside the model calls instead of holding them back. A repo with no
+  // website of its own gets no check: the score would be github.com's.
+  const checking = profile || (repo && !site) ? Promise.resolve(null) : checkCitable(site || url, citable || fetchImpl);
   const page = profile ? null : await readPage(url, fetchImpl);
   const about = profile
     ? `Handle: @${profile.handle}\nOwner says: ${str(ownerLine, 300) || '(nothing)'}`
     : page ? `Title: ${page.title}\nDescription: ${page.desc}\nText: ${page.body}` : '(the page could not be read)';
   // Links the maker gave first, then the profiles the page itself links to.
   const links = profile ? [] : cleanLinks([...given, ...(page?.links || [])], url);
-  const others = links.length ? `\nThe maker's other pages: ${links.map((u) => linkKind(u) + ' ' + u).join(', ')}` : '';
+  const others = (links.length ? `\nThe maker's other pages: ${links.map((u) => linkKind(u) + ' ' + u).join(', ')}` : '') + (site ? `\nThe product's website: ${site}` : '');
   const ask = (system) => model('https://inference.flisk.si/v1/chat/completions', {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
@@ -364,7 +391,7 @@ async function makePlanFor(url, { fetch: fetchImpl, model, citable, key, about: 
   } catch (e) {
     const check = await checking;
     const timeout = e?.name === 'TimeoutError' || e?.name === 'AbortError';
-    return { error: timeout ? 'timeout' : 'model', message: str(e?.message, 300) || 'model call failed', ...(timeout && !profile ? { fallback: genericCustomers(url, page, check) } : {}), links };
+    return { error: timeout ? 'timeout' : 'model', message: str(e?.message, 300) || 'model call failed', ...(timeout && !profile ? { fallback: genericCustomers(url, page, check, site) } : {}), links };
   }
   const check = await checking;
   const js = await Promise.all(rs.map((r) => r.json().catch(() => null)));
@@ -372,7 +399,7 @@ async function makePlanFor(url, { fetch: fetchImpl, model, citable, key, about: 
   if (bad >= 0) {
     const msg = str(js[bad]?.error?.message, 300);
     const busy = /daily|budget|limit/i.test(msg);
-    return { error: busy ? 'busy' : 'model', message: msg || `model answered ${rs[bad].status}`, ...(busy && !profile ? { fallback: genericCustomers(url, page, check) } : {}), links };
+    return { error: busy ? 'busy' : 'model', message: msg || `model answered ${rs[bad].status}`, ...(busy && !profile ? { fallback: genericCustomers(url, page, check, site) } : {}), links };
   }
   const parts = js.map((j) => parseJson(j?.choices?.[0]?.message?.content));
   const raw = parts.length > 1 ? (parts.every(Boolean) ? { ...parts[0], emails: parts[1].emails, posts: parts[2].posts } : null) : parts[0];
@@ -382,5 +409,7 @@ async function makePlanFor(url, { fetch: fetchImpl, model, citable, key, about: 
   }
   const plan = cleanPlan(raw);
   if (!plan) return { error: 'model', message: 'the model did not give a usable plan' };
-  return { plan: { url, ...plan, check, listings: LISTINGS, promo: PROMO, tools: TOOLS }, links };
+  // Hacker News has its own post draft; listing it again under Get listed sends the maker there twice.
+  const listings = plan.posts.some((p) => p.where === 'Hacker News') ? LISTINGS.filter((l) => !/hacker news/i.test(l.name)) : LISTINGS;
+  return { plan: { url, ...(site ? { site } : {}), ...(repo && !site ? { noSite: true } : {}), ...plan, check, listings, promo: PROMO, tools: TOOLS }, links };
 }
