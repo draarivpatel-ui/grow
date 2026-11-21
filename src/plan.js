@@ -110,9 +110,13 @@ You get a link and the text of its page. Answer with ONE JSON object and nothing
  "pitch": "one line a buyer would care about, no hype",
  "today": "the one step to take today, one sentence",
  "queries": ["2 to 4 short search phrases (2-4 words) a buyer would write in a post when they have the problem"],
- "places": [{"name": "a real community, forum, subreddit, newsletter, event or group where those buyers are", "why": "why there", "url": "its address if you are sure, else empty"}],
- "posts": [{"where": "X" | "Reddit" | "Hacker News" | "Discord", "title": "post title", "body": "the post, plain, under 60 words"}]}
-Give 5 to 8 places and 4 posts (one for each of X, Reddit, Hacker News and Discord; the Discord one is a friendly message for a show-your-work channel). Only real places; never invent an address.
+ "places": [{"name": "a real community, forum, subreddit, newsletter, event or group where those buyers are", "why": "why there", "url": "its address if you are sure, else empty"}]}
+Give 5 to 8 places. Only real places; never invent an address.
+${RULES}`;
+export const SYSTEM_POSTS = `You help a maker find the first people who would pay for what they made.
+You get a link and the text of its page. Answer with ONE JSON object and nothing else:
+{"posts": [{"where": "X" | "Reddit" | "Hacker News" | "Discord", "title": "post title", "body": "the post, plain, under 60 words"}]}
+Give 4 posts, one for each of X, Reddit, Hacker News and Discord; the Discord one is a friendly message for a show-your-work channel.
 ${RULES}`;
 export const SYSTEM_EMAILS = `You help a maker find the first people who would pay for what they made.
 You get a link and the text of its page. Answer with ONE JSON object and nothing else:
@@ -264,7 +268,9 @@ export function cleanPlan(i) {
 // The whole plan. `model` and `citable` are fetch-like functions (service bindings in production).
 export async function makePlan(url, { fetch: fetchImpl, model, citable, key, about: ownerLine = '' }) {
   const profile = profileOf(url);
-  const [page, check] = profile ? [null, null] : await Promise.all([readPage(url, fetchImpl), checkCitable(url, citable || fetchImpl)]);
+  // Everything starts at once: Citable runs beside the model calls instead of holding them back.
+  const checking = profile ? Promise.resolve(null) : checkCitable(url, citable || fetchImpl);
+  const page = profile ? null : await readPage(url, fetchImpl);
   const about = profile
     ? `Handle: @${profile.handle}\nOwner says: ${str(ownerLine, 300) || '(nothing)'}`
     : page ? `Title: ${page.title}\nDescription: ${page.desc}\nText: ${page.body}` : '(the page could not be read)';
@@ -276,11 +282,13 @@ export async function makePlan(url, { fetch: fetchImpl, model, citable, key, abo
   });
   let rs;
   try {
-    rs = await Promise.all((profile ? [followersSystem(profile.network)] : [SYSTEM, SYSTEM_EMAILS]).map(ask));
+    rs = await Promise.all((profile ? [followersSystem(profile.network)] : [SYSTEM, SYSTEM_EMAILS, SYSTEM_POSTS]).map(ask));
   } catch (e) {
+    const check = await checking;
     const timeout = e?.name === 'TimeoutError' || e?.name === 'AbortError';
     return { error: timeout ? 'timeout' : 'model', message: str(e?.message, 300) || 'model call failed', ...(timeout && !profile ? { fallback: genericCustomers(url, page, check) } : {}) };
   }
+  const check = await checking;
   const js = await Promise.all(rs.map((r) => r.json().catch(() => null)));
   const bad = rs.findIndex((r) => !r.ok);
   if (bad >= 0) {
@@ -289,7 +297,7 @@ export async function makePlan(url, { fetch: fetchImpl, model, citable, key, abo
     return { error: busy ? 'busy' : 'model', message: msg || `model answered ${rs[bad].status}`, ...(busy && !profile ? { fallback: genericCustomers(url, page, check) } : {}) };
   }
   const parts = js.map((j) => parseJson(j?.choices?.[0]?.message?.content));
-  const raw = parts.length > 1 ? (parts[0] && parts[1] ? { ...parts[0], emails: parts[1].emails } : null) : parts[0];
+  const raw = parts.length > 1 ? (parts.every(Boolean) ? { ...parts[0], emails: parts[1].emails, posts: parts[2].posts } : null) : parts[0];
   if (profile) {
     const f = cleanFollowers(raw, profile);
     return f ? { plan: { url, ...f, tools: TOOLS } } : { error: 'model', message: 'the model did not give a usable plan' };
