@@ -104,6 +104,8 @@ async function route(req, env, deps = {}) {
     const model = env.INFERENCE ? (u, init) => env.INFERENCE.fetch(u, init) : fetchImpl;
     const citable = env.CITABLE ? (u, init) => env.CITABLE.fetch(u, init) : fetchImpl;
     const out = await makePlan(link, { fetch: fetchImpl, model, citable, key: env.INFERENCE_KEY, about });
+    if (out.error === 'timeout' && profileOf(link)) return json(200, { plan: { url: link, ...genericFollowers(profileOf(link), about), tools: [] }, generic: true, slow: true });
+    if (out.error === 'timeout' && out.fallback) return json(200, { plan: out.fallback, generic: true, slow: true });
     if (out.error === 'timeout') return json(504, { error: 'The model took too long to answer. Press the button again in a minute.' });
     if (out.error === 'busy') await sendTrace(env, { route: '/api/plan', kind: 'capped', why: 'the model budget is used up: served the general playbook', status: 200, expected: 'model', actual: 'playbook' });
     if (out.error === 'busy' && profileOf(link)) return json(200, { plan: { url: link, ...genericFollowers(profileOf(link), about), tools: [] }, generic: true });

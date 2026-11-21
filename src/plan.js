@@ -242,7 +242,8 @@ export async function makePlan(url, { fetch: fetchImpl, model, citable, key, abo
   try {
     rs = await Promise.all((profile ? [followersSystem(profile.network)] : [SYSTEM, SYSTEM_EMAILS]).map(ask));
   } catch (e) {
-    return { error: e?.name === 'TimeoutError' || e?.name === 'AbortError' ? 'timeout' : 'model', message: str(e?.message, 300) || 'model call failed' };
+    const timeout = e?.name === 'TimeoutError' || e?.name === 'AbortError';
+    return { error: timeout ? 'timeout' : 'model', message: str(e?.message, 300) || 'model call failed', ...(timeout && !profile ? { fallback: genericCustomers(url, page, check) } : {}) };
   }
   const js = await Promise.all(rs.map((r) => r.json().catch(() => null)));
   const bad = rs.findIndex((r) => !r.ok);

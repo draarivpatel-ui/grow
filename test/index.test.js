@@ -113,14 +113,17 @@ describe('routes', () => {
 });
 
 describe('slow model', () => {
-  test('a model timeout returns a readable 504 and stores no plan', async () => {
+  test('a model timeout gives the general guide with the real checks and stores no plan', async () => {
     const timeout = async () => { const e = new Error('The operation timed out.'); e.name = 'TimeoutError'; throw e; };
     const s = setup({ INFERENCE: { fetch: timeout } });
-    const r = await s.post('https://example.com/');
-    expect(r.status).toBe(504);
+    const r = await s.post('https://a.com/');
+    expect(r.status).toBe(200);
     const j = await r.json();
-    expect(j.error).toBe('The model took too long to answer. Press the button again in a minute.');
+    expect(j).toMatchObject({ generic: true, slow: true });
+    expect(j.plan.check.score).toBe(62);
     expect(j.id).toBeUndefined();
+    const x = await (await s.post('https://x.com/brookservers', '3.3.3.3')).json();
+    expect(x).toMatchObject({ generic: true, slow: true });
   });
 
   test('the page guards the button and survives a non-JSON error', async () => {
