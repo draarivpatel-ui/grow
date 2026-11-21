@@ -37,7 +37,7 @@ export function workersAi(ai, fallback) {
   return async (url, init) => {
     const req = JSON.parse(init.body);
     try {
-      const r = await ai.run(FAST_MODEL, { messages: req.messages, max_tokens: req.max_tokens, temperature: req.temperature });
+      const r = await ai.run(FAST_MODEL, { messages: req.messages, max_tokens: req.max_tokens, temperature: req.temperature, response_format: { type: 'json_object' } });
       const content = typeof r?.response === 'string' ? r.response : JSON.stringify(r?.response ?? '');
       if (!content || content === '""') throw new Error('empty answer');
       return Response.json({ model: FAST_MODEL, choices: [{ message: { role: 'assistant', content } }], usage: r.usage });
@@ -305,7 +305,17 @@ export function parseJson(s) {
   const t = String(s ?? '').replace(/```(?:json)?/g, '');
   const a = t.indexOf('{'), b = t.lastIndexOf('}');
   if (a < 0 || b <= a) return null;
-  try { return JSON.parse(t.slice(a, b + 1)); } catch { return null; }
+  const j = t.slice(a, b + 1);
+  try { return JSON.parse(j); } catch {}
+  // Small models write line breaks and tabs inside strings, and trailing commas: repair those and try once more.
+  let fixed = '', inStr = false, esc = false;
+  for (const ch of j) {
+    if (inStr && !esc && (ch === '\n' || ch === '\r' || ch === '\t')) { fixed += ch === '\t' ? '\\t' : ch === '\n' ? '\\n' : ''; continue; }
+    if (ch === '"' && !esc) inStr = !inStr;
+    esc = inStr && !esc && ch === '\\';
+    fixed += ch;
+  }
+  try { return JSON.parse(fixed.replace(/,(\s*[}\]])/g, '$1')); } catch { return null; }
 }
 
 // Keep only what the page can draw safely. Returns null when the model gave too little to be useful.
