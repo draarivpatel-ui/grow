@@ -83,7 +83,7 @@ footer{margin:0 -36px;padding:22px 36px 40px;font:500 11px var(--mono);text-tran
 .pn .ph{display:flex;align-items:center;gap:7px;flex:none;padding:8px 10px;border-bottom:1px solid var(--line2);font:600 10.5px var(--mono);text-transform:uppercase;letter-spacing:.07em}.pn .ph .logo{margin:0}.pn .ph .n{margin-left:auto;color:var(--faint)}
 .pn .bd{flex:1;min-height:0;overflow:auto}
 .rw{display:flex;gap:8px;align-items:flex-start;padding:7px 10px;border-bottom:1px solid var(--line);font-size:13px;line-height:1.35}.rw:hover{background:var(--panel2)}
-.rw>input{flex:none;margin:1px 0 0;width:14px;height:14px;accent-color:var(--acc);cursor:pointer}.rw>.logo{margin:0}.rw>svg.i{margin-top:2px}
+.rw .ck>input{flex:none;margin:1px 0 0;width:14px;height:14px;accent-color:var(--acc);cursor:pointer}.rw>.logo{margin:0}.rw>svg.i{margin-top:2px}
 .rw .t{flex:1;min-width:0;cursor:pointer}.rw .t b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rw .t small{display:block;margin-top:1px;font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rw.open .t b,.rw.open .t small{white-space:pre-wrap;overflow-wrap:anywhere}.rw.done .t b{text-decoration:line-through;color:var(--faint)}
 .ra{display:flex;flex-wrap:wrap;gap:4px;flex:none}.rw .t .ra{margin-top:6px}
@@ -137,11 +137,11 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;opa
 .rw:hover::before{transform:scaleY(1)}
 
 /* custom square check that draws itself */
-.rw>input{appearance:none;-webkit-appearance:none;position:relative;width:16px;height:16px;border:1.5px solid var(--line2);background:var(--bg);display:grid;place-items:center;transition:background .2s,border-color .2s}
-.rw>input::after{content:"";width:9px;height:5px;border:2px solid var(--accink,#000);border-top:0;border-right:0;transform:translateY(-1px) rotate(-45deg) scale(0);transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
-.rw>input:checked{background:var(--acc);border-color:var(--acc)}
-.rw>input:checked::after{transform:translateY(-1px) rotate(-45deg) scale(1)}
-.rw>input:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.rw .ck>input{appearance:none;-webkit-appearance:none;position:relative;width:16px;height:16px;border:1.5px solid var(--line2);background:var(--bg);display:grid;place-items:center;transition:background .2s,border-color .2s}
+.rw .ck>input::after{content:"";width:9px;height:5px;border:2px solid var(--accink,#000);border-top:0;border-right:0;transform:translateY(-1px) rotate(-45deg) scale(0);transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+.rw .ck>input:checked{background:var(--acc);border-color:var(--acc)}
+.rw .ck>input:checked::after{transform:translateY(-1px) rotate(-45deg) scale(1)}
+.rw .ck>input:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
 /* animated strike-through */
 .rw.done .t b{text-decoration:none;background:linear-gradient(currentColor,currentColor) 0 55%/100% 1.5px no-repeat}
@@ -242,6 +242,9 @@ body.has-plan .dateline,body.has-plan .byline{display:none}
 body.has-plan .mast{padding:10px 36px 8px}body.has-plan .mast .name{font-size:clamp(28px,4vw,44px)}body.has-plan .mast .tag{display:none}
 form .btn.paste{border-width:1px 0 1px 1px;background:var(--panel2);height:48px}form .btn.paste:hover{background:var(--bg2)}
 @media(max-width:560px){form .btn.paste{border-width:0 1px 1px 1px;justify-content:center}}
+/* click targets: sized from a 1,000-user synthetic click map (desktop 28px, touch 40px) */
+.pn .btn,.stage .btn,.ib,.lk{min-height:28px}.rw .ck>input{width:18px;height:18px;margin:0}.ck{flex:none;display:flex;padding:7px;margin:-7px -3px -7px -7px;cursor:pointer}h2 a.hl{text-decoration:none;color:inherit}h2 a.hl:hover{text-decoration:underline}a.big{display:inline-block;text-decoration:none;color:inherit}a.big:hover{color:var(--red,var(--acc))}
+@media(pointer:coarse){.pn .btn,.stage .btn,.ib,.lk,.navr a{min-height:40px}.pn .ra,.stage .ra{gap:6px}.rw .ck>input{width:24px;height:24px}.skf input,.skf .ib{height:40px}.navr a{display:inline-flex;align-items:center}.rw{padding:10px}footer a{display:inline-flex;align-items:center;min-height:40px;padding:0 8px}}
 .pn .btn,.stage .btn{padding:3px 7px;gap:4px;font-size:9.5px;letter-spacing:.05em;line-height:1.3}.pn .btn.go::after,.stage .btn.go::after{content:none}.pn .ra,.stage .ra{gap:3px}.rw .t .ra{margin-top:4px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 `;
@@ -385,7 +388,7 @@ function row(key, lead, title, sub, acts, under, m) {
   const t = el('div', 't' + (lead && lead.classList && lead.classList.contains('logo') ? ' nologo' : '')); t.append(el('b', '', title)); if (sub) t.append(el('small', '', sub));
   tip(t, clip(sub ? title + ': ' + sub : title, 280) + (sub && sub.length > 60 ? ' (click to read all)' : ''));
   t.onclick = (e) => { if (!e.target.closest('a,button,input')) r.classList.toggle('open'); };
-  r.append(c); if (lead) r.append(lead); r.append(t);
+  const ck = el('label', 'ck'); ck.append(c); r.append(ck); if (lead) r.append(lead); r.append(t);
   if (m) { const ms = el('span', 'm', mins(m)); tip(ms, 'Takes about ' + mins(m)); r.dataset.m = m; r.append(ms); }
   if (acts && acts.length) { const a = el('div', 'ra'); a.append(...acts); (under ? t : r).append(a); }
   return r;
@@ -499,7 +502,7 @@ function draw(id, plan) {
   J = { id, done: loadDone(id), cur: 0, lock: 0 };
 
   const head = el('div', 'jhead');
-  head.append(el('div', 'kicker', id ? 'Your plan · kept 30 days' : 'A general guide'), el('h2', '', 'A plan for ' + planName(plan.url)));
+  head.append(el('div', 'kicker', id ? 'Your plan · kept 30 days' : 'A general guide'), (() => { const h = el('h2', '', 'A plan for '); const a = el('a', 'hl', planName(plan.url)); a.href = plan.url; a.target = '_blank'; a.rel = 'noopener'; tip(a, 'Open ' + host(plan.url) + ' in a new tab'); h.append(a); return h; })());
   if (plan.product) head.append(el('p', 'sub', plan.product));
   head.append(linksBar(plan));
   const bar = el('div', 'jbar');
@@ -515,7 +518,7 @@ function draw(id, plan) {
   // 1. Get ready
   const ready = [];
   if (plan.check) {
-    const sc = el('div', 'big'); sc.append(String(plan.check.score), el('small', '', '/100 · ' + plan.check.grade));
+    const sc = el('a', 'big'); sc.href = plan.check.report; sc.target = '_blank'; sc.rel = 'noopener'; tip(sc, 'Open the full Citable report'); sc.append(String(plan.check.score), el('small', '', '/100 · ' + plan.check.grade));
     ready.push(card('Can AI search find it', logo('Citable', 'https://citable.flisk.si'), [sc, el('p', '', 'ChatGPT, Claude and Perplexity answer from pages they can read. Citable checks yours.'), (() => { const a = el('div', 'ra'); a.append(iopen('Full report', plan.check.report, 'Open the full Citable report for your page', true)); return a; })()], 'The AI-search score from Citable'));
     const fx = plan.check.fixes.map((f, i) => row('fix' + i, dot(f.status === 'pass' ? 'ok' : f.status === 'warn' ? 'warn' : 'bad', f.status === 'warn' ? 'Should fix soon' : 'Fix first: this hurts most'), f.title, f.summary, [icopy(f.title + ': ' + f.summary, 'Copy this fix to send to whoever edits your site')], false, 15));
     ready.push(pane('Fix your page', logo('', plan.url), fx.length ? fx : [row('fix-none', dot('ok', 'Fine as it is'), 'Nothing to fix', 'AI search can read this page.')], 'What stops AI search from quoting your page'));
