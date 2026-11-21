@@ -83,11 +83,16 @@ export function linkKind(u) {
 }
 const linkKey = (u) => String(u).replace(/^https?:[/][/](www[.])?/i, '').replace(/[/?#]+$/, '').toLowerCase();
 // Up to 12 distinct http(s) links, without the main one.
+// Tracking and badge parameters (utm_source, ref, embed ...) say nothing about the page; drop them.
+const TRACK = /^(utm_\w+|ref|ref_src|ref_url|embed|fbclid|gclid|igshid|si|s|mc_cid|mc_eid)$/i;
+export function untrack(u) {
+  try { const x = new URL(u); [...x.searchParams.keys()].filter((k) => TRACK.test(k)).forEach((k) => x.searchParams.delete(k)); return x.href.replace(/[?]$/, ''); } catch { return u; }
+}
 export function cleanLinks(list, main) {
   const seen = new Set([linkKey(main || '')]); const out = [];
   for (const v of Array.isArray(list) ? list : []) {
     // A link to a file in a repo (its LICENSE, a README) becomes the repo page.
-    const r = githubRepo(v); const u = r ? 'https://github.com/' + r : httpUrl(v); if (!u || seen.has(linkKey(u))) continue;
+    const r = githubRepo(v); const h = r ? 'https://github.com/' + r : httpUrl(v); const u = h && untrack(h); if (!u || seen.has(linkKey(u))) continue;
     seen.add(linkKey(u)); out.push(u); if (out.length >= 12) break;
   }
   return out;

@@ -43,6 +43,7 @@ describe('plan', () => {
     expect(cleanLinks(['https://a.com/', 'https://www.github.com/acme', 'https://github.com/acme/', 'javascript:x', 'nope'], 'https://a.com')).toEqual(['https://www.github.com/acme']);
     expect(cleanLinks(Array.from({ length: 20 }, (_, i) => 'https://s' + i + '.com/'))).toHaveLength(12);
     expect(cleanLinks('https://a.com/')).toEqual([]);
+    expect(cleanLinks(['https://www.producthunt.com/products/flisk?embed=true&utm_source=badge-featured&utm_medium=badge', 'https://www.youtube.com/watch?v=abc&si=x', 'https://x.com/acme?s=20'])).toEqual(['https://www.producthunt.com/products/flisk', 'https://www.youtube.com/watch?v=abc', 'https://x.com/acme']);
     expect(cleanLinks(['https://github.com/flisk-sh/flisk/blob/main/LICENSE', 'https://github.com/flisk-sh/flisk', 'https://github.com/features'])).toEqual(['https://github.com/flisk-sh/flisk', 'https://github.com/features']);
   });
 
