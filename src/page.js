@@ -252,6 +252,10 @@ form .btn.paste{border-width:1px 0 1px 1px;background:var(--panel2);height:48px}
 .pn .btn,.stage .btn,.ib,.lk{min-height:28px}.rw .ck>input{width:18px;height:18px;margin:0}.ck{flex:none;display:flex;padding:7px;margin:-7px -3px -7px -7px;cursor:pointer}h2 a.hl{text-decoration:none;color:inherit}h2 a.hl:hover{text-decoration:underline}a.big{display:inline-block;text-decoration:none;color:inherit}a.big:hover{color:var(--red,var(--acc))}
 @media(pointer:coarse){.pn .btn,.stage .btn,.ib,.lk,.navr a{min-height:40px}.pn .ra,.stage .ra{gap:6px}.rw .ck>input{width:24px;height:24px}.skf input,.skf .ib{height:40px}.navr a{display:inline-flex;align-items:center}.rw{padding:10px}footer a{display:inline-flex;align-items:center;min-height:40px;padding:0 8px}}
 .pn .btn,.stage .btn{padding:3px 7px;gap:4px;font-size:9.5px;letter-spacing:.05em;line-height:1.3}.pn .btn.go::after,.stage .btn.go::after{content:none}.pn .ra,.stage .ra{gap:3px}.rw .t .ra{margin-top:4px}
+/* Copy and Open are icon-only in the columns; the label stays in the DOM for screen readers and the tooltip says what it does */
+.pn .ib:not(.go):not([type=submit]),.stage .ib:not(.go):not([type=submit]){font-size:0;gap:0;padding:0;width:26px;height:24px;justify-content:center}
+.pn .ib:not(.go) svg.i,.stage .ib:not(.go) svg.i{width:14px;height:14px;stroke-width:1.75}
+.pn .ib.go,.stage .ib.go{padding:3px 8px;font-size:9.5px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 `;
 
