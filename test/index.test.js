@@ -225,3 +225,22 @@ describe('motion layer', () => {
     expect(html).toMatch(/@media \(prefers-reduced-motion:reduce\)\{\s*\.cool-in/);
   });
 });
+
+describe('model on the AI binding', () => {
+  test('a plan is written by Workers AI without calling inference', async () => {
+    const { MODEL_PLAN } = await import('./fixtures.js');
+    const runs = [];
+    const AI = { run: async (model) => { runs.push(model); return { response: MODEL_PLAN }; } };
+    const s = setup({ AI });
+    const r = await s.post('https://a.com/');
+    expect(r.status).toBe(200);
+    expect(runs.length).toBeGreaterThan(0);
+    expect(s.modelCalls()).toBe(0);
+  });
+
+  test('the AI binding alone is enough, no inference key needed', async () => {
+    const { MODEL_PLAN } = await import('./fixtures.js');
+    const r = await setup({ INFERENCE_KEY: '', AI: { run: async () => ({ response: MODEL_PLAN }) } }).post('https://a.com/');
+    expect(r.status).toBe(200);
+  });
+});
