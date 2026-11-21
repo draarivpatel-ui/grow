@@ -242,6 +242,12 @@ body.has-plan .dateline,body.has-plan .byline{display:none}
 body.has-plan .mast{padding:10px 36px 8px}body.has-plan .mast .name{font-size:clamp(28px,4vw,44px)}body.has-plan .mast .tag{display:none}
 form .btn.paste{border-width:1px 0 1px 1px;background:var(--panel2);height:48px}form .btn.paste:hover{background:var(--bg2)}
 @media(max-width:560px){form .btn.paste{border-width:0 1px 1px 1px;justify-content:center}}
+.firstw{margin:14px 0 18px}.firstw .lh{margin-bottom:6px}.first{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.fs{display:flex;flex-direction:column;gap:3px;min-height:72px;padding:12px 14px;border:1px solid var(--line2);background:var(--panel);color:inherit;text-decoration:none;text-align:left;font:inherit;cursor:pointer}
+.fs:first-child{background:var(--acc);border-color:var(--acc);color:var(--accink)}.fs:hover{border-color:var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.fs .k{font:600 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;opacity:.7}.fs b{font-size:16px;line-height:1.2}.fs small{font-size:12.5px;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rw[hidden]{display:none}.pn .more{display:block;width:100%;min-height:36px;border:0;border-top:1px dashed var(--line2);background:transparent;font:600 10.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;color:inherit}.pn .more:hover{background:var(--panel2)}
+@media(max-width:560px){.first{grid-template-columns:1fr 1fr}.fs{min-height:84px;padding:10px}.fs b{font-size:14.5px}.fs small{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}}
 /* click targets: sized from a 1,000-user synthetic click map (desktop 28px, touch 40px) */
 .pn .btn,.stage .btn,.ib,.lk{min-height:28px}.rw .ck>input{width:18px;height:18px;margin:0}.ck{flex:none;display:flex;padding:7px;margin:-7px -3px -7px -7px;cursor:pointer}h2 a.hl{text-decoration:none;color:inherit}h2 a.hl:hover{text-decoration:underline}a.big{display:inline-block;text-decoration:none;color:inherit}a.big:hover{color:var(--red,var(--acc))}
 @media(pointer:coarse){.pn .btn,.stage .btn,.ib,.lk,.navr a{min-height:40px}.pn .ra,.stage .ra{gap:6px}.rw .ck>input{width:24px;height:24px}.skf input,.skf .ib{height:40px}.navr a{display:inline-flex;align-items:center}.rw{padding:10px}footer a{display:inline-flex;align-items:center;min-height:40px;padding:0 8px}}
@@ -393,11 +399,14 @@ function row(key, lead, title, sub, acts, under, m) {
   if (acts && acts.length) { const a = el('div', 'ra'); a.append(...acts); (under ? t : r).append(a); }
   return r;
 }
+const FOLD = 4; // rows a pane shows before Show all
 function pane(title, lead, rows, hint, cls) {
   const p = el('div', 'pn' + (cls ? ' ' + cls : '')); const h = el('div', 'ph nologo'); if (lead) h.append(lead);
   h.append(el('span', 'pt', title)); if (rows) h.append(el('span', 'n', String(rows.length)));
   if (hint) tip(h, hint);
-  const b = el('div', 'bd'); if (rows) b.append(...rows); p.append(h, b); return p;
+  const b = el('div', 'bd'); if (rows) b.append(...rows);
+  if (rows && rows.length > FOLD + 1) { rows.slice(FOLD).forEach((r) => { r.hidden = true; }); const m = el('button', 'more'); m.type = 'button'; m.textContent = 'Show all ' + rows.length; m.onclick = () => { rows.forEach((r) => { r.hidden = false; }); m.remove(); }; b.append(m); }
+  p.append(h, b); return p;
 }
 function card(title, lead, kids, hint) { const p = pane(title, lead, null, hint); const c = el('div', 'pc'); c.append(...kids.filter(Boolean)); p.lastChild.append(c); return p; }
 const LAUNCH = /hacker news|product hunt|betalist|uneed|devhunt|foundrlist|launchamp/i;
@@ -502,7 +511,7 @@ function draw(id, plan) {
   J = { id, done: loadDone(id), cur: 0, lock: 0 };
 
   const head = el('div', 'jhead');
-  head.append(el('div', 'kicker', id ? 'Your plan · kept 30 days' : 'A general guide'), (() => { const h = el('h2', '', 'A plan for '); const a = el('a', 'hl', planName(plan.url)); a.href = plan.url; a.target = '_blank'; a.rel = 'noopener'; tip(a, 'Open ' + host(plan.url) + ' in a new tab'); h.append(a); return h; })());
+  head.append(el('div', 'kicker', id ? 'Your plan · kept 30 days' : 'A general guide'), (() => { const h = el('h2', '', 'A plan for '); const a = el('a', 'hl', planName(plan.url)); a.href = plan.url; a.dataset.c = 'site name'; a.target = '_blank'; a.rel = 'noopener'; tip(a, 'Open ' + host(plan.url) + ' in a new tab'); h.append(a); return h; })());
   if (plan.product) head.append(el('p', 'sub', plan.product));
   head.append(linksBar(plan));
   const bar = el('div', 'jbar');
@@ -518,7 +527,7 @@ function draw(id, plan) {
   // 1. Get ready
   const ready = [];
   if (plan.check) {
-    const sc = el('a', 'big'); sc.href = plan.check.report; sc.target = '_blank'; sc.rel = 'noopener'; tip(sc, 'Open the full Citable report'); sc.append(String(plan.check.score), el('small', '', '/100 · ' + plan.check.grade));
+    const sc = el('a', 'big'); sc.href = plan.check.report; sc.dataset.c = 'score'; sc.target = '_blank'; sc.rel = 'noopener'; tip(sc, 'Open the full Citable report'); sc.append(String(plan.check.score), el('small', '', '/100 · ' + plan.check.grade));
     ready.push(card('Can AI search find it', logo('Citable', 'https://citable.flisk.si'), [sc, el('p', '', 'ChatGPT, Claude and Perplexity answer from pages they can read. Citable checks yours.'), (() => { const a = el('div', 'ra'); a.append(iopen('Full report', plan.check.report, 'Open the full Citable report for your page', true)); return a; })()], 'The AI-search score from Citable'));
     const fx = plan.check.fixes.map((f, i) => row('fix' + i, dot(f.status === 'pass' ? 'ok' : f.status === 'warn' ? 'warn' : 'bad', f.status === 'warn' ? 'Should fix soon' : 'Fix first: this hurts most'), f.title, f.summary, [icopy(f.title + ': ' + f.summary, 'Copy this fix to send to whoever edits your site')], false, 15));
     ready.push(pane('Fix your page', logo('', plan.url), fx.length ? fx : [row('fix-none', dot('ok', 'Fine as it is'), 'Nothing to fix', 'AI search can read this page.')], 'What stops AI search from quoting your page'));
@@ -594,6 +603,21 @@ function draw(id, plan) {
     { t: 'Post', st: (plan.posts || []).length + ' drafts', say: 'Post where your buyers read. You read, change and post each one yourself.', panes: posts },
     { t: 'Get listed', st: plan.listings.length + ' places', say: 'Directories and launch lists. Each link opens its submit page.', panes: listed },
   ];
+  // Do this first: the one next move for each reason people open a plan, at the top, so nobody has to scroll to find it.
+  const first = el('div', 'first'); first.setAttribute('aria-label', 'Do this first');
+  const fs = (n, label, sub, href, onclick) => {
+    const a = el(href ? 'a' : 'button', 'fs'); if (href) { a.href = href; a.target = '_blank'; a.rel = 'noopener'; } else { a.type = 'button'; a.onclick = onclick; }
+    a.dataset.c = 'first: ' + label.split(' ').slice(0, 3).join(' '); a.append(el('span', 'k', 'Step ' + n), el('b', '', label), el('small', '', sub)); return a;
+  };
+  const e0 = plan.emails[0];
+  if (e0) first.append(fs(3, 'Email your first buyer', 'To: ' + (e0.to || 'someone who fits') + '. Gmail opens with the draft.', 'https://mail.google.com/mail/?view=cm&fs=1&su=' + encodeURIComponent(e0.subject) + '&body=' + encodeURIComponent(e0.body)));
+  const f0 = plan.check && plan.check.fixes.find((f) => f.status !== 'pass');
+  if (f0) first.append(fs(1, 'Fix the top problem', f0.title, null, () => { goStep(0); const r = J.stages[0].querySelector('.rw'); if (r) r.classList.add('open'); }));
+  const p0 = (plan.posts || []).map((x) => [x, postLink(x, plan)]).find(([x, a]) => a && x.where !== 'Discord');
+  if (p0) first.append(fs(4, 'Post on ' + p0[0].where, p0[0].title || clip(p0[0].body, 60), p0[1].href));
+  const l0 = plan.listings[0];
+  if (l0) first.append(fs(5, 'Get listed on ' + l0.name, clip(l0.why || 'Open the submit page', 70), l0.url));
+  if (first.children.length) { const fw = el('div', 'firstw'); fw.append(el('div', 'lh', 'Do this first'), first); out.append(fw); }
   const tabs = el('div', 'jtabs'); tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', 'Steps');
   J.tabs = []; J.stages = []; J.tabsEl = tabs;
   out.append(tabs);
@@ -637,6 +661,21 @@ addEventListener('scroll', () => {
   if (c !== J.cur) { J.cur = c; prog(); }
 }, { passive: true });
 document.addEventListener('change', (e) => { if (!J || !e.target.matches('.rw input')) return; const k = e.target.dataset.k; e.target.closest('.rw').classList.toggle('done', e.target.checked); if (e.target.checked) J.done.add(k); else J.done.delete(k); saveDone(); prog(); });
+// Real click map (GET /api/clicks): where people click, sent in small batches. No id, no cookie; skipped with Do Not Track.
+(() => {
+  if (navigator.doNotTrack === '1' || navigator.globalPrivacyControl) return;
+  let q = [];
+  const send = () => { if (!q.length) return; const b = JSON.stringify({ page: J ? 'plan' : 'home', dev: innerWidth < 768 ? 'mobile' : 'desktop', clicks: q }); q = []; try { navigator.sendBeacon('/api/clicks', new Blob([b], { type: 'application/json' })); } catch (e) { /* not sent */ } };
+  document.addEventListener('click', (e) => {
+    const c = e.target.closest && e.target.closest('a,button,input,label,select,textarea,summary,[role=tab]');
+    let t = '';
+    if (c) t = c.dataset.c ? c.dataset.c : c.matches('input,textarea,select,label') ? (c.type || c.tagName).toLowerCase() : (c.classList.contains('jtab') ? 'step tab' : (c.innerText || c.getAttribute('aria-label') || c.tagName).replace(/\s+/g, ' ').trim().slice(0, 30));
+    else t = e.target.tagName ? e.target.tagName.toLowerCase() : '';
+    q.push({ x: +(e.pageX / document.documentElement.scrollWidth).toFixed(3), y: Math.round(e.pageY), k: c ? 'ctl' : 'dead', t });
+    if (q.length >= 20) send();
+  }, true);
+  addEventListener('pagehide', send); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') send(); });
+})();
 document.addEventListener('keydown', (e) => { if (!J || e.target.closest('input,textarea,select,[contenteditable]') || e.altKey || e.metaKey || e.ctrlKey) return; if (e.key === 'ArrowRight') goStep(J.cur + 1); if (e.key === 'ArrowLeft') goStep(J.cur - 1); });
 // One floating tooltip for every [data-tip], so a scroll box never cuts it off.
 const tipEl = el('div', 'tip'); tipEl.setAttribute('role', 'tooltip'); document.body.append(tipEl);
