@@ -240,6 +240,8 @@ footer{border-top:4px double var(--line2);margin-top:18px;justify-content:center
 @media(max-width:860px){.dateline,.mast{margin:0 -16px;padding-left:16px;padding-right:16px}.nav{padding-left:16px;padding-right:16px}.hero{grid-template-columns:1fr}.hero>div:first-child{padding:26px 16px 22px}.grid{grid-template-columns:1fr}.grid>*,.grid>*:nth-child(3n){margin-right:0;border-right:0}.dateline span:nth-child(n+3){display:none}}
 body.has-plan .dateline,body.has-plan .byline{display:none}
 body.has-plan .mast{padding:10px 36px 8px}body.has-plan .mast .name{font-size:clamp(28px,4vw,44px)}body.has-plan .mast .tag{display:none}
+form .btn.paste{border-width:1px 0 1px 1px;background:var(--panel2);height:48px}form .btn.paste:hover{background:var(--bg2)}
+@media(max-width:560px){form .btn.paste{border-width:0 1px 1px 1px;justify-content:center}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 `;
 
@@ -751,6 +753,11 @@ function coolToast(msg) {
 $('#form').addEventListener('submit', make);
 $('#url').addEventListener('input', () => { $('#about-me').hidden = !isProfile($('#url').value); });
 $('#about-me').hidden = !isProfile($('#url').value);
+$('#paste').addEventListener('click', async () => {
+  const u = $('#url');
+  try { const t = (await navigator.clipboard.readText()).trim(); if (!t) { toast('Clipboard is empty'); return; } u.value = t; u.dispatchEvent(new Event('input')); u.focus(); }
+  catch (e) { u.focus(); toast('Press Ctrl or Cmd + V to paste'); }
+});
 if (window.PLAN_ID) load(window.PLAN_ID);
 `;
 
@@ -780,7 +787,7 @@ export function page({ planId = '', prefill = '', share = null } = {}) {
 <h1>Find your first customers.</h1>
 <p class="lead">Paste a link to what you made. Get who would buy it, where they are, emails and posts to send, whether AI search can read your page, and where to list it.</p>
 <p class="byline">By our plan desk · Edition ready in about 20 seconds</p>
-<form id="form" novalidate><input id="url" type="url" inputmode="url" autocomplete="url" placeholder="https://your-site.com" aria-label="Link to your site" value="${esc(prefill)}"><button id="go" class="btn go" type="submit">Make my plan</button></form>
+<form id="form" novalidate><input id="url" type="url" inputmode="url" autocomplete="url" placeholder="https://your-site.com" aria-label="Link to your site" value="${esc(prefill)}"><button id="paste" class="btn paste" type="button" title="Paste a link from your clipboard">Paste</button><button id="go" class="btn go" type="submit">Make my plan</button></form>
 <input id="about-me" class="aboutme" maxlength="300" placeholder="Optional: what is this account about?" aria-label="What the account is about" hidden>
 <p id="status" class="status" role="status" aria-live="polite"></p>
 <div id="prog" class="prog" hidden aria-hidden="true"><div class="bar"><i></i></div><ol></ol><div class="meta"><span data-note></span><span data-sec></span></div></div>
