@@ -280,7 +280,8 @@ const short = (u) => String(u).replace(/^https?:[/][/](www[.])?/, '').replace(/[
 
 function linksBar(plan) {
   const by = {}; const other = [];
-  (Array.isArray(plan.links) ? plan.links : []).forEach((u) => { const k = slotOf(u); if (k && !by[k]) by[k] = u; else other.push(u); });
+  const more = {};
+  (Array.isArray(plan.links) ? plan.links : []).forEach((u) => { const k = slotOf(u); if (k && !by[k]) by[k] = u; else { other.push(u); if (k) more[k] = (more[k] || 0) + 1; } });
   const wrap = el('div', 'jlinks nologo'); const top = el('div', 'ltop'); const strip = el('div', 'lks');
   const drawer = el('div', 'jdrawer'); drawer.hidden = true;
   const openDrawer = (k) => {
@@ -288,15 +289,16 @@ function linksBar(plan) {
     const f = k && drawer.querySelector('input[data-k="' + k + '"]');
     (f && !f.readOnly ? f : drawer.querySelector('input:not([readonly])')).focus();
   };
-  const chip = (label, u, hint) => {
+  const chip = (label, u, hint, n) => {
     const b = el('button', 'lk' + (u ? '' : ' empty')); b.type = 'button';
     b.append(logo(label, u || (hint ? 'https://' + hint : '')), el('span', '', u ? label : '+ ' + label));
-    tip(b, u ? label + ': ' + short(u) + ' · click to edit' : 'Add your ' + label + ' link to get more ideas');
+    tip(b, u ? label + ': ' + short(u) + (n ? ' and ' + n + ' more' : '') + ' · click to edit' : 'Add your ' + label + ' link to get more ideas');
     b.onclick = () => openDrawer(label); return b;
   };
   strip.append(chip('Website', plan.url, ''));
-  SLOTS.forEach(([k, h]) => strip.append(chip(k, by[k], h)));
-  other.forEach((u) => strip.append(chip(host(u).replace(/^www[.]/, ''), u, '')));
+  SLOTS.forEach(([k, h]) => strip.append(chip(k, by[k], h, more[k])));
+  // A second GitHub repo and the like stay in the paste box, not as more chips.
+  other.filter((u) => !slotOf(u)).forEach((u) => strip.append(chip(host(u).replace(/^www[.]/, ''), u, '')));
   const ed = ibtn('Edit links', 'post', 'Add or change your links. Paste many at once.', () => { if (drawer.hidden) openDrawer(); else close(); });
   ed.setAttribute('aria-expanded', 'false');
   top.append(el('span', 'lh', 'Your links'), strip, ed);

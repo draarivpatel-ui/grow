@@ -97,7 +97,7 @@ export function profileLinks(html) {
   for (const m of String(html).matchAll(/href=["'](https?:[/][/][^"'#\s<>]+)["']/gi)) {
     const u = httpUrl(m[1]); const k = u && linkKind(u);
     if (!k || k === 'Other' || /[/](intent|share|sharer|submit|search|login|signup)\b|[?&](text|url)=/i.test(u) || new URL(u).pathname.length < 2) continue;
-    out.push(u);
+    if (!out.some((x) => linkKind(x) === k)) out.push(u); // one page per kind: the first GitHub link, not all the repos
   }
   return cleanLinks(out).slice(0, 8);
 }
