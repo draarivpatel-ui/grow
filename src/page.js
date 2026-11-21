@@ -70,7 +70,7 @@ const logoHost = (name, url) => { const n = String(name || '').toLowerCase().tri
 const logo = (name, url) => { const h = logoHost(name, url); const i = document.createElement('img'); i.className = 'logo'; i.alt = ''; i.width = 16; i.height = 16; i.loading = 'lazy'; if (h) i.src = '/logo/' + h; else i.hidden = true; i.onerror = () => { i.hidden = true; }; return i; };
 const named = (tag, cls, name, url) => { const n = el(tag, cls); n.append(logo(name, url), document.createTextNode(name)); return n; };
 
-const LOGO_WORDS = { 'Hacker News': 'news.ycombinator.com', 'Show HN': 'news.ycombinator.com', Bluesky: 'bsky.app', GitHub: 'github.com', Reddit: 'reddit.com', 'Product Hunt': 'producthunt.com', SaaSHub: 'saashub.com', AlternativeTo: 'alternativeto.net', BetaList: 'betalist.com', Toolradar: 'toolradar.com', Uneed: 'uneed.best', DevHunt: 'devhunt.org', FoundrList: 'foundrlist.com', LaunchAmp: 'launchamp.eu', ToolPotion: 'toolpotion.ai', AIChief: 'aichief.com', SourceForge: 'sourceforge.net', LinkedIn: 'linkedin.com', 'Indie Hackers': 'indiehackers.com', 'dev.to': 'dev.to', Discord: 'discord.com', YouTube: 'youtube.com', 'Stack Overflow': 'stackoverflow.com', Medium: 'medium.com', Slack: 'slack.com', Mastodon: 'joinmastodon.org', Lobsters: 'lobste.rs', ChatGPT: 'chatgpt.com', Claude: 'claude.ai', Perplexity: 'perplexity.ai', Gemini: 'gemini.google.com', Twitter: 'x.com', Citable: 'citable.flisk.si', 'README Score': 'readme.flisk.si', 'jobs.flisk.si': 'jobs.flisk.si', 'bot.flisk.si': 'bot.flisk.si' };
+const LOGO_WORDS = { 'Hacker News': 'news.ycombinator.com', 'Show HN': 'news.ycombinator.com', Bluesky: 'bsky.app', GitHub: 'github.com', Reddit: 'reddit.com', 'Product Hunt': 'producthunt.com', SaaSHub: 'saashub.com', AlternativeTo: 'alternativeto.net', BetaList: 'betalist.com', Toolradar: 'toolradar.com', Uneed: 'uneed.best', DevHunt: 'devhunt.org', FoundrList: 'foundrlist.com', LaunchAmp: 'launchamp.eu', ToolPotion: 'toolpotion.ai', AIChief: 'aichief.com', SourceForge: 'sourceforge.net', LinkedIn: 'linkedin.com', 'Indie Hackers': 'indiehackers.com', 'dev.to': 'dev.to', Discord: 'discord.com', YouTube: 'youtube.com', 'Stack Overflow': 'stackoverflow.com', Medium: 'medium.com', Slack: 'slack.com', Mastodon: 'joinmastodon.org', Lobsters: 'lobste.rs', ChatGPT: 'chatgpt.com', Claude: 'claude.ai', Perplexity: 'perplexity.ai', Gemini: 'gemini.google.com', Twitter: 'x.com', Citable: 'citable.flisk.si', 'Flisk Tools': 'tools.flisk.si', 'skills.sh': 'skills.sh', 'Anthropic skills': 'anthropic.com', 'README Score': 'readme.flisk.si', 'jobs.flisk.si': 'jobs.flisk.si', 'bot.flisk.si': 'bot.flisk.si' };
 const LOGO_RE = new RegExp('(?<![\\w.])(' + Object.keys(LOGO_WORDS).sort((a, b) => b.length - a.length).map((w) => w.replace(/\./g, '\\.')).join('|') + ')(?![\\w])', 'g');
 // Puts a logo before every company name in the page's text, after each render.
 function logoize(root) {
@@ -256,6 +256,24 @@ function draw(id, plan) {
     plan.promo.forEach((x) => { const a = el('a', 'cell'); a.href = x.url; a.target = '_blank'; a.rel = 'noopener'; a.append(named('h3', '', x.name, x.url), el('p', '', x.rule)); pgr.append(a); });
     pr.append(pgr); out.append(pr);
   }
+
+  const SKILL_SOURCES = [
+    { name: 'Flisk Tools', why: 'Free agent skills from GitHub, sorted by stars, with search and categories.', url: (q) => 'https://tools.flisk.si/skills' + (q ? '?q=' + encodeURIComponent(q) : '') },
+    { name: 'skills.sh', why: 'The open skills directory that the npx skills command installs from.', url: (q) => 'https://skills.sh/' + (q ? '?q=' + encodeURIComponent(q) : '') },
+    { name: 'GitHub', why: 'Every skill is a SKILL.md file in a repository; search them all.', url: (q) => 'https://github.com/search?type=code&q=' + encodeURIComponent('filename:SKILL.md ' + q) },
+    { name: 'Anthropic skills', why: 'The official example skills from Anthropic, free to copy.', url: () => 'https://github.com/anthropics/skills' },
+  ];
+  const sk = section('Find a skill for your AI agent', 'Agents like Claude Code load skills from folders with a SKILL.md file. Type what you want it to do and open the places where skills are shared.');
+  const sf = el('form'); sf.setAttribute('role', 'search');
+  const si = el('input'); si.type = 'search'; si.placeholder = 'What should the skill do? review code, write tests, deploy'; si.setAttribute('aria-label', 'What should the skill do');
+  const sb = el('button', 'btn go', 'Find skill'); sb.type = 'submit';
+  sf.append(si, sb);
+  const sg2 = el('div', 'grid'); sg2.style.marginTop = '16px';
+  const cells = SKILL_SOURCES.map((x) => { const a = el('a', 'cell'); a.target = '_blank'; a.rel = 'noopener'; a.append(named('h3', '', x.name, x.url('')), el('p', '', x.why)); sg2.append(a); return () => { a.href = x.url(si.value.trim()); }; });
+  const sync = () => cells.forEach((f) => f());
+  si.addEventListener('input', sync); sync();
+  sf.addEventListener('submit', (e) => { e.preventDefault(); window.open(SKILL_SOURCES[0].url(si.value.trim()), '_blank', 'noopener'); });
+  sk.append(sf, sg2); out.append(sk);
 
   const li = section('Where to list it', 'Directories and launch lists. Each one is a link to its own submit page.');
   const lg = el('div', 'grid');
