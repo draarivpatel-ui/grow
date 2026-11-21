@@ -76,6 +76,32 @@ export const TOOLS = [
 ];
 
 // The page as plain text for the model: title, description and the start of the visible text.
+// The maker's other pages: profiles the links bar knows by host, anything else is kept as "Other".
+export const LINK_KINDS = [['GitHub', /(^|[.])github[.]com$/], ['X', /(^|[.])(x|twitter)[.]com$/], ['LinkedIn', /(^|[.])linkedin[.]com$/], ['Product Hunt', /(^|[.])producthunt[.]com$/], ['Hacker News', /^news[.]ycombinator[.]com$/], ['Reddit', /(^|[.])reddit[.]com$/], ['YouTube', /(^|[.])(youtube[.]com|youtu[.]be)$/], ['Discord', /(^|[.])(discord[.]gg|discord[.]com)$/], ['npm', /(^|[.])npmjs[.]com$/], ['PyPI', /^pypi[.]org$/], ['Bluesky', /^bsky[.]app$/]];
+export function linkKind(u) {
+  try { const h = new URL(u).hostname.toLowerCase(); return (LINK_KINDS.find(([, re]) => re.test(h)) || ['Other'])[0]; } catch { return ''; }
+}
+const linkKey = (u) => String(u).replace(/^https?:[/][/](www[.])?/i, '').replace(/[/?#]+$/, '').toLowerCase();
+// Up to 12 distinct http(s) links, without the main one.
+export function cleanLinks(list, main) {
+  const seen = new Set([linkKey(main || '')]); const out = [];
+  for (const v of Array.isArray(list) ? list : []) {
+    const u = httpUrl(v); if (!u || seen.has(linkKey(u))) continue;
+    seen.add(linkKey(u)); out.push(u); if (out.length >= 12) break;
+  }
+  return out;
+}
+// Profile links a page points at (its GitHub, X, LinkedIn ...), not share or intent buttons.
+export function profileLinks(html) {
+  const out = [];
+  for (const m of String(html).matchAll(/href=["'](https?:[/][/][^"'#\s<>]+)["']/gi)) {
+    const u = httpUrl(m[1]); const k = u && linkKind(u);
+    if (!k || k === 'Other' || /[/](intent|share|sharer|submit|search|login|signup)\b|[?&](text|url)=/i.test(u) || new URL(u).pathname.length < 2) continue;
+    out.push(u);
+  }
+  return cleanLinks(out).slice(0, 8);
+}
+
 export async function readPage(url, fetchImpl) {
   try {
     const r = await fetchImpl(url, { headers: { accept: 'text/html', 'user-agent': 'FliskGrow/1.0 (+https://grow.flisk.si)' }, redirect: 'follow', signal: AbortSignal.timeout(8000) });
@@ -85,7 +111,7 @@ export async function readPage(url, fetchImpl) {
     const desc = str(/<meta[^>]+name=["']description["'][^>]*content=["']([^"']*)["']/i.exec(html)?.[1], 300);
     const body = html.replace(/<(script|style|noscript|svg|title)[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]+>/g, ' ')
       .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#?\w+;/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 3000);
-    return { title, desc, body };
+    return { title, desc, body, links: profileLinks(html) };
   } catch { return null; }
 }
 
@@ -266,7 +292,13 @@ export function cleanPlan(i) {
 }
 
 // The whole plan. `model` and `citable` are fetch-like functions (service bindings in production).
-export async function makePlan(url, { fetch: fetchImpl, model, citable, key, about: ownerLine = '' }) {
+export async function makePlan(url, opts) {
+  const out = await makePlanFor(url, opts);
+  for (const p of [out.plan, out.fallback]) if (p && p.kind !== 'followers') p.links = out.links || [];
+  delete out.links;
+  return out;
+}
+async function makePlanFor(url, { fetch: fetchImpl, model, citable, key, about: ownerLine = '', links: given = [] }) {
   const profile = profileOf(url);
   // Everything starts at once: Citable runs beside the model calls instead of holding them back.
   const checking = profile ? Promise.resolve(null) : checkCitable(url, citable || fetchImpl);
@@ -274,10 +306,13 @@ export async function makePlan(url, { fetch: fetchImpl, model, citable, key, abo
   const about = profile
     ? `Handle: @${profile.handle}\nOwner says: ${str(ownerLine, 300) || '(nothing)'}`
     : page ? `Title: ${page.title}\nDescription: ${page.desc}\nText: ${page.body}` : '(the page could not be read)';
+  // Links the maker gave first, then the profiles the page itself links to.
+  const links = profile ? [] : cleanLinks([...given, ...(page?.links || [])], url);
+  const others = links.length ? `\nThe maker's other pages: ${links.map((u) => linkKind(u) + ' ' + u).join(', ')}` : '';
   const ask = (system) => model('https://inference.flisk.si/v1/chat/completions', {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
-    body: JSON.stringify({ model: MODEL, temperature: 0.4, max_tokens: profile ? 3500 : 1400, messages: [{ role: 'system', content: system }, { role: 'user', content: `Link: ${url}\n${about}` }] }),
+    body: JSON.stringify({ model: MODEL, temperature: 0.4, max_tokens: profile ? 3500 : 1400, messages: [{ role: 'system', content: system }, { role: 'user', content: `Link: ${url}\n${about}${others}` }] }),
     signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
   });
   let rs;
@@ -286,7 +321,7 @@ export async function makePlan(url, { fetch: fetchImpl, model, citable, key, abo
   } catch (e) {
     const check = await checking;
     const timeout = e?.name === 'TimeoutError' || e?.name === 'AbortError';
-    return { error: timeout ? 'timeout' : 'model', message: str(e?.message, 300) || 'model call failed', ...(timeout && !profile ? { fallback: genericCustomers(url, page, check) } : {}) };
+    return { error: timeout ? 'timeout' : 'model', message: str(e?.message, 300) || 'model call failed', ...(timeout && !profile ? { fallback: genericCustomers(url, page, check) } : {}), links };
   }
   const check = await checking;
   const js = await Promise.all(rs.map((r) => r.json().catch(() => null)));
@@ -294,7 +329,7 @@ export async function makePlan(url, { fetch: fetchImpl, model, citable, key, abo
   if (bad >= 0) {
     const msg = str(js[bad]?.error?.message, 300);
     const busy = /daily|budget|limit/i.test(msg);
-    return { error: busy ? 'busy' : 'model', message: msg || `model answered ${rs[bad].status}`, ...(busy && !profile ? { fallback: genericCustomers(url, page, check) } : {}) };
+    return { error: busy ? 'busy' : 'model', message: msg || `model answered ${rs[bad].status}`, ...(busy && !profile ? { fallback: genericCustomers(url, page, check) } : {}), links };
   }
   const parts = js.map((j) => parseJson(j?.choices?.[0]?.message?.content));
   const raw = parts.length > 1 ? (parts.every(Boolean) ? { ...parts[0], emails: parts[1].emails, posts: parts[2].posts } : null) : parts[0];
@@ -304,5 +339,5 @@ export async function makePlan(url, { fetch: fetchImpl, model, citable, key, abo
   }
   const plan = cleanPlan(raw);
   if (!plan) return { error: 'model', message: 'the model did not give a usable plan' };
-  return { plan: { url, ...plan, check, listings: LISTINGS, promo: PROMO, tools: TOOLS } };
+  return { plan: { url, ...plan, check, listings: LISTINGS, promo: PROMO, tools: TOOLS }, links };
 }

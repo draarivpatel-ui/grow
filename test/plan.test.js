@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { cleanFollowers, cleanPlan, httpUrl, makePlan, parseJson, profileOf, readPage } from '../src/plan.js';
+import { cleanFollowers, cleanLinks, cleanPlan, httpUrl, linkKind, makePlan, parseJson, profileLinks, profileOf, readPage } from '../src/plan.js';
 import { MODEL_PLAN, fakeFetch } from './fixtures.js';
 
 describe('plan', () => {
@@ -34,6 +34,30 @@ describe('plan', () => {
     expect(p.title).toBe('Thing');
     expect(p.desc).toBe('Does a thing');
     expect(p.body).toBe('Hello & welcome');
+  });
+
+  test('links: kinds by host, twelve at most, no repeats, no main link', () => {
+    expect(linkKind('https://github.com/acme/tool')).toBe('GitHub');
+    expect(linkKind('https://twitter.com/acme')).toBe('X');
+    expect(linkKind('https://docs.acme.com/')).toBe('Other');
+    expect(cleanLinks(['https://a.com/', 'https://www.github.com/acme', 'https://github.com/acme/', 'javascript:x', 'nope'], 'https://a.com')).toEqual(['https://www.github.com/acme']);
+    expect(cleanLinks(Array.from({ length: 20 }, (_, i) => 'https://s' + i + '.com/'))).toHaveLength(12);
+    expect(cleanLinks('https://a.com/')).toEqual([]);
+  });
+
+  test('a page gives its profile links, not share buttons', () => {
+    const html = '<a href="https://github.com/acme/tool">gh</a><a href="https://x.com/intent/post?text=hi">share</a><a href="https://x.com/acme">x</a><a href="https://example.com/blog">blog</a><a href="https://www.linkedin.com/">li</a>';
+    expect(profileLinks(html)).toEqual(['https://github.com/acme/tool', 'https://x.com/acme']);
+  });
+
+  test('makePlan reads the maker\'s links and keeps them in the plan', async () => {
+    const page = fakeFetch(), model = fakeFetch();
+    const out = await makePlan('https://a.com/', { fetch: page, model, citable: fakeFetch(), key: 'k', links: ['https://github.com/acme/tool', 'https://a.com/'] });
+    expect(out.plan.links).toEqual(['https://github.com/acme/tool']);
+    expect(out.links).toBeUndefined();
+    expect(JSON.parse(model.calls[0].init.body).messages[1].content).toContain("The maker's other pages: GitHub https://github.com/acme/tool");
+    const busy = await makePlan('https://a.com/', { fetch: page, model: fakeFetch({ modelStatus: 429, modelError: 'Daily budget used' }), citable: fakeFetch(), key: 'k', links: ['https://x.com/acme'] });
+    expect(busy.fallback.links).toEqual(['https://x.com/acme']);
   });
 
   test('makePlan calls the model and Citable through the given functions', async () => {

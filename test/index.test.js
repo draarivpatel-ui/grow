@@ -58,7 +58,19 @@ describe('routes', () => {
     expect(html).toContain('Share this plan');
     expect(html).toContain('Find a skill for your AI agent');
     expect(html).toContain('https://tools.flisk.si/skills');
+    for (const t of ['Edit links', 'Paste many links', 'Add your ', 'Takes about ', 'Make a new plan with these links']) expect(html).toContain(t);
     expect(await (await s.get('/')).text()).toContain('content="Flisk Grow: find your first customers"');
+  });
+
+  test('extra links make a new plan instead of the one made today, and feed Ranker', async () => {
+    const s = setup();
+    const a = await (await s.post('https://a.com/')).json();
+    const r = await handle(new Request('https://grow.flisk.si/api/plan', { method: 'POST', headers: { 'content-type': 'application/json', 'cf-connecting-ip': '1.1.1.1' }, body: JSON.stringify({ url: 'https://a.com/', links: ['https://github.com/acme/tool', 'not a link'] }) }), s.env, { fetch: s.f, cache: fakeCache() });
+    const b = await r.json();
+    expect(b.reused).toBeUndefined();
+    expect(b.id).not.toBe(a.id);
+    expect(b.plan.links).toEqual(['https://github.com/acme/tool']);
+    expect(s.f.calls.some((c) => c.url.includes('ranker') && String(c.init.body).includes('github.com/acme/tool'))).toBe(true);
   });
 
   test('a plan page is one journey board: five steps as tabs, ticks kept per plan', async () => {
