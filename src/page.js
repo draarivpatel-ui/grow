@@ -177,6 +177,69 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;opa
   .jtabs .slide,.pn,.rw::before,.cool-toast{transition:none}
   .pn:hover{transform:none}
 }
+/* ---- The Grow Gazette: broadsheet look ---- */
+:root{--bg:#f3efe3;--bg2:#ebe6d6;--panel:#f8f5ea;--panel2:#ebe6d6;--ink:#161412;--mut:#3b362d;--faint:#5d574b;--line:rgba(22,20,18,.2);--line2:#161412;--red:#b4281e;--acctext:#137a3a;--tint:rgba(34,197,94,.14);
+--display:"Playfair Display",Georgia,"Times New Roman",serif;--font:"Source Serif 4",Georgia,"Times New Roman",serif;--dek:"Old Standard TT",Georgia,serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#17150f;--bg2:#1e1b14;--panel:#1c1a13;--panel2:#26231a;--ink:#efe9d8;--mut:rgba(239,233,216,.78);--faint:rgba(239,233,216,.55);--line:rgba(239,233,216,.18);--line2:rgba(239,233,216,.75);--red:#ee7a6e;--acctext:#6ee7a0}}
+:root[data-theme=dark]{--bg:#17150f;--bg2:#1e1b14;--panel:#1c1a13;--panel2:#26231a;--ink:#efe9d8;--mut:rgba(239,233,216,.78);--faint:rgba(239,233,216,.55);--line:rgba(239,233,216,.18);--line2:rgba(239,233,216,.75);--red:#ee7a6e;--acctext:#6ee7a0}
+body{font:16px/1.6 var(--font);background-image:radial-gradient(var(--line) .6px,transparent .7px);background-size:5px 5px;background-attachment:scroll}
+body::after{opacity:.04}
+h1,h2,h3{font-family:var(--display)}
+.wrap{border-left:1px solid var(--line);border-right:1px solid var(--line);background:color-mix(in srgb,var(--bg) 82%,transparent)}
+/* dateline + masthead */
+.dateline{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 18px;margin:0 -36px;padding:7px 36px;font:500 10.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--line2)}
+.mast{margin:0 -36px;padding:20px 36px 14px;text-align:center;border-bottom:4px double var(--line2)}
+.mast .name{display:block;font:900 clamp(40px,8.6vw,92px)/.95 var(--display);letter-spacing:-.02em;text-decoration:none;color:var(--ink)}
+.mast .name em{color:var(--red);font-style:italic}
+.mast .tag{margin:8px 0 0;font:italic 400 clamp(13px,1.6vw,17px) var(--dek);color:var(--mut)}
+/* rubric nav */
+.nav{justify-content:center;gap:6px 22px;flex-wrap:wrap;padding:9px 36px;border-bottom:3px solid var(--line2)}
+.nav .brand{font:800 15px var(--display)}.nav .brand img{width:20px;height:20px}
+.navr{flex-wrap:wrap;justify-content:center;gap:2px 6px}.navr a{font:600 10.5px var(--mono);letter-spacing:.14em;padding:6px 10px}.navr a:hover{border-color:transparent;color:var(--red);text-decoration:underline}
+/* lead story */
+.hero{grid-template-columns:2.2fr 1fr}
+.hero>div:first-child{padding:34px 36px 30px}
+.kicker{font:700 11px var(--mono);letter-spacing:.16em;color:var(--red)}
+.hero h1{font:900 clamp(38px,6vw,74px)/1.02 var(--display);letter-spacing:-.02em;margin:10px 0 14px}
+.hero .lead{font:italic 400 clamp(17px,1.9vw,21px)/1.45 var(--dek);color:var(--mut);max-width:34em}
+.byline{margin:12px 0 18px;padding:6px 0;border-top:1px solid var(--line2);border-bottom:1px solid var(--line);font:600 10.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+form{box-shadow:5px 5px 0 var(--ink)}
+.proof li{font-family:var(--mono)}
+.band{background:none;min-height:0;padding:22px 22px 18px}
+.band h4{margin:0 0 10px;padding-bottom:8px;border-bottom:3px double var(--line2);font:700 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--red)}
+.band ol{margin:0;padding:0;list-style:none;counter-reset:ins}
+.band li{counter-increment:ins;display:flex;gap:10px;padding:9px 0;border-bottom:1px dotted var(--line2);font:600 15px/1.3 var(--display)}
+.band li::before{content:counter(ins);font:900 24px/1 var(--display);color:var(--red);min-width:16px}
+.band li small{display:block;font:400 12.5px/1.4 var(--font);color:var(--mut);margin-top:2px}
+/* what you get: rubric columns */
+section h2{font:900 clamp(26px,3.4vw,38px) var(--display)}
+section h2::before{color:var(--red);letter-spacing:.16em}
+.sub{font:italic 400 17px/1.45 var(--dek)}
+.grid{border:0;grid-template-columns:repeat(3,1fr);gap:0}
+.grid>*{background:none;border:0;border-right:1px solid var(--line);border-top:3px solid var(--line2);padding:12px 18px 18px 0;margin-right:18px}
+.grid>*:nth-child(3n){border-right:0;margin-right:0}
+.grid h3{font:800 12px var(--mono);letter-spacing:.14em;text-transform:uppercase;padding-bottom:8px;margin-bottom:10px;border-bottom:1px solid var(--line2)}
+.grid p::first-letter{font:900 2.4em/.8 var(--display);float:left;padding:4px 6px 0 0;color:var(--red)}
+.grid p{font-size:15px;line-height:1.55}
+pre.code{border:1px solid var(--line2);box-shadow:4px 4px 0 var(--ink)}
+footer{border-top:4px double var(--line2);margin-top:18px;justify-content:center;text-align:center}
+/* plan page */
+.jhead{text-align:left}.jhead h2{font:900 clamp(30px,4.6vw,52px)/1.05 var(--display);letter-spacing:-.02em}
+.jhead .sub{font:italic 400 17px/1.45 var(--dek)}
+.cool-tick{background:var(--ink);color:var(--bg)}
+.cool-tick div{font-family:var(--mono)}
+.jtabs{border-top:3px solid var(--line2);border-bottom:1px solid var(--line2);background:var(--bg)}
+.jtab{font-family:var(--mono);letter-spacing:.08em}
+.jlead h3{font:900 28px var(--display)}.jlead .say{font:italic 400 16px var(--dek)}
+.pn{background:var(--panel)}
+.pn .ph{border-top:3px solid var(--line2);border-bottom:1px solid var(--line2);font:700 10.5px var(--mono);letter-spacing:.12em}
+.rw{border-bottom:1px dotted var(--line2)}
+.rw .t b{font-family:var(--display);font-weight:700}
+.score b{font-family:var(--display);font-weight:900}
+.cool-toast{font-family:var(--mono)}
+@media(max-width:860px){.dateline,.mast{margin:0 -16px;padding-left:16px;padding-right:16px}.nav{padding-left:16px;padding-right:16px}.hero{grid-template-columns:1fr}.hero>div:first-child{padding:26px 16px 22px}.grid{grid-template-columns:1fr}.grid>*,.grid>*:nth-child(3n){margin-right:0;border-right:0}.dateline span:nth-child(n+3){display:none}}
+body.has-plan .dateline,body.has-plan .byline{display:none}
+body.has-plan .mast{padding:10px 36px 8px}body.has-plan .mast .name{font-size:clamp(28px,4vw,44px)}body.has-plan .mast .tag{display:none}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 `;
 
@@ -692,6 +755,9 @@ if (window.PLAN_ID) load(window.PLAN_ID);
 `;
 
 export function page({ planId = '', prefill = '', share = null } = {}) {
+  const now = new Date();
+  const edDate = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+  const edNo = Math.floor((now - Date.UTC(now.getUTCFullYear(), 0, 0)) / 864e5);
   const ogTitle = share ? `Grow plan for ${share.host}` : 'Flisk Grow: find your first customers';
   const ogDesc = share ? (share.summary || 'Who would buy it, where they are, and what to send them.') : 'Who would buy it, where they are, and what to send them. Free, no sign-in.';
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -700,17 +766,20 @@ export function page({ planId = '', prefill = '', share = null } = {}) {
 <meta property="og:title" content="${esc(ogTitle)}"><meta property="og:description" content="${esc(ogDesc)}"><meta property="og:type" content="website"><meta property="og:url" content="https://grow.flisk.si${planId ? '/p/' + planId : '/'}"><meta name="twitter:card" content="summary">
 <link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="canonical" href="https://grow.flisk.si/">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,700;9..144,800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Old+Standard+TT:ital@1&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>${CSS}</style>
 <script defer data-domain="grow.flisk.si" src="https://flisk.sh/a.js"></script></head><body>
 <script src="https://flisk.si/assets/bar.js" data-product="Grow" data-icon="grow" data-accent="#22c55e" data-siblings="Cilytics,Ranker" data-text="Find your first customers with a plan made from your link." defer></script>
 <div class="wrap">
+<div class="dateline"><span>Vol. 1 · No. ${edNo} · ${edDate}</span><span>Free · No sign-in · Beta</span><span>Printed fresh in 20 seconds</span></div>
+<div class="mast"><a class="name" href="/">The Grow <em>Gazette</em></a><p class="tag">All the news that helps you find your first customers</p></div>
 <header class="nav"><a class="brand" href="/"><img src="/icon.svg" alt="">Flisk Grow</a>
-<nav class="navr"><a href="/me">My cabinet</a><a href="#api" class="hide-s">API</a><a href="https://github.com/flisk-sh/grow" class="hide-s">GitHub</a><a href="https://flisk.si">More from Flisk</a></nav></header>
+<nav class="navr"><a href="#about">Front page</a><a href="#about">The Market</a><a href="#about">Letters</a><a href="#about">The Wire</a><a href="#about">Classifieds</a><a href="/me">My cabinet</a><a href="#api" class="hide-s">API</a><a href="https://github.com/flisk-sh/grow" class="hide-s">GitHub</a><a href="https://flisk.si">More from Flisk</a></nav></header>
 <div class="hero"><div>
 <div class="kicker">Beta · free · no sign-in</div>
 <h1>Find your first customers.</h1>
 <p class="lead">Paste a link to what you made. Get who would buy it, where they are, emails and posts to send, whether AI search can read your page, and where to list it.</p>
+<p class="byline">By our plan desk · Edition ready in about 20 seconds</p>
 <form id="form" novalidate><input id="url" type="url" inputmode="url" autocomplete="url" placeholder="https://your-site.com" aria-label="Link to your site" value="${esc(prefill)}"><button id="go" class="btn go" type="submit">Make my plan</button></form>
 <input id="about-me" class="aboutme" maxlength="300" placeholder="Optional: what is this account about?" aria-label="What the account is about" hidden>
 <p id="status" class="status" role="status" aria-live="polite"></p>
@@ -723,7 +792,12 @@ export function page({ planId = '', prefill = '', share = null } = {}) {
 <span class="soc"><img src="/logo/youtube.com" alt="" width="16" height="16">YouTube<em>soon</em></span>
 <span class="soc on"><img src="/logo/bsky.app" alt="" width="16" height="16">Bluesky</span></p>
 <ul class="proof"><li>About 20 seconds</li><li>Nothing is sent for you</li><li>Plans kept 30 days</li></ul>
-</div><div class="band" aria-hidden="true"></div></div>
+</div><aside class="band" aria-label="Inside today's edition"><h4>Inside today's edition</h4><ol>
+<li><span>Front page<small>Can AI search find you, and the fixes</small></span></li>
+<li><span>The Market<small>Who would buy it, and the one-line pitch</small></span></li>
+<li><span>Letters<small>Five email drafts, ready to open</small></span></li>
+<li><span>The Wire<small>Posts for X, Reddit and Hacker News</small></span></li>
+<li><span>Classifieds<small>Where to list it, one link each</small></span></li></ol></aside></div>
 <div id="plan" hidden></div>
 <div id="about">
 <section><h2>What you get</h2><p class="sub">One page with everything for the first week, made from your own page.</p>
