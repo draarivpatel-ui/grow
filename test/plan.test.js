@@ -58,6 +58,14 @@ describe('plan', () => {
     expect(out.plan.places.length).toBeGreaterThan(0);
   });
 
+  test('a plan lists communities that allow self-promotion and keeps a Discord draft', async () => {
+    const model = fakeFetch({ model: { ...MODEL_PLAN, posts: [{ where: 'Discord', title: 'Show', body: 'Hi all' }] } });
+    const out = await makePlan('https://a.com/', { fetch: fakeFetch(), model, citable: fakeFetch(), key: 'k' });
+    expect(out.plan.posts[0].where).toBe('Discord');
+    expect(out.plan.promo.some((x) => x.url === 'https://discord.com/channels/1562937840071999538/1569404291196915904')).toBe(true);
+    expect(out.plan.promo.filter((x) => x.where === 'Reddit').length).toBeGreaterThan(2);
+  });
+
   test('makePlan reports a used-up budget as busy', async () => {
     const out = await makePlan('https://a.com/', { fetch: fakeFetch(), model: fakeFetch({ modelStatus: 429, modelError: 'Daily limit reached' }), key: 'k' });
     expect(out.error).toBe('busy');
