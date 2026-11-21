@@ -48,6 +48,16 @@ describe('plan', () => {
     expect(page.calls.every((c) => !c.url.includes('inference'))).toBe(true);
   });
 
+  test('makePlan asks for the plan and the emails in two calls and joins them', async () => {
+    const model = fakeFetch();
+    const out = await makePlan('https://a.com/', { fetch: fakeFetch(), model, citable: fakeFetch(), key: 'k' });
+    const sys = model.calls.map((c) => JSON.parse(c.init.body).messages[0].content);
+    expect(sys).toHaveLength(2);
+    expect(sys.some((t) => t.includes('"emails"') && !t.includes('"places"'))).toBe(true);
+    expect(out.plan.emails.length).toBeGreaterThan(0);
+    expect(out.plan.places.length).toBeGreaterThan(0);
+  });
+
   test('makePlan reports a used-up budget as busy', async () => {
     const out = await makePlan('https://a.com/', { fetch: fakeFetch(), model: fakeFetch({ modelStatus: 429, modelError: 'Daily limit reached' }), key: 'k' });
     expect(out.error).toBe('busy');

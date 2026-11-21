@@ -83,6 +83,12 @@ new MutationObserver(() => { if (logoBusy) return; logoBusy = true; requestAnima
 document.addEventListener('DOMContentLoaded', () => logoize(document.body));
 
 const toast = (t) => { const n = $('#toast'); n.textContent = t; n.classList.add('show'); setTimeout(() => n.classList.remove('show'), 1600); };
+// The link a friend can open: the plan itself at /p/<id>, kept 30 days. Phones get the share sheet, desktops a copy.
+const shareBtn = (id) => button('Share this plan', () => {
+  const u = location.origin + '/p/' + id;
+  if (navigator.share) navigator.share({ title: document.title, url: u }).catch(() => {});
+  else copy(u);
+}, 'go');
 const copy = (t, b) => { if (navigator.clipboard) navigator.clipboard.writeText(t).then(() => toast('Copied')); };
 const link = (label, href, cls) => { const a = el('a', 'btn' + (cls ? ' ' + cls : ''), label); a.href = href; a.target = '_blank'; a.rel = 'noopener'; return a; };
 const button = (label, fn) => { const b = el('button', 'btn', label); b.type = 'button'; b.onclick = fn; return b; };
@@ -97,7 +103,7 @@ function drawFollowers(id, plan) {
   document.title = 'Followers plan for @' + plan.handle + ' · Flisk Grow';
   const head = section('A followers plan for @' + plan.handle, plan.account || '');
   const share = el('div', 'share');
-  share.append(button('Save to my cabinet', () => fetch('/me').then(() => fetch('/api/sites', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: plan.url, plan: id }) })).then((r) => r.json()).then((j) => { location.href = '/me?site=' + j.id; })), button('Copy link to this plan', () => copy(location.origin + '/p/' + id)), link('Open the profile', plan.url), el('span', '', 'Kept 30 days. Nothing is posted for you.'));
+  share.append(button('Save to my cabinet', () => fetch('/me').then(() => fetch('/api/sites', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: plan.url, plan: id }) })).then((r) => r.json()).then((j) => { location.href = '/me?site=' + j.id; })), shareBtn(id), link('Open the profile', plan.url), el('span', '', 'Kept 30 days. Nothing is posted for you.'));
   if (!id) share.querySelectorAll('button')[1].remove();
   head.append(share);
   if (plan.generic) head.append(el('p', 'note', 'Made without the model: its free budget is used up today (it resets at 00:00 UTC). This is a general playbook with blanks to fill. Press the button again tomorrow for a plan written for your account.'));
@@ -155,7 +161,7 @@ function draw(id, plan) {
   const head = section('A plan for ' + host(plan.url), plan.product || '');
   const share = el('div', 'share');
   const here = location.origin + '/p/' + id;
-  share.append(button('Save to my cabinet', () => fetch('/me').then(() => fetch('/api/sites', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: plan.url, plan: id }) })).then((r) => r.json()).then((j) => { location.href = '/me?site=' + j.id; })), button('Copy link to this plan', () => copy(here)), link('Open the site', plan.url), el('span', '', id ? 'Kept 30 days: ' + here : 'Not saved: it is a general guide.'));
+  share.append(button('Save to my cabinet', () => fetch('/me').then(() => fetch('/api/sites', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: plan.url, plan: id }) })).then((r) => r.json()).then((j) => { location.href = '/me?site=' + j.id; })), shareBtn(id), link('Open the site', plan.url), el('span', '', id ? 'Kept 30 days: ' + here : 'Not saved: it is a general guide.'));
   if (!id) share.querySelectorAll('button')[1].remove();
   head.append(share);
   if (plan.generic) head.append(el('p', 'note', 'Made without the model: its free budget is used up today (it resets at 00:00 UTC). The AI-search check and the listings are real; the rest is a general guide with blanks to fill. Press the button again tomorrow for a plan written for your page.'));
@@ -243,9 +249,10 @@ async function make(ev) {
   st.className = 'status';
   if (!/^https?:[/][/][^ ]+[.][^ ]+/.test(url)) { st.className = 'status err'; st.textContent = 'Paste a full link that starts with https://'; return; }
   go.disabled = true; let i = 0; st.textContent = STEPS[0] + '...';
-  const tick = setInterval(() => { i = Math.min(i + 1, STEPS.length - 1); st.textContent = STEPS[i] + '...'; }, 4000);
+  const t0 = Date.now();
+  const tick = setInterval(() => { i = Math.min(i + 1, STEPS.length - 1); st.textContent = Date.now() - t0 > 40000 ? 'Still writing. The free model is slow right now; this can take up to 90 seconds.' : STEPS[i] + '...'; }, 4000);
   try {
-    const r = await fetch('/api/plan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url, about: $('#about-me').value.trim() }), signal: AbortSignal.timeout(100000) })
+    const r = await fetch('/api/plan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url, about: $('#about-me').value.trim() }), signal: AbortSignal.timeout(120000) })
       .catch((e) => { throw new Error(e.name === 'TimeoutError' ? 'The plan took too long. Press the button again in a minute.' : 'Could not reach the server. Check your connection and press the button again.'); });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || 'Something went wrong. Press the button again.');
@@ -271,11 +278,13 @@ $('#about-me').hidden = !isProfile($('#url').value);
 if (window.PLAN_ID) load(window.PLAN_ID);
 `;
 
-export function page({ planId = '', prefill = '' } = {}) {
+export function page({ planId = '', prefill = '', share = null } = {}) {
+  const ogTitle = share ? `Grow plan for ${share.host}` : 'Flisk Grow: find your first customers';
+  const ogDesc = share ? (share.summary || 'Who would buy it, where they are, and what to send them.') : 'Who would buy it, where they are, and what to send them. Free, no sign-in.';
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Flisk Grow: find your first customers</title>
+<title>${esc(share ? ogTitle + ' · Flisk Grow' : 'Flisk Grow: find your first customers')}</title>
 <meta name="description" content="Paste a link to what you made. Get who would buy it, where they are, 5 email drafts, 3 post drafts, an AI search check and where to list it. Free, no sign-in.">
-<meta property="og:title" content="Flisk Grow: find your first customers"><meta property="og:description" content="Who would buy it, where they are, and what to send them. Free, no sign-in.">
+<meta property="og:title" content="${esc(ogTitle)}"><meta property="og:description" content="${esc(ogDesc)}"><meta property="og:type" content="website"><meta property="og:url" content="https://grow.flisk.si${planId ? '/p/' + planId : '/'}"><meta name="twitter:card" content="summary">
 <link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="canonical" href="https://grow.flisk.si/">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,700;9..144,800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
