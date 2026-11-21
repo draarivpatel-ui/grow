@@ -56,6 +56,8 @@ describe('routes', () => {
     expect(html).toContain('<meta property="og:title" content="Grow plan for a.com">');
     expect(html).toContain('og:url" content="https://grow.flisk.si/p/' + j.id + '"');
     expect(html).toContain('Share this plan');
+    expect(html).toContain('Find a skill for your AI agent');
+    expect(html).toContain('https://tools.flisk.si/skills');
     expect(await (await s.get('/')).text()).toContain('content="Flisk Grow: find your first customers"');
   });
 
