@@ -114,7 +114,7 @@ describe('routes', () => {
 });
 
 describe('slow model', () => {
-  test('a model timeout gives the general guide with the real checks and stores no plan', async () => {
+  test('a model timeout gives the general guide with the real checks, saved with a link to share', async () => {
     const timeout = async () => { const e = new Error('The operation timed out.'); e.name = 'TimeoutError'; throw e; };
     const s = setup({ INFERENCE: { fetch: timeout } });
     const r = await s.post('https://a.com/');
@@ -122,9 +122,15 @@ describe('slow model', () => {
     const j = await r.json();
     expect(j).toMatchObject({ generic: true, slow: true });
     expect(j.plan.check.score).toBe(62);
-    expect(j.id).toBeUndefined();
+    expect(j.id).toMatch(/^[0-9a-f]{12}$/);
+    const shared = await s.get('/p/' + j.id);
+    expect(shared.status).toBe(200);
+    const again = await (await s.post('https://a.com/')).json();
+    expect(again.reused).toBeUndefined();
+    expect(again.id).not.toBe(j.id);
     const x = await (await s.post('https://x.com/brookservers', '3.3.3.3')).json();
     expect(x).toMatchObject({ generic: true, slow: true });
+    expect(x.id).toMatch(/^[0-9a-f]{12}$/);
   });
 
   test('the page guards the button and survives a non-JSON error', async () => {
@@ -145,7 +151,7 @@ test('home page names the networks: X now, the rest soon', async () => {
 
 describe('model out of budget', () => {
   const out = async () => new Response(JSON.stringify({ error: { message: 'Daily budget used' } }), { status: 429, headers: { 'content-type': 'application/json' } });
-  test('an X profile still gets a general followers playbook, not saved', async () => {
+  test('an X profile still gets a general followers playbook, saved with a link', async () => {
     const s = setup({ INFERENCE: { fetch: out } });
     const r = await s.post('https://x.com/brookservers');
     expect(r.status).toBe(200);
@@ -153,15 +159,15 @@ describe('model out of budget', () => {
     expect(j.generic).toBe(true);
     expect(j.plan.kind).toBe('followers');
     expect(j.plan.handle).toBe('brookservers');
-    expect(j.id).toBeUndefined();
+    expect(j.id).toMatch(/^[0-9a-f]{12}$/);
   });
-  test('any other link gets the real checks and a general guide, not saved', async () => {
+  test('any other link gets the real checks and a general guide, saved with a link', async () => {
     const s = setup({ INFERENCE: { fetch: out } });
     const r = await s.post('https://example.com/');
     expect(r.status).toBe(200);
     const j = await r.json();
     expect(j.generic).toBe(true);
-    expect(j.id).toBeUndefined();
+    expect(j.id).toMatch(/^[0-9a-f]{12}$/);
     expect(j.plan.places.length).toBeGreaterThan(2);
     expect(j.plan.emails.length).toBeGreaterThan(0);
     expect(j.plan.listings.length).toBeGreaterThan(5);

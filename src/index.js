@@ -90,7 +90,8 @@ async function route(req, env, deps = {}) {
 
     const about = String(body?.about ?? '').replace(/[\u0000-\u001f]+/g, ' ').trim().slice(0, 300);
     // The same link within a day gets the plan already made: no second model call (unless the owner added a line).
-    const known = about ? null : await env.DB.prepare('SELECT id, data, created FROM plans WHERE url = ? AND created > ? ORDER BY created DESC LIMIT 1').bind(link, Date.now() - DAY_MS).first();
+    // A saved general guide is never reused: pressing again should try for a plan written for the page.
+    const known = about ? null : await env.DB.prepare("SELECT id, data, created FROM plans WHERE url = ? AND created > ? AND data NOT LIKE '%\"generic\":true%' ORDER BY created DESC LIMIT 1").bind(link, Date.now() - DAY_MS).first();
     if (known) return json(200, { id: known.id, created: known.created, plan: JSON.parse(known.data), reused: true });
 
     const perVisitor = Number(env.PLANS_PER_VISITOR) || 3;
@@ -104,14 +105,20 @@ async function route(req, env, deps = {}) {
     const model = env.INFERENCE ? (u, init) => env.INFERENCE.fetch(u, init) : fetchImpl;
     const citable = env.CITABLE ? (u, init) => env.CITABLE.fetch(u, init) : fetchImpl;
     const ranker = env.RANKER ? (u, init) => env.RANKER.fetch(u, init) : fetchImpl;
+    // Every plan shown gets an id and a /p/<id> link to share, the general guide too. Only model-written plans count toward the day's limit.
+    const keep = async (plan) => {
+      const id = newId(), created = Date.now();
+      try { await env.DB.prepare('INSERT INTO plans (id, url, data, created) VALUES (?, ?, ?, ?)').bind(id, link, JSON.stringify(plan), created).run(); } catch { return { plan }; }
+      return { id, created, plan };
+    };
     const [out, rank] = await Promise.all([makePlan(link, { fetch: fetchImpl, model, citable, key: env.INFERENCE_KEY, about }), rankerFor(link, ranker)]);
     if (rank) for (const x of [out.plan, out.fallback]) if (x) x.ranker = rank;
-    if (out.error === 'timeout' && profileOf(link)) return json(200, { plan: { url: link, ...genericFollowers(profileOf(link), about), tools: [] }, generic: true, slow: true });
-    if (out.error === 'timeout' && out.fallback) return json(200, { plan: out.fallback, generic: true, slow: true });
+    if (out.error === 'timeout' && profileOf(link)) return json(200, { ...(await keep({ url: link, ...genericFollowers(profileOf(link), about), tools: [] })), generic: true, slow: true });
+    if (out.error === 'timeout' && out.fallback) return json(200, { ...(await keep(out.fallback)), generic: true, slow: true });
     if (out.error === 'timeout') return json(504, { error: 'The model took too long to answer. Press the button again in a minute.' });
     if (out.error === 'busy') await sendTrace(env, { route: '/api/plan', kind: 'capped', why: 'the model budget is used up: served the general playbook', status: 200, expected: 'model', actual: 'playbook' });
-    if (out.error === 'busy' && profileOf(link)) return json(200, { plan: { url: link, ...genericFollowers(profileOf(link), about), tools: [] }, generic: true });
-    if (out.error === 'busy' && out.fallback) return json(200, { plan: out.fallback, generic: true });
+    if (out.error === 'busy' && profileOf(link)) return json(200, { ...(await keep({ url: link, ...genericFollowers(profileOf(link), about), tools: [] })), generic: true });
+    if (out.error === 'busy' && out.fallback) return json(200, { ...(await keep(out.fallback)), generic: true });
     if (out.error === 'busy') return json(429, { error: 'The free model is out of its daily budget. Come back tomorrow (00:00 UTC).' });
     if (out.error) return json(502, { error: 'The model did not give a usable plan. Press the button again.', detail: out.message });
 
