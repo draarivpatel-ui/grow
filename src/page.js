@@ -411,9 +411,10 @@ function pane(title, lead, rows, hint, cls) {
 function card(title, lead, kids, hint) { const p = pane(title, lead, null, hint); const c = el('div', 'pc'); c.append(...kids.filter(Boolean)); p.lastChild.append(c); return p; }
 const LAUNCH = /hacker news|product hunt|betalist|uneed|devhunt|foundrlist|launchamp/i;
 const postLink = (x, plan) => {
-  if (x.where === 'X') return iopen('Post', 'https://x.com/intent/post?text=' + encodeURIComponent((x.body || x.title) + ' ' + plan.url), 'Open X with this post filled in. You post it.', true, 'post');
-  if (x.where === 'Reddit') return iopen('Post', 'https://www.reddit.com/submit?url=' + encodeURIComponent(plan.url) + '&title=' + encodeURIComponent(x.title), 'Open the Reddit submit page with the title filled in', true, 'post');
-  if (x.where === 'Hacker News') return iopen('Post', 'https://news.ycombinator.com/submitlink?u=' + encodeURIComponent(plan.url) + '&t=' + encodeURIComponent(x.title), 'Open the Hacker News submit page with the title filled in', true, 'post');
+  const u = plan.site || plan.url;
+  if (x.where === 'X') return iopen('Post', 'https://x.com/intent/post?text=' + encodeURIComponent((x.body || x.title) + ' ' + u), 'Open X with this post filled in. You post it.', true, 'post');
+  if (x.where === 'Reddit') return iopen('Post', 'https://www.reddit.com/submit?url=' + encodeURIComponent(u) + '&title=' + encodeURIComponent(x.title), 'Open the Reddit submit page with the title filled in', true, 'post');
+  if (x.where === 'Hacker News') return iopen('Post', 'https://news.ycombinator.com/submitlink?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(x.title), 'Open the Hacker News submit page with the title filled in', true, 'post');
   if (x.where === 'Discord') return iopen('Channel', 'https://discord.com/channels/1562937840071999538/1569404291196915904', 'Open the #show-your-stack channel; paste the copied text there', true);
   return null;
 };
@@ -531,7 +532,8 @@ function draw(id, plan) {
     ready.push(card('Can AI search find it', logo('Citable', 'https://citable.flisk.si'), [sc, el('p', '', 'ChatGPT, Claude and Perplexity answer from pages they can read. Citable checks yours.'), (() => { const a = el('div', 'ra'); a.append(iopen('Full report', plan.check.report, 'Open the full Citable report for your page', true)); return a; })()], 'The AI-search score from Citable'));
     const fx = plan.check.fixes.map((f, i) => row('fix' + i, dot(f.status === 'pass' ? 'ok' : f.status === 'warn' ? 'warn' : 'bad', f.status === 'warn' ? 'Should fix soon' : 'Fix first: this hurts most'), f.title, f.summary, [icopy(f.title + ': ' + f.summary, 'Copy this fix to send to whoever edits your site')], false, 15));
     ready.push(pane('Fix your page', logo('', plan.url), fx.length ? fx : [row('fix-none', dot('ok', 'Fine as it is'), 'Nothing to fix', 'AI search can read this page.')], 'What stops AI search from quoting your page'));
-  } else ready.push(card('Can AI search find it', logo('Citable', 'https://citable.flisk.si'), [el('p', '', 'The check did not answer this time.'), (() => { const a = el('div', 'ra'); a.append(iopen('Try on Citable', 'https://citable.flisk.si', 'Run the AI-search check on Citable')); return a; })()]));
+  } else if (plan.noSite) ready.push(card('Can AI search find it', logo('Citable', 'https://citable.flisk.si'), [el('p', '', 'This link is a GitHub repo, so there is no page of yours to check: github.com is not yours to fix. Add your website in Edit links, or set the repo\'s Website field, and make the plan again.'), (() => { const a = el('div', 'ra'); a.append(iopen('Check the README', 'https://readme.flisk.si', 'Score the README on README Score', true)); return a; })()], 'No website to check yet'));
+  else ready.push(card('Can AI search find it', logo('Citable', 'https://citable.flisk.si'), [el('p', '', 'The check did not answer this time.'), (() => { const a = el('div', 'ra'); a.append(iopen('Try on Citable', 'https://citable.flisk.si', 'Run the AI-search check on Citable')); return a; })()]));
   const gres = el('div', 'ra');
   const gb = ibtn('Post as jobs', 'send', 'Post these checks as jobs on jobs.flisk.si; a bot does them within about 5 minutes', async () => {
     gb.disabled = true; gb.lastChild.textContent = 'Posting...';
@@ -581,14 +583,16 @@ function draw(id, plan) {
   const mails = plan.emails.map((e, i) => {
     const gm = 'https://mail.google.com/mail/?view=cm&fs=1&su=' + encodeURIComponent(e.subject) + '&body=' + encodeURIComponent(e.body);
     const mt = 'mailto:?subject=' + encodeURIComponent(e.subject) + '&body=' + encodeURIComponent(e.body);
-    return row('mail' + i, svg('mail'), e.subject, 'To: ' + (e.to || 'someone who fits') + '. ' + e.body, [iopen('Gmail', gm, 'Open a Gmail draft with this email. Add the address and press Send.', true, 'mail'), iopen('Mail app', mt, 'Open a draft in your own mail app'), icopy(e.subject + '\n\n' + e.body, 'Copy the subject and the email text')], true, 5);
+    // The Day 7 follow-up goes in the same thread: same subject with Re:, sent only when there was no reply.
+    const fu = e.followup && iopen('Day 7 follow-up', 'https://mail.google.com/mail/?view=cm&fs=1&su=' + encodeURIComponent('Re: ' + e.subject) + '&body=' + encodeURIComponent(e.followup), 'Seven days later, if there was no reply: open the follow-up in Gmail', false);
+    return row('mail' + i, svg('mail'), e.subject, 'To: ' + (e.to || 'someone who fits') + '. ' + (e.find ? 'Find them: ' + e.find + ' ' : '') + e.body + (e.followup ? '\n\nDay 7, if no reply: ' + e.followup : ''), [iopen('Gmail', gm, 'Open a Gmail draft with this email. Add the address and press Send.', true, 'mail'), fu, iopen('Mail app', mt, 'Open a draft in your own mail app'), icopy(e.subject + '\n\n' + e.body, 'Copy the subject and the email text')].filter(Boolean), true, 5);
   });
   const days = [['Day 1 · today', 0, 2], ['Day 3', 2, 4], ['Day 5', 4, 99]];
   const reach = mails.length > 2 ? days.map((d) => [d[0], mails.slice(d[1], d[2])]).filter((d) => d[1].length).map((d) => pane(d[0], svg('mail'), d[1], 'Send these on ' + d[0].replace(' · today', ', today') + '. Nothing is sent for you.')) : [pane('Emails to send', svg('mail'), mails, 'Drafts only. Nothing is sent for you.')];
 
   // 4. Post: one column per place
   const byWhere = {}; (plan.posts || []).forEach((x, i) => { (byWhere[x.where] = byWhere[x.where] || []).push([x, i]); });
-  const posts = Object.keys(byWhere).map((w) => pane(w, logo(w, ''), byWhere[w].map(([x, i]) => row('post' + i, null, x.title || clip(x.body, 60), x.body, [postLink(x, plan), icopy((x.title ? x.title + '\n\n' : '') + x.body + (x.where === 'Discord' ? ' ' + plan.url : ''), 'Copy this post, ready to paste on ' + w)].filter(Boolean), true, 10)), 'Opens the post box with the text filled in. You read it, change it and post it yourself.'));
+  const posts = Object.keys(byWhere).map((w) => pane(w, logo(w, ''), byWhere[w].map(([x, i]) => row('post' + i, null, x.title || clip(x.body, 60), x.body, [postLink(x, plan), icopy((x.title ? x.title + '\n\n' : '') + x.body + (x.where === 'Discord' ? ' ' + (plan.site || plan.url) : ''), 'Copy this post, ready to paste on ' + w)].filter(Boolean), true, 10)), 'Opens the post box with the text filled in. You read it, change it and post it yourself.'));
   if (!posts.length) posts.push(card('Posts to write', null, [el('p', '', 'No post drafts this time. Press the button again for drafts for X, Reddit and Hacker News.')]));
 
   // 5. Get listed
