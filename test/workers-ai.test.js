@@ -4,6 +4,15 @@ import { FAST_MODEL, workersAi } from '../src/plan.js';
 const body = JSON.stringify({ model: 'flisk-wolf-chat', temperature: 0.4, max_tokens: 1400, messages: [{ role: 'system', content: 's' }, { role: 'user', content: 'u' }] });
 const call = (m) => m('https://inference.flisk.si/v1/chat/completions', { method: 'POST', body });
 
+describe('parseJson repairs what small models write', () => {
+  test('line breaks inside strings and trailing commas', async () => {
+    const { parseJson } = await import('../src/plan.js');
+    expect(parseJson('{"emails": [\n  {"to": "a", "body": "Hi,\nline two\tend"},\n]}')).toEqual({ emails: [{ to: 'a', body: 'Hi,\nline two\tend' }] });
+    expect(parseJson('{"a": "x \\" y"}')).toEqual({ a: 'x " y' });
+    expect(parseJson('not json')).toBe(null);
+  });
+});
+
 describe('workersAi', () => {
   test('runs the fast model and answers like chat completions, JSON objects as text', async () => {
     const runs = [];
@@ -11,7 +20,7 @@ describe('workersAi', () => {
     const r = await call(workersAi(ai, null));
     expect(r.ok).toBe(true);
     expect(runs[0].model).toBe(FAST_MODEL);
-    expect(runs[0].input).toEqual({ messages: [{ role: 'system', content: 's' }, { role: 'user', content: 'u' }], max_tokens: 1400, temperature: 0.4 });
+    expect(runs[0].input).toEqual({ messages: [{ role: 'system', content: 's' }, { role: 'user', content: 'u' }], max_tokens: 1400, temperature: 0.4, response_format: { type: 'json_object' } });
     expect(JSON.parse((await r.json()).choices[0].message.content)).toEqual({ product: 'x' });
   });
 
