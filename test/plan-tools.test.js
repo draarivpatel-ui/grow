@@ -113,7 +113,7 @@ describe('example plan and export', () => {
     expect(html).toContain('href="/example"');
     const main = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).find((s) => s.includes('function draw('));
     expect(() => new Function(main)).not.toThrow();
-    for (const s of ["fetch('/api/feedback'", "fetch('/api/rewrite'", 'BEGIN:VCALENDAR', "'- [ ] '", "'Did it work?'"]) expect(main).toContain(s);
+    for (const s of ["fetch('/api/feedback'", "fetch('/api/rewrite'", 'BEGIN:VCALENDAR', "'- [ ] '", "'Did it work?'", "el('button', 'chip')"]) expect(main).toContain(s);
   });
 
   test('planIcs and planMd make a valid calendar and a to-do list', async () => {
