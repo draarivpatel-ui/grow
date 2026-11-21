@@ -347,6 +347,49 @@ export function cleanPlan(i) {
   return { product: str(i.product, 200), queries, buyers, pitch: str(i.pitch, 200), today: str(i.today, 240), places, emails, posts };
 }
 
+// What the maker tells us before the plan: who it is for, the price, their name. Each answer is optional.
+export function cleanBrief(b) {
+  if (!b || typeof b !== 'object') return null;
+  const out = {}; for (const k of ['who', 'price', 'name']) { const v = str(b[k], k === 'name' ? 60 : 160); if (v) out[k] = v; }
+  return Object.keys(out).length ? out : null;
+}
+export const briefLine = (b) => !b ? '' : '\nThe maker says:' + (b.who ? ` it is for ${b.who}.` : '') + (b.price ? ` Price: ${b.price}.` : '') + (b.name ? ` The maker's name: ${b.name}; sign emails with it.` : '') + (b.who ? ' Use that group as the buyers.' : '');
+// The model writes "[your name]" however it is told; with a name given, put it in.
+export function signEmails(emails, name) {
+  if (!name) return;
+  for (const e of emails) for (const k of ['body', 'followup']) if (e[k]) e[k] = e[k].replace(/\[\s*your name\s*\]/gi, name);
+}
+
+// Rewrite one email, post or place in a saved plan, keeping the rest. The model sees the plan's buyers and the item
+// it is replacing, and writes one new item in the same shape.
+export const REWRITE = {
+  email: { field: 'emails', shape: '{"to": "...", "find": "...", "subject": "...", "body": "... under 90 words, sign it [your name]", "followup": "..."}', ask: 'Write ONE new email from the maker to a different person in the buyer group, with a new angle.' },
+  post: { field: 'posts', shape: '{"where": "<same place>", "title": "...", "body": "the post in the maker\'s voice, under 60 words, no subreddit and no link"}', ask: 'Write ONE new post for the same place, with a different angle.' },
+  place: { field: 'places', shape: '{"name": "...", "why": "...", "url": "its address if you are sure, else empty"}', ask: 'Give ONE different real place where these buyers talk, not one already in the plan.' },
+};
+export async function rewriteItem(plan, kind, index, { model, key, note = '' }) {
+  const r = REWRITE[kind]; const list = plan?.[r?.field];
+  if (!r || !Array.isArray(list) || !list[index]) return { error: 'no such item' };
+  const system = `You help a maker find the first people who would pay for what they made. ${VOICE}
+${r.ask} Answer with ONE JSON object and nothing else: {"item": ${r.shape}}
+${RULES}`;
+  const user = `Link: ${plan.url}\nProduct: ${plan.product || ''}\nBuyers: ${plan.buyers || ''}${briefLine(plan.brief)}${kind === 'place' ? '\nPlaces already in the plan: ' + list.map((x) => x.name).join(', ') : ''}\nThe item to replace: ${JSON.stringify(list[index])}${note ? '\nThe maker asks: ' + str(note, 200) : ''}`;
+  let j;
+  try {
+    const res = await model('https://inference.flisk.si/v1/chat/completions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` }, body: JSON.stringify({ model: MODEL, temperature: 0.8, max_tokens: 600, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] }), signal: AbortSignal.timeout(MODEL_TIMEOUT_MS) });
+    if (!res.ok) return { error: 'model', message: `model answered ${res.status}` };
+    j = parseJson((await res.json())?.choices?.[0]?.message?.content);
+  } catch (e) { return { error: 'model', message: str(e?.message, 200) }; }
+  const raw = j?.item;
+  if (kind === 'post' && raw) raw.where = list[index].where;
+  // cleanPlan does the cleaning; give it a minimal plan around the one item.
+  const one = cleanPlan({ buyers: 'x', places: kind === 'place' ? [raw] : [{ name: 'x' }], emails: kind === 'email' ? [raw] : [{ subject: 'x', body: 'x' }], posts: kind === 'post' ? [raw] : [] });
+  const item = one?.[r.field]?.[0];
+  if (!item) return { error: 'model', message: 'the model did not give a usable item' };
+  if (kind === 'email' && plan.brief?.name) signEmails([item], plan.brief.name);
+  return { item };
+}
+
 // The whole plan. `model` and `citable` are fetch-like functions (service bindings in production).
 export async function makePlan(url, opts) {
   const out = await makePlanFor(url, opts);
@@ -365,7 +408,8 @@ export async function repoSite(repo, given, fetchImpl) {
     return h && linkKind(h) === 'Other' ? h : '';
   } catch { return ''; }
 }
-async function makePlanFor(url, { fetch: fetchImpl, model, citable, key, about: ownerLine = '', links: given = [] }) {
+async function makePlanFor(url, { fetch: fetchImpl, model, citable, key, about: ownerLine = '', links: given = [], brief: rawBrief = null }) {
+  const brief = cleanBrief(rawBrief);
   const profile = profileOf(url);
   const repo = profile ? '' : githubRepo(url);
   const site = repo ? await repoSite(repo, cleanLinks(given, url), fetchImpl) : '';
@@ -378,7 +422,7 @@ async function makePlanFor(url, { fetch: fetchImpl, model, citable, key, about: 
     : page ? `Title: ${page.title}\nDescription: ${page.desc}\nText: ${page.body}` : '(the page could not be read)';
   // Links the maker gave first, then the profiles the page itself links to.
   const links = profile ? [] : cleanLinks([...given, ...(page?.links || [])], url);
-  const others = (links.length ? `\nThe maker's other pages: ${links.map((u) => linkKind(u) + ' ' + u).join(', ')}` : '') + (site ? `\nThe product's website: ${site}` : '');
+  const others = (links.length ? `\nThe maker's other pages: ${links.map((u) => linkKind(u) + ' ' + u).join(', ')}` : '') + (site ? `\nThe product's website: ${site}` : '') + briefLine(brief);
   const ask = (system) => model('https://inference.flisk.si/v1/chat/completions', {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
@@ -409,7 +453,8 @@ async function makePlanFor(url, { fetch: fetchImpl, model, citable, key, about: 
   }
   const plan = cleanPlan(raw);
   if (!plan) return { error: 'model', message: 'the model did not give a usable plan' };
+  if (brief) signEmails(plan.emails, brief.name);
   // Hacker News has its own post draft; listing it again under Get listed sends the maker there twice.
   const listings = plan.posts.some((p) => p.where === 'Hacker News') ? LISTINGS.filter((l) => !/hacker news/i.test(l.name)) : LISTINGS;
-  return { plan: { url, ...(site ? { site } : {}), ...(repo && !site ? { noSite: true } : {}), ...plan, check, listings, promo: PROMO, tools: TOOLS }, links };
+  return { plan: { url, ...(site ? { site } : {}), ...(repo && !site ? { noSite: true } : {}), ...(brief ? { brief } : {}), ...plan, check, listings, promo: PROMO, tools: TOOLS }, links };
 }
