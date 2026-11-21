@@ -257,6 +257,16 @@ form .btn.paste{border-width:1px 0 1px 1px;background:var(--panel2);height:48px}
 .pn .ib:not(.go):not([type=submit]),.stage .ib:not(.go):not([type=submit]){font-size:0;gap:0;padding:0;width:26px;height:24px;justify-content:center}
 .pn .ib:not(.go) svg.i,.stage .ib:not(.go) svg.i{width:14px;height:14px;stroke-width:1.75}
 .pn .ib.go,.stage .ib.go{padding:3px 8px;font-size:9.5px}
+/* one tidy toolbar per item: main action, then icon tools, thumbs on the same line when they fit */
+.rw .t .ra,.rw .t .fb{display:inline-flex;flex-wrap:wrap;align-items:center;vertical-align:middle;margin:5px 6px 0 0;gap:3px}
+.rw .t .fb{padding-left:8px;border-left:1px solid var(--line);margin-left:2px}
+.rw .t .fb .worked{flex-basis:100%}
+.pn .ib:not(.go):not([type=submit]),.stage .ib:not(.go):not([type=submit]){width:24px;height:22px}
+.pn .ib:not(.go) svg.i,.stage .ib:not(.go) svg.i{width:13px;height:13px}
+/* inside rows every tool is a square icon, the green one is the main action */
+.rw .ib,.rw .ib.go{font-size:0;gap:0;padding:0;width:24px;height:22px;justify-content:center}
+.rw .ib svg.i{width:13px;height:13px;stroke-width:1.75}
+.rw .t .fb{padding-left:0;border-left:0;margin-left:0}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 `;
 
