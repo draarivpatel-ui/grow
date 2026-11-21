@@ -49,7 +49,14 @@ describe('plan', () => {
 
   test('a page gives its profile links, not share buttons', () => {
     const html = '<a href="https://github.com/acme/tool">gh</a><a href="https://x.com/intent/post?text=hi">share</a><a href="https://x.com/acme">x</a><a href="https://example.com/blog">blog</a><a href="https://www.linkedin.com/">li</a><a href="https://github.com/acme/other">gh2</a>';
-    expect(profileLinks(html)).toEqual(['https://github.com/acme/tool', 'https://x.com/acme']);
+    expect(profileLinks(html, 'https://acme.com/')).toEqual(['https://github.com/acme/tool', 'https://x.com/acme']);
+  });
+
+  test('links to adopters and contributors in the page body are not the maker\'s', () => {
+    const html = '<nav><a href="https://discord.gg/qMu5Xn8Kaq">chat</a></nav><a href="https://github.com/AK-Lmn">contributor</a>'
+      + '<a href="https://www.linkedin.com/company/lekast/">adopter</a><a href="https://github.com/flisk-sh/flisk/blob/main/LICENSE">license</a>'
+      + '<footer><a href="https://x.com/someone">x</a></footer>';
+    expect(profileLinks(html, 'https://flisk.sh/')).toEqual(['https://discord.gg/qMu5Xn8Kaq', 'https://github.com/flisk-sh/flisk', 'https://x.com/someone']);
   });
 
   test('makePlan reads the maker\'s links and keeps them in the plan', async () => {
