@@ -58,6 +58,36 @@ footer{margin:0 -36px;padding:22px 36px 40px;font:500 11px var(--mono);text-tran
 @media(max-width:860px){.wrap{padding:0 16px}.nav,.hero,section,footer{margin:0 -16px;padding-left:16px;padding-right:16px}.hero{grid-template-columns:1fr}.hero>div:first-child{padding:40px 16px 32px;border-right:0;border-bottom:1px solid var(--line2)}.band{min-height:44px}
  .grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
 @media(max-width:560px){.grid{grid-template-columns:1fr}form{flex-direction:column}form input{flex:none;border-right:1px solid var(--line2);border-bottom:0}.navr a.hide-s{display:none}}
+.jhead{margin:0 -36px;padding:26px 36px 16px;border-bottom:1px solid var(--line2)}.jhead h2{font-size:clamp(26px,3.2vw,38px);margin:10px 0 6px}.jhead .sub{margin:0}.jhead .note{margin-top:10px}
+.jbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:12px}.jcwrap{display:inline-flex;align-items:center;gap:6px;font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;margin-right:6px}
+.jtabs{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin:0 -36px;border-bottom:1px solid var(--line2);background:var(--bg)}
+.jtab{display:flex;gap:9px;align-items:center;min-width:0;padding:9px 12px;border:0;border-right:1px solid var(--line2);border-radius:0;background:transparent;text-align:left;cursor:pointer}.jtab:last-child{border-right:0}.jtab:hover{background:var(--panel2)}
+.jtab[aria-selected=true]{background:var(--panel);box-shadow:inset 0 -3px 0 var(--acc)}
+.jtab .num{flex:none;width:24px;height:24px;display:grid;place-items:center;border:1px solid var(--line2);font:600 11px var(--mono)}.jtab[aria-selected=true] .num{background:var(--ink);color:var(--bg)}.jtab.fin .num{background:var(--acc);border-color:var(--acc);color:var(--accink)}
+.jtab .tx{flex:1;min-width:0}.jtab .tt{display:block;font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.jtab .st{display:block;font:500 10.5px var(--mono);color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jtab .b2{display:block;height:3px;background:var(--line);margin-top:5px}.jtab .b2 i{display:block;height:100%;width:0;background:var(--acc);transition:width .3s}.jtab .pg{flex:none;font:600 10.5px var(--mono);color:var(--faint)}
+.stage{margin:0 -36px;padding:14px 36px 18px;border-bottom:1px solid var(--line2)}
+.jlead{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px;margin-bottom:10px}.jlead h3{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.02em}.jlead .say{color:var(--mut);font-size:14px}.jlead .pg{margin-left:auto;font:600 11px var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.06em}
+.cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));grid-auto-rows:300px;padding:0 1px 1px 0}
+.pn{display:flex;flex-direction:column;min-width:0;min-height:0;margin:0 -1px -1px 0;background:var(--panel);border:1px solid var(--line2)}
+.pn .ph{display:flex;align-items:center;gap:7px;flex:none;padding:8px 10px;border-bottom:1px solid var(--line2);font:600 10.5px var(--mono);text-transform:uppercase;letter-spacing:.07em}.pn .ph .logo{margin:0}.pn .ph .n{margin-left:auto;color:var(--faint)}
+.pn .bd{flex:1;min-height:0;overflow:auto}
+.rw{display:flex;gap:8px;align-items:flex-start;padding:7px 10px;border-bottom:1px solid var(--line);font-size:13px;line-height:1.35}.rw:hover{background:var(--panel2)}
+.rw>input{flex:none;margin:1px 0 0;width:14px;height:14px;accent-color:var(--acc);cursor:pointer}.rw>.logo{margin:0}.rw>svg.i{margin-top:2px}
+.rw .t{flex:1;min-width:0;cursor:pointer}.rw .t b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rw .t small{display:block;margin-top:1px;font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rw.open .t b,.rw.open .t small{white-space:pre-wrap;overflow-wrap:anywhere}.rw.done .t b{text-decoration:line-through;color:var(--faint)}
+.ra{display:flex;flex-wrap:wrap;gap:4px;flex:none}.rw .t .ra{margin-top:6px}
+.ib{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border:1px solid var(--line2);border-radius:0;background:transparent;font:600 10px var(--mono);text-transform:uppercase;letter-spacing:.05em;text-decoration:none;white-space:nowrap;cursor:pointer}
+.ib:hover{background:var(--ink);color:var(--bg)}.ib.go{background:var(--acc);border-color:var(--acc);color:var(--accink)}.ib.go:hover{filter:brightness(1.06)}.ib:disabled{opacity:.6;cursor:default}
+svg.i{width:12px;height:12px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.jcwrap svg.i{width:14px;height:14px;color:var(--acctext)}
+.dot{flex:none;width:8px;height:8px;margin-top:4px;border-radius:50%}.dot.bad{background:var(--red)}.dot.warn{background:var(--amber)}.dot.ok{background:var(--acc)}
+.pc{padding:12px;display:flex;flex-direction:column;gap:8px}.pc p{margin:0;color:var(--mut);font-size:13.5px}.pc .pitch{color:var(--ink);font-size:19px;margin:0}.pc .today{margin:0;padding:10px 12px}.pc .badge{max-width:100%;height:auto}
+.big{font-family:var(--display);font-weight:800;font-size:56px;line-height:1}.big small{font:600 12px var(--mono);color:var(--faint);margin-left:6px}
+.skf{display:flex;margin:8px 10px}.skf input{flex:1;min-width:0;height:32px;padding:0 8px;border:1px solid var(--line2);border-right:0;background:var(--bg);font:12px var(--mono)}.skf .ib{height:32px}
+.tip{position:fixed;z-index:30;max-width:290px;padding:5px 9px;background:var(--ink);color:var(--bg);font:500 11.5px/1.4 var(--font);pointer-events:none;opacity:0;transition:opacity .12s}.tip.on{opacity:1}
+@media(max-width:860px){.jhead,.jtabs,.stage{margin:0 -16px}.jhead,.stage{padding-left:16px;padding-right:16px}.jtab{justify-content:center;padding:8px 4px}.jtab .tx,.jtab .pg{display:none}
+ .cols{grid-template-columns:1fr;grid-auto-rows:auto}.pn .bd{max-height:380px}.jlead .pg{margin-left:0}}
+body.has-plan .hero{grid-template-columns:1fr}body.has-plan .hero>div:first-child{padding:14px 36px;border-right:0}body.has-plan .hero h1,body.has-plan .hero .lead,body.has-plan .hero .kicker,body.has-plan .proof,body.has-plan .socials,body.has-plan .band{display:none}body.has-plan form{max-width:none}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 `;
 
@@ -165,127 +195,209 @@ function drawFollowers(id, plan) {
   out.hidden = false; $('#about').hidden = true;
 }
 
+// The customer plan as one page in five steps, in the order a maker does them. Sticky tabs jump to a step and
+// follow the scroll; every row is a task with a tick box (kept in this browser), every action has an icon and a tooltip.
+const ICON = {
+  open: '<path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>',
+  copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+  share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/>',
+  save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
+  check: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+  send: '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  post: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+};
+const svg = (k) => { const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('class', 'i'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true'); s.innerHTML = ICON[k]; return s; };
+const tip = (n, t) => { n.setAttribute('data-tip', t); return n; };
+const iopen = (label, href, t, go, icon) => { const a = el('a', 'ib' + (go ? ' go' : '')); a.href = href; a.target = '_blank'; a.rel = 'noopener'; a.append(svg(icon || 'open'), label); return tip(a, t); };
+const icopy = (text, t) => { const b = el('button', 'ib'); b.type = 'button'; b.append(svg('copy'), 'Copy'); b.onclick = () => copy(text); return tip(b, t || 'Copy the text'); };
+const ibtn = (label, icon, t, fn, go) => { const b = el('button', 'ib' + (go ? ' go' : '')); b.type = 'button'; b.append(svg(icon), label); b.onclick = fn; return tip(b, t); };
+const dot = (s, t) => tip(el('span', 'dot ' + s), t);
+const clip = (t, n) => (t.length > n ? t.slice(0, n - 1) + '…' : t);
+
+let J = null; // the plan on screen: id, ticked rows, steps, tabs
+const doneKey = (id) => 'grow-done:' + (id || 'guide');
+function loadDone(id) { try { return new Set(JSON.parse(localStorage.getItem(doneKey(id)) || '[]')); } catch (e) { return new Set(); } }
+function saveDone() { try { localStorage.setItem(doneKey(J.id), JSON.stringify([...J.done])); } catch (e) {} }
+
+// One task: tick box, a logo or dot, the text (click to read all of it), and its actions.
+function row(key, lead, title, sub, acts, under) {
+  const r = el('div', 'rw'); const c = el('input'); c.type = 'checkbox'; c.dataset.k = key; c.setAttribute('aria-label', 'Done: ' + title); tip(c, 'Tick when done. Kept in this browser.');
+  if (J.done.has(key)) { c.checked = true; r.classList.add('done'); }
+  const t = el('div', 't' + (lead && lead.classList && lead.classList.contains('logo') ? ' nologo' : '')); t.append(el('b', '', title)); if (sub) t.append(el('small', '', sub));
+  tip(t, clip(sub ? title + ': ' + sub : title, 280) + (sub && sub.length > 60 ? ' (click to read all)' : ''));
+  t.onclick = (e) => { if (!e.target.closest('a,button,input')) r.classList.toggle('open'); };
+  r.append(c); if (lead) r.append(lead); r.append(t);
+  if (acts && acts.length) { const a = el('div', 'ra'); a.append(...acts); (under ? t : r).append(a); }
+  return r;
+}
+function pane(title, lead, rows, hint, cls) {
+  const p = el('div', 'pn' + (cls ? ' ' + cls : '')); const h = el('div', 'ph nologo'); if (lead) h.append(lead);
+  h.append(el('span', 'pt', title)); if (rows) h.append(el('span', 'n', String(rows.length)));
+  if (hint) tip(h, hint);
+  const b = el('div', 'bd'); if (rows) b.append(...rows); p.append(h, b); return p;
+}
+function card(title, lead, kids, hint) { const p = pane(title, lead, null, hint); const c = el('div', 'pc'); c.append(...kids.filter(Boolean)); p.lastChild.append(c); return p; }
+const LAUNCH = /hacker news|product hunt|betalist|uneed|devhunt|foundrlist|launchamp/i;
+const postLink = (x, plan) => {
+  if (x.where === 'X') return iopen('Post', 'https://x.com/intent/post?text=' + encodeURIComponent((x.body || x.title) + ' ' + plan.url), 'Open X with this post filled in. You post it.', true, 'post');
+  if (x.where === 'Reddit') return iopen('Post', 'https://www.reddit.com/submit?url=' + encodeURIComponent(plan.url) + '&title=' + encodeURIComponent(x.title), 'Open the Reddit submit page with the title filled in', true, 'post');
+  if (x.where === 'Hacker News') return iopen('Post', 'https://news.ycombinator.com/submitlink?u=' + encodeURIComponent(plan.url) + '&t=' + encodeURIComponent(x.title), 'Open the Hacker News submit page with the title filled in', true, 'post');
+  if (x.where === 'Discord') return iopen('Channel', 'https://discord.com/channels/1562937840071999538/1569404291196915904', 'Open the #show-your-stack channel; paste the copied text there', true);
+  return null;
+};
+const saveSite = (id, plan) => fetch('/me').then(() => fetch('/api/sites', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: plan.url, plan: id }) })).then((r) => r.json());
+
 function draw(id, plan) {
-  if (plan.kind === 'followers') return drawFollowers(id, plan);
+  if (plan.kind === 'followers') { J = null; return drawFollowers(id, plan); }
   const out = $('#plan'); out.replaceChildren();
   document.title = 'Grow plan for ' + planName(plan.url) + ' · Flisk Grow';
+  J = { id, done: loadDone(id), cur: 0, lock: 0 };
 
-  const head = section('A plan for ' + planName(plan.url), plan.product || '');
-  const share = el('div', 'share');
-  const here = location.origin + '/p/' + id;
-  share.append(button('Save to my cabinet', () => fetch('/me').then(() => fetch('/api/sites', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: plan.url, plan: id }) })).then((r) => r.json()).then((j) => { location.href = '/me?site=' + j.id; })), shareBtn(id), link('Open the site', plan.url), el('span', '', id ? 'Kept 30 days: ' + here : 'Not saved: it is a general guide.'));
-  if (!id) share.querySelectorAll('button')[1].remove();
-  head.append(share);
+  const head = el('div', 'jhead');
+  head.append(el('div', 'kicker', id ? 'Your plan · kept 30 days' : 'A general guide'), el('h2', '', 'A plan for ' + planName(plan.url)));
+  if (plan.product) head.append(el('p', 'sub', plan.product));
+  const bar = el('div', 'jbar');
+  J.count = el('span', 'jcount'); tip(J.count, 'Tasks done across all 5 steps');
+  const cnt = el('span', 'jcwrap'); cnt.append(svg('check'), J.count);
+  bar.append(cnt, ibtn('Save to my cabinet', 'save', 'Keep this plan in your cabinet and watch new places to post', () => saveSite(id, plan).then((j) => { location.href = '/me?site=' + j.id; })));
+  if (id) bar.append(ibtn('Share this plan', 'share', 'Send a link to this plan to your team', () => { const u = location.origin + '/p/' + id; if (navigator.share) navigator.share({ title: document.title, url: u }).catch(() => {}); else copy(u); }, true));
+  bar.append(iopen('Open the site', plan.url, 'Open ' + host(plan.url) + ' in a new tab'));
+  head.append(bar);
   if (plan.generic) head.append(el('p', 'note', 'Made without the model: its free budget is used up or it is too slow right now (the budget resets at 00:00 UTC). The AI-search check and the listings are real; the rest is a general guide with blanks to fill. Press the button again tomorrow for a plan written for your page.'));
-  const gap = el('div', 'gaps');
-  gap.append(el('h3', '', 'Get the gaps done'), el('p', '', 'Posts the checks a bot really does to jobs.flisk.si: can AI search find your site, and how good is your README (when the site links its GitHub repo). A bot takes them within about 5 minutes. Free and public.'));
-  const gres = el('div'); const gb = button('Post as jobs on jobs.flisk.si', async () => {
-    gb.disabled = true; gb.textContent = 'Posting...';
+  out.append(head);
+
+  // 1. Get ready
+  const ready = [];
+  if (plan.check) {
+    const sc = el('div', 'big'); sc.append(String(plan.check.score), el('small', '', '/100 · ' + plan.check.grade));
+    ready.push(card('Can AI search find it', logo('Citable', 'https://citable.flisk.si'), [sc, el('p', '', 'ChatGPT, Claude and Perplexity answer from pages they can read. Citable checks yours.'), (() => { const a = el('div', 'ra'); a.append(iopen('Full report', plan.check.report, 'Open the full Citable report for your page', true)); return a; })()], 'The AI-search score from Citable'));
+    const fx = plan.check.fixes.map((f, i) => row('fix' + i, dot(f.status === 'pass' ? 'ok' : f.status === 'warn' ? 'warn' : 'bad', f.status === 'warn' ? 'Should fix soon' : 'Fix first: this hurts most'), f.title, f.summary, [icopy(f.title + ': ' + f.summary, 'Copy this fix to send to whoever edits your site')]));
+    ready.push(pane('Fix your page', logo('', plan.url), fx.length ? fx : [row('fix-none', dot('ok', 'Fine as it is'), 'Nothing to fix', 'AI search can read this page.')], 'What stops AI search from quoting your page'));
+  } else ready.push(card('Can AI search find it', logo('Citable', 'https://citable.flisk.si'), [el('p', '', 'The check did not answer this time.'), (() => { const a = el('div', 'ra'); a.append(iopen('Try on Citable', 'https://citable.flisk.si', 'Run the AI-search check on Citable')); return a; })()]));
+  const gres = el('div', 'ra');
+  const gb = ibtn('Post as jobs', 'send', 'Post these checks as jobs on jobs.flisk.si; a bot does them within about 5 minutes', async () => {
+    gb.disabled = true; gb.lastChild.textContent = 'Posting...';
     try {
-      await fetch('/me'); const a = await fetch('/api/sites', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: plan.url, plan: id }) }).then((r) => r.json());
+      const a = await saveSite(id, plan);
       const j = await fetch('/api/sites/' + a.id + '/jobs', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' }).then((r) => r.json());
       if (j.error) throw new Error(j.error);
-      gres.replaceChildren(); (j.posted.length ? j.posted : []).forEach((x) => { const l = link(x.title, x.link, 'go'); gres.append(l); });
-      if (!j.posted.length) { gres.append(el('p', 'note', j.note || 'Nothing to post.'), link('See them in my cabinet', '/me?site=' + a.id)); } else gres.append(link('See all in my cabinet', '/me?site=' + a.id));
-      gb.textContent = 'Posted'; toast('Posted');
-    } catch (e) { gb.disabled = false; gb.textContent = 'Post as jobs on jobs.flisk.si'; toast(e.message); }
-  }, 'go');
-  gap.append(gb, gres); head.append(gap); out.append(head);
-
-  const c = section('Can AI search find it', 'ChatGPT, Claude and Perplexity answer from pages they can read. Citable checks yours.');
-  if (plan.check) {
-    const g = el('div', 'two');
-    const left = el('div'); const sc = el('div', 'score'); sc.append(el('b', '', String(plan.check.score)), el('span', '', '/100 · ' + plan.check.grade)); left.append(sc);
-    const a = el('div', 'acts'); a.append(link('Full report on Citable', plan.check.report)); left.append(a);
-    const right = el('div');
-    if (plan.check.fixes.length) plan.check.fixes.forEach((f) => { const d = el('div', 'fix'); d.append(el('b', '', f.title), el('p', '', f.summary)); right.append(d); });
-    else right.append(el('p', '', 'Nothing to fix: AI search can read this page.'));
-    g.append(left, right); c.append(g);
-  } else c.append(el('p', 'note', 'The check did not answer this time. Try it on citable.flisk.si.'));
-  out.append(c);
-
-  const b = section('Who would buy it');
-  const two = el('div', 'two'); const l = el('div'); l.append(el('p', 'pitch', plan.pitch || '')); const r = el('div'); r.append(el('p', '', plan.buyers));
-  if (plan.today) { const t = el('div', 'today'); t.append(el('small', '', 'Do this today'), el('div', '', plan.today)); r.append(t); }
-  two.append(l, r); b.append(two); out.append(b);
-
-  const p = section('Where to find them', 'Places these buyers already talk. Read the rules of each place before you post.');
-  const pg = el('div', 'grid');
-  plan.places.forEach((x) => { const cell = el(x.url ? 'a' : 'div', x.url ? 'cell' : ''); if (x.url) { cell.href = x.url; cell.target = '_blank'; cell.rel = 'noopener'; } cell.append(named('h3', '', x.name, x.url), el('p', '', x.why)); pg.append(cell); });
-  p.append(pg); out.append(p);
-
-  const m = section('Emails to send (' + plan.emails.length + ')', 'Drafts only. Add the address in your mail and press Send yourself: nothing is sent for you.');
-  const mg = el('div', 'grid');
-  plan.emails.forEach((e) => {
-    const d = el('div', 'mail'); d.append(el('div', 'to', 'To: ' + (e.to || 'someone who fits')), el('h3', '', e.subject), el('pre', '', e.body));
-    const a = el('div', 'acts');
-    a.append(link('Open in Gmail', 'https://mail.google.com/mail/?view=cm&fs=1&su=' + encodeURIComponent(e.subject) + '&body=' + encodeURIComponent(e.body), 'go'),
-      link('Mail app', 'mailto:?subject=' + encodeURIComponent(e.subject) + '&body=' + encodeURIComponent(e.body)),
-      button('Copy', () => copy(e.subject + '\n\n' + e.body)));
-    d.append(a); mg.append(d);
-  });
-  m.append(mg); out.append(m);
-
-  if (plan.posts && plan.posts.length) {
-    const s = section('Posts to write', 'Opens the post box with the text filled in. You read it, change it and post it yourself.');
-    const sg = el('div', 'grid');
-    plan.posts.forEach((x) => {
-      const d = el('div', 'mail'); d.append(el('div', 'to', x.where), el('h3', '', x.title), el('pre', '', x.body));
-      const a = el('div', 'acts');
-      if (x.where === 'X') a.append(link('Open in X', 'https://x.com/intent/post?text=' + encodeURIComponent((x.body || x.title) + ' ' + plan.url), 'go'));
-      if (x.where === 'Reddit') a.append(link('Open in Reddit', 'https://www.reddit.com/submit?url=' + encodeURIComponent(plan.url) + '&title=' + encodeURIComponent(x.title), 'go'));
-      if (x.where === 'Hacker News') a.append(link('Open in Hacker News', 'https://news.ycombinator.com/submitlink?u=' + encodeURIComponent(plan.url) + '&t=' + encodeURIComponent(x.title), 'go'));
-      if (x.where === 'Discord') a.append(link('Open #show-your-stack', 'https://discord.com/channels/1562937840071999538/1569404291196915904', 'go'));
-      a.append(button('Copy', () => copy((x.title ? x.title + '\n\n' : '') + x.body + (x.where === 'Discord' ? ' ' + plan.url : ''))));
-      d.append(a); sg.append(d);
-    });
-    s.append(sg); out.append(s);
-  }
-
+      gres.replaceChildren(); j.posted.forEach((x) => gres.append(iopen(x.title, x.link, 'Open this job on jobs.flisk.si', true)));
+      if (!j.posted.length) gres.append(el('p', 'note', j.note || 'Nothing to post.'));
+      gres.append(iopen(j.posted.length ? 'See all in my cabinet' : 'See them in my cabinet', '/me?site=' + a.id, 'Open your cabinet for this site'));
+      gb.lastChild.textContent = 'Posted'; toast('Posted');
+    } catch (e) { gb.disabled = false; gb.lastChild.textContent = 'Post as jobs'; toast(e.message); }
+  }, true);
+  const gbx = el('div', 'ra'); gbx.append(gb);
+  ready.push(card('Get the gaps done', null, [el('p', '', 'Posts the checks a bot really does to jobs.flisk.si: can AI search find your site, and how good is your README (when the site links its GitHub repo). Free and public.'), gbx, gres], 'A bot does the checks for you'));
   if (plan.ranker) {
-    const k = plan.ranker, rk = section('Your rank on Ranker', k.listed ? 'Ranker lists ' + k.repo + ' and ranks it by stars gained each day. Put the live badge in your README: people see it is growing.' : 'Ranker ranks GitHub repos by stars gained each day. It could not list ' + k.repo + ' just now; open it to try again.');
-    const card = el('div', 'acts');
-    if (k.badge) { const img = el('img'); img.src = k.badge; img.alt = 'Flisk Ranker badge'; img.width = 250; img.height = 55; rk.append(img); }
-    card.append(link(k.listed ? 'Open on Ranker' : 'List it on Ranker', k.url));
-    if (k.markdown) card.append(button('Copy README badge', () => copy(k.markdown)));
-    rk.append(card); out.append(rk);
+    const k = plan.ranker; const kids = [el('p', '', k.listed ? 'Ranker ranks ' + k.repo + ' by stars gained each day. Put the live badge in your README.' : 'Ranker could not list ' + k.repo + ' just now; open it to try again.')];
+    if (k.badge) { const img = el('img', 'badge'); img.src = k.badge; img.alt = 'Flisk Ranker badge'; img.width = 250; img.height = 55; kids.push(img); }
+    const a = el('div', 'ra'); a.append(iopen(k.listed ? 'Open on Ranker' : 'List it on Ranker', k.url, 'See your repo on Ranker', true)); if (k.markdown) a.append(icopy(k.markdown, 'Copy the badge as Markdown for your README')); kids.push(a);
+    ready.push(card('Your rank on Ranker', null, kids, 'GitHub repos ranked by stars gained each day'));
   }
-  if (plan.promo && plan.promo.length) {
-    const pr = section('Where you may promote yourself', 'Communities with a place for your own work. Each has its own rule: read it, then post the draft above that fits. Discord has no post link, so copy the draft and paste it.');
-    const pgr = el('div', 'grid');
-    plan.promo.forEach((x) => { const a = el('a', 'cell'); a.href = x.url; a.target = '_blank'; a.rel = 'noopener'; a.append(named('h3', '', x.name, x.url), el('p', '', x.rule)); pgr.append(a); });
-    pr.append(pgr); out.append(pr);
-  }
-
+  ready.push(pane('More free checks', null, plan.tools.map((x, i) => row('tool' + i, logo(x.name, x.url), x.name, x.why, [iopen('Open', x.url, 'Open ' + x.name + ' in a new tab')])), 'Free Flisk checks for your page'));
   const SKILL_SOURCES = [
     { name: 'Flisk Tools', why: 'Free agent skills from GitHub, sorted by stars, with search and categories.', url: (q) => 'https://tools.flisk.si/skills' + (q ? '?q=' + encodeURIComponent(q) : '') },
     { name: 'skills.sh', why: 'The open skills directory that the npx skills command installs from.', url: (q) => 'https://skills.sh/' + (q ? '?q=' + encodeURIComponent(q) : '') },
     { name: 'GitHub', why: 'Every skill is a SKILL.md file in a repository; search them all.', url: (q) => 'https://github.com/search?type=code&q=' + encodeURIComponent('filename:SKILL.md ' + q) },
     { name: 'Anthropic skills', why: 'The official example skills from Anthropic, free to copy.', url: () => 'https://github.com/anthropics/skills' },
   ];
-  const sk = section('Find a skill for your AI agent', 'Agents like Claude Code load skills from folders with a SKILL.md file. Type what you want it to do and open the places where skills are shared.');
-  const sf = el('form'); sf.setAttribute('role', 'search');
-  const si = el('input'); si.type = 'search'; si.placeholder = 'What should the skill do? review code, write tests, deploy'; si.setAttribute('aria-label', 'What should the skill do');
-  const sb = el('button', 'btn go', 'Find skill'); sb.type = 'submit';
+  const sf = el('form', 'skf'); sf.setAttribute('role', 'search');
+  const si = el('input'); si.type = 'search'; si.placeholder = 'review code, write tests, deploy'; si.setAttribute('aria-label', 'What should the skill do');
+  const sb = el('button', 'ib go'); sb.type = 'submit'; sb.append(svg('search'), 'Find skill'); tip(sb, 'Search Flisk Tools for a skill that does this');
   sf.append(si, sb);
-  const sg2 = el('div', 'grid'); sg2.style.marginTop = '16px';
-  const cells = SKILL_SOURCES.map((x) => { const a = el('a', 'cell'); a.target = '_blank'; a.rel = 'noopener'; a.append(named('h3', '', x.name, x.url('')), el('p', '', x.why)); sg2.append(a); return () => { a.href = x.url(si.value.trim()); }; });
-  const sync = () => cells.forEach((f) => f());
-  si.addEventListener('input', sync); sync();
+  const skl = SKILL_SOURCES.map((x) => { const a = iopen('Open', x.url(''), 'Search ' + x.name + ' for skills'); return { a, x }; });
+  const sync = () => skl.forEach((s) => { s.a.href = s.x.url(si.value.trim()); });
+  si.addEventListener('input', sync);
   sf.addEventListener('submit', (e) => { e.preventDefault(); window.open(SKILL_SOURCES[0].url(si.value.trim()), '_blank', 'noopener'); });
-  sk.append(sf, sg2); out.append(sk);
+  const skp = pane('Find a skill for your AI agent', null, null, 'Agents like Claude Code load skills from folders with a SKILL.md file');
+  skp.lastChild.append(sf, ...skl.map((s) => { const r = el('div', 'rw'); const t = el('div', 't nologo'); t.append(el('b', '', s.x.name), el('small', '', s.x.why)); tip(t, s.x.why); r.append(logo(s.x.name, s.x.url('')), t, s.a); return r; }));
+  ready.push(skp);
 
-  const li = section('Where to list it', 'Directories and launch lists. Each one is a link to its own submit page.');
-  const lg = el('div', 'grid');
-  plan.listings.forEach((x) => { const a = el('a', 'cell'); a.href = x.url; a.target = '_blank'; a.rel = 'noopener'; a.append(named('h3', '', x.name, x.url), el('p', '', x.why)); lg.append(a); });
-  li.append(lg); out.append(li);
+  // 2. Find buyers
+  const buyers = [card('Who would buy it', null, [el('p', 'pitch', plan.pitch || ''), el('p', '', plan.buyers || ''), plan.today ? (() => { const t = el('div', 'today'); t.append(el('small', '', 'Do this today'), el('div', '', plan.today)); return t; })() : null, plan.pitch ? (() => { const a = el('div', 'ra'); a.append(icopy(plan.pitch, 'Copy the one-line pitch')); return a; })() : null], 'The first group to sell to')];
+  buyers.push(pane('Where to find them', null, plan.places.map((x, i) => row('place' + i, logo(x.name, x.url), x.name, x.why, x.url ? [iopen('Open', x.url, 'Open ' + x.name + '. Read its rules before you post.')] : [])), 'Places these buyers already talk'));
+  if (plan.promo && plan.promo.length) buyers.push(pane('Where you may promote yourself', null, plan.promo.map((x, i) => row('promo' + i, logo(x.where || x.name, x.url), x.name, x.rule, [iopen('Open', x.url, 'Open ' + x.name + ' and read its rule first')])), 'Communities with a place for your own work, each with its own rule'));
 
-  const t = section('More free checks');
-  const tg = el('div', 'grid');
-  plan.tools.forEach((x) => { const a = el('a', 'cell'); a.href = x.url; a.target = '_blank'; a.rel = 'noopener'; a.append(named('h3', '', x.name, x.url), el('p', '', x.why)); tg.append(a); });
-  t.append(tg); out.append(t);
-  out.hidden = false; $('#about').hidden = true;
+  // 3. Reach out: the emails, a few a day
+  const mails = plan.emails.map((e, i) => {
+    const gm = 'https://mail.google.com/mail/?view=cm&fs=1&su=' + encodeURIComponent(e.subject) + '&body=' + encodeURIComponent(e.body);
+    const mt = 'mailto:?subject=' + encodeURIComponent(e.subject) + '&body=' + encodeURIComponent(e.body);
+    return row('mail' + i, svg('mail'), e.subject, 'To: ' + (e.to || 'someone who fits') + '. ' + e.body, [iopen('Gmail', gm, 'Open a Gmail draft with this email. Add the address and press Send.', true, 'mail'), iopen('Mail app', mt, 'Open a draft in your own mail app'), icopy(e.subject + '\n\n' + e.body, 'Copy the subject and the email text')], true);
+  });
+  const days = [['Day 1 · today', 0, 2], ['Day 3', 2, 4], ['Day 5', 4, 99]];
+  const reach = mails.length > 2 ? days.map((d) => [d[0], mails.slice(d[1], d[2])]).filter((d) => d[1].length).map((d) => pane(d[0], svg('mail'), d[1], 'Send these on ' + d[0].replace(' · today', ', today') + '. Nothing is sent for you.')) : [pane('Emails to send', svg('mail'), mails, 'Drafts only. Nothing is sent for you.')];
+
+  // 4. Post: one column per place
+  const byWhere = {}; (plan.posts || []).forEach((x, i) => { (byWhere[x.where] = byWhere[x.where] || []).push([x, i]); });
+  const posts = Object.keys(byWhere).map((w) => pane(w, logo(w, ''), byWhere[w].map(([x, i]) => row('post' + i, null, x.title || clip(x.body, 60), x.body, [postLink(x, plan), icopy((x.title ? x.title + '\n\n' : '') + x.body + (x.where === 'Discord' ? ' ' + plan.url : ''), 'Copy this post, ready to paste on ' + w)].filter(Boolean), true)), 'Opens the post box with the text filled in. You read it, change it and post it yourself.'));
+  if (!posts.length) posts.push(card('Posts to write', null, [el('p', '', 'No post drafts this time. Press the button again for drafts for X, Reddit and Hacker News.')]));
+
+  // 5. Get listed
+  const ls = plan.listings.map((x, i) => [x, i]);
+  const lrow = ([x, i]) => row('list' + i, logo(x.name, x.url), x.name, x.why, [iopen('Submit', x.url, 'Open the ' + x.name + ' submit page')]);
+  const listed = [pane('Launch sites', null, ls.filter(([x]) => LAUNCH.test(x.name)).map(lrow), 'Launch lists: one day of attention, best on a weekday'), pane('Directories', null, ls.filter(([x]) => !LAUNCH.test(x.name)).map(lrow), 'Directories people search; they keep sending visitors')];
+
+  const steps = [
+    { t: 'Get ready', st: 'Fix what blocks you', say: 'Make your page readable for AI search and people before you send anyone to it.', panes: ready },
+    { t: 'Find buyers', st: 'Who and where', say: 'Who buys first, and the places they already talk.', panes: buyers },
+    { t: 'Reach out', st: plan.emails.length + ' emails', say: 'A few emails a day. Gmail opens with the draft filled in; you press Send.', panes: reach },
+    { t: 'Post', st: (plan.posts || []).length + ' drafts', say: 'Post where your buyers read. You read, change and post each one yourself.', panes: posts },
+    { t: 'Get listed', st: plan.listings.length + ' places', say: 'Directories and launch lists. Each link opens its submit page.', panes: listed },
+  ];
+  const tabs = el('div', 'jtabs'); tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', 'Steps');
+  J.tabs = []; J.stages = []; J.tabsEl = tabs;
+  out.append(tabs);
+  steps.forEach((s, i) => {
+    const tb = el('button', 'jtab'); tb.type = 'button'; tb.setAttribute('role', 'tab'); tip(tb, 'Step ' + (i + 1) + ': ' + s.say); tb.onclick = () => goStep(i);
+    const tx = el('span', 'tx'); tx.append(el('span', 'tt', s.t), el('span', 'st', s.st)); const b2 = el('span', 'b2'); b2.append(el('i')); tx.append(b2);
+    tb.append(el('span', 'num', String(i + 1)), tx, el('span', 'pg')); tabs.append(tb); J.tabs.push(tb);
+    const st = el('div', 'stage'); st.id = 'step-' + (i + 1); st.setAttribute('role', 'tabpanel');
+    const ld = el('div', 'jlead'); ld.append(el('h3', '', (i + 1) + '. ' + s.t), el('span', 'say', s.say), el('span', 'pg')); const cols = el('div', 'cols'); cols.append(...s.panes);
+    st.append(ld, cols); out.append(st); J.stages.push(st);
+  });
+  prog();
+  out.hidden = false; $('#about').hidden = true; document.body.classList.add('has-plan');
+  const h = +(location.hash.match(/step-([1-5])/) || [])[1]; if (h) requestAnimationFrame(() => goStep(h - 1));
 }
+
+function prog() {
+  if (!J) return; let D = 0, T = 0;
+  J.stages.forEach((st, i) => {
+    const b = [...st.querySelectorAll('.rw input')]; const d = b.filter((x) => x.checked).length; D += d; T += b.length;
+    const tb = J.tabs[i]; const fin = b.length > 0 && d === b.length;
+    tb.classList.toggle('fin', fin); tb.querySelector('.num').textContent = fin ? '✓' : String(i + 1);
+    tb.querySelector('.b2 i').style.width = (b.length ? d / b.length * 100 : 0) + '%'; tb.querySelector('.pg').textContent = d + '/' + b.length;
+    tb.setAttribute('aria-selected', String(i === J.cur)); st.querySelector('.jlead .pg').textContent = d + '/' + b.length + ' done';
+  });
+  J.count.textContent = D + '/' + T + ' done';
+}
+function goStep(i) {
+  if (!J) return; J.cur = Math.max(0, Math.min(J.stages.length - 1, i)); J.lock = Date.now();
+  const y = J.stages[J.cur].getBoundingClientRect().top + scrollY - J.tabsEl.offsetHeight - 2;
+  scrollTo({ top: y, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  history.replaceState(null, '', location.pathname + '#step-' + (J.cur + 1)); prog();
+}
+addEventListener('scroll', () => {
+  if (!J || Date.now() - J.lock < 1000) return;
+  const line = J.tabsEl.getBoundingClientRect().bottom + 60; let c = 0;
+  J.stages.forEach((s, j) => { if (s.getBoundingClientRect().top <= line) c = j; });
+  if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4 && J.tabsEl.getBoundingClientRect().top <= 1) c = J.stages.length - 1;
+  if (c !== J.cur) { J.cur = c; prog(); }
+}, { passive: true });
+document.addEventListener('change', (e) => { if (!J || !e.target.matches('.rw input')) return; const k = e.target.dataset.k; e.target.closest('.rw').classList.toggle('done', e.target.checked); if (e.target.checked) J.done.add(k); else J.done.delete(k); saveDone(); prog(); });
+document.addEventListener('keydown', (e) => { if (!J || e.target.closest('input,textarea,select,[contenteditable]') || e.altKey || e.metaKey || e.ctrlKey) return; if (e.key === 'ArrowRight') goStep(J.cur + 1); if (e.key === 'ArrowLeft') goStep(J.cur - 1); });
+// One floating tooltip for every [data-tip], so a scroll box never cuts it off.
+const tipEl = el('div', 'tip'); tipEl.setAttribute('role', 'tooltip'); document.body.append(tipEl);
+function showTip(e) {
+  const t = e.target.closest && e.target.closest('[data-tip]'); if (!t) { tipEl.classList.remove('on'); return; }
+  tipEl.textContent = t.getAttribute('data-tip'); const r = t.getBoundingClientRect(), w = tipEl.offsetWidth, h = tipEl.offsetHeight;
+  tipEl.style.left = Math.max(6, Math.min(innerWidth - w - 6, r.left + r.width / 2 - w / 2)) + 'px'; tipEl.style.top = (r.top > h + 10 ? r.top - h - 6 : r.bottom + 6) + 'px'; tipEl.classList.add('on');
+}
+document.addEventListener('mouseover', showTip); document.addEventListener('focusin', showTip);
+document.addEventListener('scroll', () => tipEl.classList.remove('on'), true);
 
 const isProfile = (u) => /^https?:[/][/](((www[.]|mobile[.])?(x|twitter)[.]com[/][A-Za-z0-9_]+)|((www[.])?bsky[.]app[/]profile[/][A-Za-z0-9.-]+))/i.test(u.trim());
 const STEPS = ['Reading the page', 'Checking if AI search can read it', 'Finding who would buy it', 'Writing the emails', 'Writing the posts'];

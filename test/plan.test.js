@@ -41,6 +41,7 @@ describe('plan', () => {
     const out = await makePlan('https://a.com/', { fetch: page, model, citable, key: 'k1' });
     expect(out.plan.check).toMatchObject({ score: 62, grade: 'C', report: 'https://citable.flisk.si/a.com' });
     expect(out.plan.check.fixes).toHaveLength(1);
+    expect(out.plan.check.fixes[0].status).toBe('fail');
     expect(out.plan.listings.length).toBeGreaterThan(5);
     expect(model.calls[0].init.headers.authorization).toBe('Bearer k1');
     expect(JSON.parse(model.calls[0].init.body).model).toBe('flisk-wolf-chat');

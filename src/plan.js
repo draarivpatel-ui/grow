@@ -95,7 +95,7 @@ export async function checkCitable(url, call) {
     const j = r.ok ? await r.json() : null;
     if (!j || typeof j.score !== 'number') return null;
     const fixes = (Array.isArray(j.checks) ? j.checks : []).filter((c) => c && (c.status === 'fail' || c.status === 'warn'))
-      .slice(0, 3).map((c) => ({ title: str(c.title, 100), summary: str(c.summary, 220) }));
+      .slice(0, 3).map((c) => ({ title: str(c.title, 100), summary: str(c.summary, 220), status: c.status }));
     return { score: j.score, grade: str(j.grade, 2), fixes, report: `https://citable.flisk.si/${encodeURIComponent(new URL(url).host)}` };
   } catch { return null; }
 }

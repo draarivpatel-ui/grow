@@ -61,6 +61,17 @@ describe('routes', () => {
     expect(await (await s.get('/')).text()).toContain('content="Flisk Grow: find your first customers"');
   });
 
+  test('a plan page is one journey board: five steps as tabs, ticks kept per plan', async () => {
+    const s = setup();
+    const j = await (await s.post('https://a.com/')).json();
+    const html = await (await s.get('/p/' + j.id)).text();
+    for (const step of ['Get ready', 'Find buyers', 'Reach out', 'Post', 'Get listed']) expect(html).toContain(step);
+    expect(html).toContain('jtabs');
+    expect(html).toContain("'grow-done:'");
+    expect(html).toContain('data-tip');
+    expect(html).toContain('has-plan');
+  });
+
   test('home and plan pages load Flisk Analytics and the CSP allows it', async () => {
     const s = setup();
     const j = await (await s.post('https://a.com/')).json();
