@@ -61,7 +61,18 @@ async function route(req, env, deps = {}) {
 
   if ((req.method === 'GET' || req.method === 'HEAD') && (path === '/' || /^\/p\/[0-9a-f]{12}$/.test(path))) {
     // A link with ?url= only fills the box: a plan costs a model call, so a person presses the button.
-    return html(page({ planId: path.startsWith('/p/') ? path.slice(3) : '', prefill: httpUrl(url.searchParams.get('url')) }), path === '/' && !url.search ? {} : { 'x-robots-tag': 'noindex, nofollow' });
+    // A shared plan link names the site in its preview, so a friend sees what it is before opening it.
+    let share = null, planId = '';
+    if (path.startsWith('/p/')) {
+      planId = path.slice(3);
+      const row = await env.DB.prepare('SELECT url, data, created FROM plans WHERE id = ?').bind(planId).first();
+      if (row && Date.now() - row.created <= 30 * DAY_MS) {
+        let host = row.url; try { host = new URL(row.url).host; } catch { /* keep the link */ }
+        let summary = ''; try { const d = JSON.parse(row.data); summary = String(d.product || d.account || '').slice(0, 200); } catch { /* no summary */ }
+        share = { host, summary };
+      }
+    }
+    return html(page({ planId, share, prefill: httpUrl(url.searchParams.get('url')) }), path === '/' && !url.search ? {} : { 'x-robots-tag': 'noindex, nofollow' });
   }
 
   const m = /^\/api\/plan\/([0-9a-f]{12})$/.exec(path);

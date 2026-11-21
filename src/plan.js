@@ -3,6 +3,7 @@
 
 export const CITABLE_URL = 'https://citable.flisk.si/api/check?url=';
 export const MODEL = 'flisk-wolf-chat';
+const MODEL_TIMEOUT_MS = 85000;
 
 const str = (v, max) => String(v ?? '').replace(/[\u0000-\u001f]+/g, ' ').trim().slice(0, max);
 // Email and post bodies keep their line breaks.
@@ -64,6 +65,9 @@ export async function checkCitable(url, call) {
   } catch { return null; }
 }
 
+// One model answer for the whole plan is about 2000 tokens, which the free model needs more than 60 s to write. Two
+// smaller answers, asked at the same time, come back in about half the time.
+const RULES = `Plain words, no emoji, no hashtags. If the page says little, guess from the link and say so in "product".`;
 export const SYSTEM = `You help a maker find the first people who would pay for what they made.
 You get a link and the text of its page. Answer with ONE JSON object and nothing else:
 {"product": "what it is, one short sentence",
@@ -72,10 +76,14 @@ You get a link and the text of its page. Answer with ONE JSON object and nothing
  "today": "the one step to take today, one sentence",
  "queries": ["2 to 4 short search phrases (2-4 words) a buyer would write in a post when they have the problem"],
  "places": [{"name": "a real community, forum, subreddit, newsletter, event or group where those buyers are", "why": "why there", "url": "its address if you are sure, else empty"}],
- "emails": [{"to": "who to write to (a role, not a made-up name)", "subject": "short", "body": "a short plain email under 90 words: why them, what it does for them, one small ask; sign it [your name]"}],
  "posts": [{"where": "X" | "Reddit" | "Hacker News", "title": "post title", "body": "the post, plain, under 60 words"}]}
-Give 5 to 8 places, 5 emails, 3 posts (one for each of X, Reddit and Hacker News). Only real places; never invent an address.
-Plain words, no emoji, no hashtags. If the page says little, guess from the link and say so in "product".`;
+Give 5 to 8 places and 3 posts (one for each of X, Reddit and Hacker News). Only real places; never invent an address.
+${RULES}`;
+export const SYSTEM_EMAILS = `You help a maker find the first people who would pay for what they made.
+You get a link and the text of its page. Answer with ONE JSON object and nothing else:
+{"emails": [{"to": "who to write to (a role, not a made-up name)", "subject": "short", "body": "a short plain email under 90 words: why them, what it does for them, one small ask; sign it [your name]"}]}
+Give 5 emails, each to a different kind of person who would pay first.
+${RULES}`;
 
 // A link to a person's or brand's profile on a social network. Its page is behind a login, so it cannot be read and a
 // "who would buy it" plan makes no sense: the goal there is followers.
@@ -224,24 +232,27 @@ export async function makePlan(url, { fetch: fetchImpl, model, citable, key, abo
   const about = profile
     ? `Handle: @${profile.handle}\nOwner says: ${str(ownerLine, 300) || '(nothing)'}`
     : page ? `Title: ${page.title}\nDescription: ${page.desc}\nText: ${page.body}` : '(the page could not be read)';
-  let r;
-  try {
-    r = await model('https://inference.flisk.si/v1/chat/completions', {
+  const ask = (system) => model('https://inference.flisk.si/v1/chat/completions', {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
-    body: JSON.stringify({ model: MODEL, temperature: 0.4, max_tokens: profile ? 3500 : 2048, messages: [{ role: 'system', content: profile ? followersSystem(profile.network) : SYSTEM }, { role: 'user', content: `Link: ${url}\n${about}` }] }),
-    signal: AbortSignal.timeout(60000),
+    body: JSON.stringify({ model: MODEL, temperature: 0.4, max_tokens: profile ? 3500 : 1400, messages: [{ role: 'system', content: system }, { role: 'user', content: `Link: ${url}\n${about}` }] }),
+    signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
   });
+  let rs;
+  try {
+    rs = await Promise.all((profile ? [followersSystem(profile.network)] : [SYSTEM, SYSTEM_EMAILS]).map(ask));
   } catch (e) {
     return { error: e?.name === 'TimeoutError' || e?.name === 'AbortError' ? 'timeout' : 'model', message: str(e?.message, 300) || 'model call failed' };
   }
-  const j = await r.json().catch(() => null);
-  if (!r.ok) {
-    const msg = str(j?.error?.message, 300);
+  const js = await Promise.all(rs.map((r) => r.json().catch(() => null)));
+  const bad = rs.findIndex((r) => !r.ok);
+  if (bad >= 0) {
+    const msg = str(js[bad]?.error?.message, 300);
     const busy = /daily|budget|limit/i.test(msg);
-    return { error: busy ? 'busy' : 'model', message: msg || `model answered ${r.status}`, ...(busy && !profile ? { fallback: genericCustomers(url, page, check) } : {}) };
+    return { error: busy ? 'busy' : 'model', message: msg || `model answered ${rs[bad].status}`, ...(busy && !profile ? { fallback: genericCustomers(url, page, check) } : {}) };
   }
-  const raw = parseJson(j?.choices?.[0]?.message?.content);
+  const parts = js.map((j) => parseJson(j?.choices?.[0]?.message?.content));
+  const raw = parts.length > 1 ? (parts[0] && parts[1] ? { ...parts[0], emails: parts[1].emails } : null) : parts[0];
   if (profile) {
     const f = cleanFollowers(raw, profile);
     return f ? { plan: { url, ...f, tools: TOOLS } } : { error: 'model', message: 'the model did not give a usable plan' };

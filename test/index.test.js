@@ -49,6 +49,16 @@ describe('routes', () => {
     expect((await s.get('/api/plan/000000000000')).status).toBe(404);
   });
 
+  test('a shared plan link names the site in its preview', async () => {
+    const s = setup();
+    const j = await (await s.post('https://a.com/')).json();
+    const html = await (await s.get('/p/' + j.id)).text();
+    expect(html).toContain('<meta property="og:title" content="Grow plan for a.com">');
+    expect(html).toContain('og:url" content="https://grow.flisk.si/p/' + j.id + '"');
+    expect(html).toContain('Share this plan');
+    expect(await (await s.get('/')).text()).toContain('content="Flisk Grow: find your first customers"');
+  });
+
   test('home and plan pages load Flisk Analytics and the CSP allows it', async () => {
     const s = setup();
     const j = await (await s.post('https://a.com/')).json();
@@ -67,7 +77,7 @@ describe('routes', () => {
     const b = await (await s.post('https://a.com/', '2.2.2.2')).json();
     expect(b.id).toBe(a.id);
     expect(b.reused).toBe(true);
-    expect(s.modelCalls()).toBe(1);
+    expect(s.modelCalls()).toBe(2); // one plan is two model calls (plan and emails), asked together
   });
 
   test('a visitor gets PLANS_PER_VISITOR plans a day', async () => {
@@ -116,7 +126,7 @@ describe('slow model', () => {
   test('the page guards the button and survives a non-JSON error', async () => {
     const html = await (await setup().get('/')).text();
     expect(html).toContain('go.disabled = true');
-    expect(html).toContain('AbortSignal.timeout(100000)');
+    expect(html).toContain('AbortSignal.timeout(120000)');
     expect(html).toContain('r.json().catch(');
   });
 });
