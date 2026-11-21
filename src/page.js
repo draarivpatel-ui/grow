@@ -223,10 +223,18 @@ function draw(id, plan) {
       if (x.where === 'X') a.append(link('Open in X', 'https://x.com/intent/post?text=' + encodeURIComponent((x.body || x.title) + ' ' + plan.url), 'go'));
       if (x.where === 'Reddit') a.append(link('Open in Reddit', 'https://www.reddit.com/submit?url=' + encodeURIComponent(plan.url) + '&title=' + encodeURIComponent(x.title), 'go'));
       if (x.where === 'Hacker News') a.append(link('Open in Hacker News', 'https://news.ycombinator.com/submitlink?u=' + encodeURIComponent(plan.url) + '&t=' + encodeURIComponent(x.title), 'go'));
-      a.append(button('Copy', () => copy((x.title ? x.title + '\n\n' : '') + x.body)));
+      if (x.where === 'Discord') a.append(link('Open #show-your-stack', 'https://discord.com/channels/1562937840071999538/1569404291196915904', 'go'));
+      a.append(button('Copy', () => copy((x.title ? x.title + '\n\n' : '') + x.body + (x.where === 'Discord' ? ' ' + plan.url : ''))));
       d.append(a); sg.append(d);
     });
     s.append(sg); out.append(s);
+  }
+
+  if (plan.promo && plan.promo.length) {
+    const pr = section('Where you may promote yourself', 'Communities with a place for your own work. Each has its own rule: read it, then post the draft above that fits. Discord has no post link, so copy the draft and paste it.');
+    const pgr = el('div', 'grid');
+    plan.promo.forEach((x) => { const a = el('a', 'cell'); a.href = x.url; a.target = '_blank'; a.rel = 'noopener'; a.append(named('h3', '', x.name, x.url), el('p', '', x.rule)); pgr.append(a); });
+    pr.append(pgr); out.append(pr);
   }
 
   const li = section('Where to list it', 'Directories and launch lists. Each one is a link to its own submit page.');

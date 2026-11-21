@@ -33,6 +33,18 @@ export const LISTINGS = [
   { name: 'SourceForge', why: 'Mirrors your releases and lists the project for people browsing open source.', url: 'https://sourceforge.net/create/' },
 ];
 
+// Places that allow self-promotion, each with its own rule. Fixed and checked by hand: the model never makes up a community.
+// Discord has no "post this" link, so those get a draft to copy and a place to find the right channel.
+export const PROMO = [
+  { name: 'Flisk Discord #show-your-stack', where: 'Discord', rule: 'Show what you built with or next to Flisk. Post the link and what it does.', url: 'https://discord.com/channels/1562937840071999538/1569404291196915904' },
+  { name: 'r/SideProject', where: 'Reddit', rule: 'Made for people who share their own projects; say what it does and ask for feedback.', url: 'https://www.reddit.com/r/SideProject/submit' },
+  { name: 'r/alphaandbetausers', where: 'Reddit', rule: 'Made for finding early testers; say what you need tested.', url: 'https://www.reddit.com/r/alphaandbetausers/submit' },
+  { name: 'r/SaaS', where: 'Reddit', rule: 'Share a product with the story behind it; read the pinned rules first.', url: 'https://www.reddit.com/r/SaaS/submit' },
+  { name: 'r/webdev (Showoff Saturday)', where: 'Reddit', rule: 'Self-promotion only in the Saturday thread; do not post it on other days.', url: 'https://www.reddit.com/r/webdev/' },
+  { name: 'r/InternetIsBeautiful', where: 'Reddit', rule: 'Only for a free, public site that is nice to look at or use; no sign-up wall.', url: 'https://www.reddit.com/r/InternetIsBeautiful/submit' },
+  { name: 'Find Discord servers for your buyers (Disboard)', where: 'Discord', rule: 'Search your buyers\' topic, join 3 servers, and look for a channel named show-your-work, showcase, self-promo or promote. Read its pinned rule before you post.', url: 'https://disboard.org/' },
+];
+
 // The other free Flisk checks that help a launch.
 export const TOOLS = [
   { name: 'Citable', why: 'Can ChatGPT, Claude and Perplexity read and quote your page.', url: 'https://citable.flisk.si' },
@@ -76,8 +88,8 @@ You get a link and the text of its page. Answer with ONE JSON object and nothing
  "today": "the one step to take today, one sentence",
  "queries": ["2 to 4 short search phrases (2-4 words) a buyer would write in a post when they have the problem"],
  "places": [{"name": "a real community, forum, subreddit, newsletter, event or group where those buyers are", "why": "why there", "url": "its address if you are sure, else empty"}],
- "posts": [{"where": "X" | "Reddit" | "Hacker News", "title": "post title", "body": "the post, plain, under 60 words"}]}
-Give 5 to 8 places and 3 posts (one for each of X, Reddit and Hacker News). Only real places; never invent an address.
+ "posts": [{"where": "X" | "Reddit" | "Hacker News" | "Discord", "title": "post title", "body": "the post, plain, under 60 words"}]}
+Give 5 to 8 places and 4 posts (one for each of X, Reddit, Hacker News and Discord; the Discord one is a friendly message for a show-your-work channel). Only real places; never invent an address.
 ${RULES}`;
 export const SYSTEM_EMAILS = `You help a maker find the first people who would pay for what they made.
 You get a link and the text of its page. Answer with ONE JSON object and nothing else:
@@ -197,8 +209,9 @@ export function genericCustomers(url, page, check) {
       { where: 'X', title: 'Launch post', body: 'I built ' + name + ' for [who]. It [one result]. Try it and tell me what is missing: ' + url },
       { where: 'Reddit', title: 'I built a tool for [problem]', body: 'I kept hitting [problem], so I made ' + name + '. It [one result]. I would like honest feedback.' },
       { where: 'Hacker News', title: 'Show HN: ' + name, body: 'What it is, why I built it, and what I want feedback on, in three short lines.' },
+      { where: 'Discord', title: 'Show your work', body: 'Hi all, I built ' + name + ' for [who]. It [one result]. Link: ' + url + '. What would you change?' },
     ],
-    check, listings: LISTINGS, tools: TOOLS,
+    check, listings: LISTINGS, promo: PROMO, tools: TOOLS,
   };
 }
 
@@ -216,8 +229,8 @@ export function cleanPlan(i) {
     .map((p) => ({ name: str(p?.name, 80), why: str(p?.why, 200), url: httpUrl(p?.url) })).filter((p) => p.name);
   const emails = (Array.isArray(i.emails) ? i.emails : []).slice(0, 8)
     .map((e) => ({ to: str(e?.to, 80), subject: str(e?.subject, 120), body: text(e?.body, 1500) })).filter((e) => e.subject && e.body);
-  const posts = (Array.isArray(i.posts) ? i.posts : []).slice(0, 5)
-    .map((p) => ({ where: ['X', 'Reddit', 'Hacker News'].includes(p?.where) ? p.where : 'X', title: str(p?.title, 120), body: text(p?.body, 600) }))
+  const posts = (Array.isArray(i.posts) ? i.posts : []).slice(0, 6)
+    .map((p) => ({ where: ['X', 'Reddit', 'Hacker News', 'Discord'].includes(p?.where) ? p.where : 'X', title: str(p?.title, 120), body: text(p?.body, 600) }))
     .filter((p) => p.title || p.body);
   const buyers = str(i.buyers, 500);
   if (!buyers || !places.length || !emails.length) return null;
@@ -260,5 +273,5 @@ export async function makePlan(url, { fetch: fetchImpl, model, citable, key, abo
   }
   const plan = cleanPlan(raw);
   if (!plan) return { error: 'model', message: 'the model did not give a usable plan' };
-  return { plan: { url, ...plan, check, listings: LISTINGS, tools: TOOLS } };
+  return { plan: { url, ...plan, check, listings: LISTINGS, promo: PROMO, tools: TOOLS } };
 }
