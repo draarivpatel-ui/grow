@@ -357,7 +357,8 @@ export const briefLine = (b) => !b ? '' : '\nThe maker says:' + (b.who ? ` it is
 // The model writes "[your name]" however it is told; with a name given, put it in.
 export function signEmails(emails, name) {
   if (!name) return;
-  for (const e of emails) for (const k of ['body', 'followup']) if (e[k]) e[k] = e[k].replace(/\[\s*your name\s*\]/gi, name);
+  // Without the placeholder the model often leaves the email unsigned: then the name goes on its own last line.
+  for (const e of emails) for (const k of ['body', 'followup']) if (e[k]) { e[k] = e[k].replace(/\[\s*your name\s*\]/gi, name); if (!e[k].includes(name)) e[k] = e[k].trimEnd() + '\n\n' + name; }
 }
 
 // Rewrite one email, post or place in a saved plan, keeping the rest. The model sees the plan's buyers and the item

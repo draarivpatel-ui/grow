@@ -20,6 +20,7 @@ describe('questions before the plan', () => {
     expect(briefLine(null)).toBe('');
     const e = [{ body: 'Hi,\nshort.\n[your name]', followup: 'Bumping this. [ Your Name ]' }];
     signEmails(e, 'Sam'); expect(e[0].body.endsWith('Sam')).toBe(true); expect(e[0].followup).toBe('Bumping this. Sam');
+    const u = [{ body: 'Hi, try it.  ', followup: '' }]; signEmails(u, 'Sam'); expect(u[0].body).toBe('Hi, try it.\n\nSam'); expect(u[0].followup).toBe('');
   });
 
   test('a plan with a brief is made fresh, tells the model, keeps the brief and signs the emails', async () => {
