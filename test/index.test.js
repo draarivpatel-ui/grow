@@ -226,6 +226,21 @@ describe('motion layer', () => {
   });
 });
 
+describe('click targets', () => {
+  test('rows, score and title are big enough to hit, and touch screens get 40px targets', async () => {
+    const { handle } = await import('../src/index.js');
+    const html = await (await handle(new Request('https://grow.flisk.si/'), {})).text();
+    const main = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).find((s) => s.includes('function draw('));
+    expect(() => new Function(main)).not.toThrow();
+    expect(main).toContain("const ck = el('label', 'ck'); ck.append(c);");
+    expect(main).toContain("const sc = el('a', 'big'); sc.href = plan.check.report;");
+    expect(main).toContain("const a = el('a', 'hl', planName(plan.url)); a.href = plan.url;");
+    expect(html).toContain('.pn .btn,.stage .btn,.ib,.lk{min-height:28px}');
+    expect(html).toMatch(/@media\(pointer:coarse\)\{\.pn \.btn,\.stage \.btn,\.ib,\.lk,\.navr a\{min-height:40px\}/);
+    expect(html).not.toContain('.rw>input');
+  });
+});
+
 describe('model on the AI binding', () => {
   test('a plan is written by Workers AI without calling inference', async () => {
     const { MODEL_PLAN } = await import('./fixtures.js');
