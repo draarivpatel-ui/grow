@@ -242,6 +242,7 @@ body.has-plan .dateline,body.has-plan .byline{display:none}
 body.has-plan .mast{padding:10px 36px 8px}body.has-plan .mast .name{font-size:clamp(28px,4vw,44px)}body.has-plan .mast .tag{display:none}
 form .btn.paste{border-width:1px 0 1px 1px;background:var(--panel2);height:48px}form .btn.paste:hover{background:var(--bg2)}
 @media(max-width:560px){form .btn.paste{border-width:0 1px 1px 1px;justify-content:center}}
+.pn .btn,.stage .btn{padding:3px 7px;gap:4px;font-size:9.5px;letter-spacing:.05em;line-height:1.3}.pn .btn.go::after,.stage .btn.go::after{content:none}.pn .ra,.stage .ra{gap:3px}.rw .t .ra{margin-top:4px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 `;
 
