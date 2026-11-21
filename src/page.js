@@ -235,7 +235,7 @@ function draw(id, plan) {
   }
 
   if (plan.ranker) {
-    const k = plan.ranker, rk = section('Your rank on GitHub', k.listed ? 'Ranker lists ' + k.repo + ' and ranks it by stars gained each day. Put the live badge in your README: people see it is growing.' : 'Ranker ranks GitHub repos by stars gained each day. It could not list ' + k.repo + ' just now; open it to try again.');
+    const k = plan.ranker, rk = section('Your rank on Ranker', k.listed ? 'Ranker lists ' + k.repo + ' and ranks it by stars gained each day. Put the live badge in your README: people see it is growing.' : 'Ranker ranks GitHub repos by stars gained each day. It could not list ' + k.repo + ' just now; open it to try again.');
     const card = el('div', 'acts');
     if (k.badge) { const img = el('img'); img.src = k.badge; img.alt = 'Flisk Ranker badge'; img.width = 250; img.height = 55; rk.append(img); }
     card.append(link(k.listed ? 'Open on Ranker' : 'List it on Ranker', k.url));
