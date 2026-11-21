@@ -1,5 +1,5 @@
 // grow.flisk.si: paste a link, get a plan to find the first customers. No sign-in. Plans are kept 30 days at /p/<id>.
-import { genericFollowers, httpUrl, makePlan, profileOf } from './plan.js';
+import { genericFollowers, httpUrl, makePlan, profileOf, rankerFor } from './plan.js';
 import { page } from './page.js';
 import { cabinet } from './cabinet.js';
 import { withSecurityHeaders } from './security-headers.js';
@@ -103,7 +103,9 @@ async function route(req, env, deps = {}) {
 
     const model = env.INFERENCE ? (u, init) => env.INFERENCE.fetch(u, init) : fetchImpl;
     const citable = env.CITABLE ? (u, init) => env.CITABLE.fetch(u, init) : fetchImpl;
-    const out = await makePlan(link, { fetch: fetchImpl, model, citable, key: env.INFERENCE_KEY, about });
+    const ranker = env.RANKER ? (u, init) => env.RANKER.fetch(u, init) : fetchImpl;
+    const [out, rank] = await Promise.all([makePlan(link, { fetch: fetchImpl, model, citable, key: env.INFERENCE_KEY, about }), rankerFor(link, ranker)]);
+    if (rank) for (const x of [out.plan, out.fallback]) if (x) x.ranker = rank;
     if (out.error === 'timeout' && profileOf(link)) return json(200, { plan: { url: link, ...genericFollowers(profileOf(link), about), tools: [] }, generic: true, slow: true });
     if (out.error === 'timeout' && out.fallback) return json(200, { plan: out.fallback, generic: true, slow: true });
     if (out.error === 'timeout') return json(504, { error: 'The model took too long to answer. Press the button again in a minute.' });

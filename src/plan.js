@@ -1,6 +1,29 @@
 // One growth plan for one link: read the page, ask the free model who would buy and where they are, check whether AI
 // search can read the page (Citable), and add the places to list it. Nothing here sends a message for anyone.
 
+export const RANKER = 'https://ranker.flisk.si';
+const NOT_REPO = /^(orgs|sponsors|topics|marketplace|settings|features|about|login|explore|search|collections|trending|apps)$/i;
+// "owner/repo" when the link is a GitHub repo, else ''.
+export function githubRepo(u) {
+  const m = /^https?:[/][/](?:www[.])?github[.]com[/]([\w.-]+)[/]([\w.-]+?)(?:[.]git)?(?:[/?#].*)?$/i.exec(String(u || '').trim());
+  return m && !NOT_REPO.test(m[1]) ? m[1] + '/' + m[2] : '';
+}
+// For a GitHub repo: list it on Ranker (stars gained, ranked daily) and give its page and live badge.
+export async function rankerFor(url, call) {
+  const repo = githubRepo(url);
+  if (!repo) return null;
+  const out = { repo, url: RANKER + '/' + repo, listed: false };
+  try {
+    const r = await call(RANKER + '/api/submit', { method: 'POST', headers: { 'content-type': 'application/json', 'user-agent': 'flisk-grow' }, body: JSON.stringify({ url: 'https://github.com/' + repo }), signal: AbortSignal.timeout(15000) });
+    const j = await r.json().catch(() => null);
+    if (r.ok && j && j.slug) {
+      const badge = RANKER + '/badge/' + j.slug + '.svg';
+      Object.assign(out, { listed: true, url: RANKER + (j.url || '/' + repo), badge, stars: Number(j.product?.stars) || 0, markdown: `[![Flisk Ranker](${badge})](${RANKER + (j.url || '/' + repo)})` });
+    }
+  } catch {}
+  return out;
+}
+
 export const CITABLE_URL = 'https://citable.flisk.si/api/check?url=';
 export const MODEL = 'flisk-wolf-chat';
 const MODEL_TIMEOUT_MS = 85000;

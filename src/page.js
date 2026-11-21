@@ -30,6 +30,10 @@ form{display:flex;max-width:600px}form input{flex:1;min-width:0;height:48px;padd
 .proof{display:flex;flex-wrap:wrap;gap:6px 18px;list-style:none;padding:0;margin:20px 0 0;color:var(--faint);font:500 12px var(--mono)}.proof li::before{content:"";display:inline-block;width:7px;height:7px;background:var(--acc);margin-right:9px;vertical-align:1px}
 .band{background:repeating-linear-gradient(-45deg,var(--acc) 0 2px,transparent 2px 11px);min-height:120px}
 .status{margin:14px 0 0;font:500 12.5px var(--mono);color:var(--mut);min-height:1.5em}.status.err{color:var(--red)}
+.prog{margin:16px 0 0;border:1px solid var(--line);padding:16px 18px;max-width:560px}.prog[hidden]{display:none}.prog .bar{height:4px;background:var(--line);overflow:hidden}.prog .bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .9s linear}
+.prog ol{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px;font:500 13px var(--font)}.prog li{display:flex;gap:10px;align-items:center;color:var(--faint)}.prog li.on{color:var(--ink)}.prog li.ok{color:var(--mut)}
+.prog li b{flex:none;width:16px;height:16px;border:2px solid var(--line);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px}.prog li.on b{border-color:var(--acc);border-right-color:transparent;animation:spin .8s linear infinite}.prog li.ok b{border-color:var(--acc);background:var(--acc);color:var(--accink)}
+.prog .meta{display:flex;justify-content:space-between;margin-top:12px;font:500 11.5px var(--mono);color:var(--faint)}@keyframes spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.prog li.on b{animation:none}}
 section{margin:0 -36px;padding:52px 36px;border-bottom:1px solid var(--line2)}
 section h2{font-size:clamp(28px,3.4vw,40px);margin-bottom:10px}
 section h2::before{counter-increment:sec;content:counter(sec,decimal-leading-zero) " /";display:block;font:500 11px var(--mono);letter-spacing:.12em;color:var(--faint);margin-bottom:14px}
@@ -230,6 +234,14 @@ function draw(id, plan) {
     s.append(sg); out.append(s);
   }
 
+  if (plan.ranker) {
+    const k = plan.ranker, rk = section('Your rank on GitHub', k.listed ? 'Ranker lists ' + k.repo + ' and ranks it by stars gained each day. Put the live badge in your README: people see it is growing.' : 'Ranker ranks GitHub repos by stars gained each day. It could not list ' + k.repo + ' just now; open it to try again.');
+    const card = el('div', 'acts');
+    if (k.badge) { const img = el('img'); img.src = k.badge; img.alt = 'Flisk Ranker badge'; img.width = 250; img.height = 55; rk.append(img); }
+    card.append(link(k.listed ? 'Open on Ranker' : 'List it on Ranker', k.url));
+    if (k.markdown) card.append(button('Copy README badge', () => copy(k.markdown)));
+    rk.append(card); out.append(rk);
+  }
   if (plan.promo && plan.promo.length) {
     const pr = section('Where you may promote yourself', 'Communities with a place for your own work. Each has its own rule: read it, then post the draft above that fits. Discord has no post link, so copy the draft and paste it.');
     const pgr = el('div', 'grid');
@@ -251,24 +263,40 @@ function draw(id, plan) {
 
 const isProfile = (u) => /^https?:[/][/](((www[.]|mobile[.])?(x|twitter)[.]com[/][A-Za-z0-9_]+)|((www[.])?bsky[.]app[/]profile[/][A-Za-z0-9.-]+))/i.test(u.trim());
 const STEPS = ['Reading the page', 'Checking if AI search can read it', 'Finding who would buy it', 'Writing the emails', 'Writing the posts'];
+const AT = [0, 4, 10, 22, 45]; // seconds when each step usually starts; the free model takes 20-90 s
+function loader(on) {
+  const box = $('#prog'); box.hidden = !on; if (!on) return () => {};
+  box.querySelector('ol').innerHTML = STEPS.map((x) => '<li><b></b>' + x + '</li>').join('');
+  const li = [...box.querySelectorAll('li')], bar = box.querySelector('.bar i'), sec = box.querySelector('[data-sec]'), note = box.querySelector('[data-note]'), t0 = Date.now();
+  const draw = () => {
+    const s = (Date.now() - t0) / 1000, n = AT.filter((a) => s >= a).length - 1;
+    li.forEach((e, k) => { e.className = k < n ? 'ok' : k === n ? 'on' : ''; e.firstChild.textContent = k < n ? '✓' : ''; });
+    bar.style.width = Math.min(95, 100 * (1 - Math.exp(-s / 35))) + '%';
+    sec.textContent = Math.floor(s) + ' s';
+    note.textContent = s > 40 ? 'The free model is slow right now. Keep this tab open; it can take up to 90 seconds.' : 'Usually 20 to 60 seconds.';
+    $('#status').textContent = s > 40 ? 'Still writing. The free model is slow right now; this can take up to 90 seconds.' : STEPS[n] + '...';
+  };
+  draw(); const t = setInterval(draw, 1000);
+  return (ok) => { clearInterval(t); if (ok) { li.forEach((e) => { e.className = 'ok'; e.firstChild.textContent = '✓'; }); bar.style.width = '100%'; } setTimeout(() => { box.hidden = true; }, ok ? 600 : 0); };
+}
 async function make(ev) {
   ev.preventDefault();
   const url = $('#url').value.trim(); const st = $('#status'); const go = $('#go');
   st.className = 'status';
   if (!/^https?:[/][/][^ ]+[.][^ ]+/.test(url)) { st.className = 'status err'; st.textContent = 'Paste a full link that starts with https://'; return; }
-  go.disabled = true; let i = 0; st.textContent = STEPS[0] + '...';
-  const t0 = Date.now();
-  const tick = setInterval(() => { i = Math.min(i + 1, STEPS.length - 1); st.textContent = Date.now() - t0 > 40000 ? 'Still writing. The free model is slow right now; this can take up to 90 seconds.' : STEPS[i] + '...'; }, 4000);
+  go.disabled = true; const label = go.textContent; go.textContent = 'Working...';
+  const stop = loader(true); let ok = false;
   try {
     const r = await fetch('/api/plan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url, about: $('#about-me').value.trim() }), signal: AbortSignal.timeout(120000) })
       .catch((e) => { throw new Error(e.name === 'TimeoutError' ? 'The plan took too long. Press the button again in a minute.' : 'Could not reach the server. Check your connection and press the button again.'); });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || 'Something went wrong. Press the button again.');
     if (j.id) history.pushState(null, '', '/p/' + j.id);
+    ok = true; stop(true);
     st.textContent = j.slow ? 'The model is too slow right now, so this is a general guide with the real checks. Press the button again in a few minutes for a plan written for your page.' : j.generic ? 'The model is out of budget today, so this is a general playbook.' : j.reused ? 'This link got a plan today already; here it is.' : 'Done. The plan is below.';
     draw(j.id, j.plan); document.getElementById('plan').scrollIntoView({ behavior: 'smooth' });
-  } catch (e) { st.className = 'status err'; st.textContent = e.message; }
-  finally { clearInterval(tick); go.disabled = false; }
+  } catch (e) { stop(false); st.className = 'status err'; st.textContent = e.message; }
+  finally { if (!ok) stop(false); go.disabled = false; go.textContent = label; }
 }
 
 async function load(id) {
@@ -309,6 +337,7 @@ export function page({ planId = '', prefill = '', share = null } = {}) {
 <form id="form" novalidate><input id="url" type="url" inputmode="url" autocomplete="url" placeholder="https://your-site.com" aria-label="Link to your site" value="${esc(prefill)}"><button id="go" class="btn go" type="submit">Make my plan</button></form>
 <input id="about-me" class="aboutme" maxlength="300" placeholder="Optional: what is this account about?" aria-label="What the account is about" hidden>
 <p id="status" class="status" role="status" aria-live="polite"></p>
+<div id="prog" class="prog" hidden aria-hidden="true"><div class="bar"><i></i></div><ol></ol><div class="meta"><span data-note></span><span data-sec></span></div></div>
 <p class="socials nologo"><span>Followers plan for a profile:</span>
 <span class="soc on"><img src="/logo/x.com" alt="" width="16" height="16">X</span>
 <span class="soc"><img src="/logo/linkedin.com" alt="" width="16" height="16">LinkedIn<em>soon</em></span>
