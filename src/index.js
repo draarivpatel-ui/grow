@@ -2,6 +2,7 @@
 import { cleanLinks, genericFollowers, githubRepo, httpUrl, makePlan, profileOf, rankerFor, workersAi } from './plan.js';
 import { page } from './page.js';
 import { cabinet } from './cabinet.js';
+import { clicks } from './clicks.js';
 import { withSecurityHeaders } from './security-headers.js';
 import { sendTrace, traced } from './trace.js';
 
@@ -56,6 +57,7 @@ async function route(req, env, deps = {}) {
     if (cache && r?.ok) await cache.put(req, res.clone());
     return res;
   }
+  const ck = await clicks(req, env); if (ck) return ck;
   const cab = await cabinet(req, env, { fetch: fetchImpl });
   if (cab) return cab;
 
