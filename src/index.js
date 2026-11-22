@@ -10,7 +10,7 @@ import { sendTrace, traced } from './trace.js';
 
 const DAY_MS = 864e5;
 const json = (status, body, extra = {}) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'access-control-allow-origin': '*', ...extra } });
-const html = (body, extra = {}) => new Response(body, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', 'content-security-policy': "default-src 'self'; script-src 'self' 'unsafe-inline' https://flisk.si https://flisk.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://flisk.si; font-src https://fonts.gstatic.com; img-src 'self' data: https://flisk.si https://ranker.flisk.si; connect-src 'self' https://flisk.si https://*.flisk.si https://flisk.sh; frame-ancestors 'none'", ...extra } });
+const html = (body, extra = {}) => new Response(body, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', 'content-security-policy': "default-src 'self'; script-src 'self' 'unsafe-inline' https://flisk.si https://flisk.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://flisk.si; font-src https://fonts.gstatic.com; img-src 'self' data: https://flisk.si https://ranker.flisk.si; connect-src 'self' https://flisk.si https://*.flisk.si https://flisk.sh; frame-ancestors https://analytics.flisk.si", ...extra } });
 const today = () => new Date().toISOString().slice(0, 10);
 const newId = () => [...crypto.getRandomValues(new Uint8Array(6))].map((b) => b.toString(16).padStart(2, '0')).join('');
 
