@@ -294,6 +294,13 @@ footer,.jtab,.pn .ph,.rw .m,.jtab .pg{letter-spacing:.04em}
 .pn .ph{font-size:11.5px}
 .rw{font-size:14.5px}.rw .t small{color:var(--mut)}
 .cool-tick div{font-size:12px;letter-spacing:.04em}
+/* one type system: Fraunces headlines + Source Serif text, three sizes (17 text, 14 small, 12 tiny caps) */
+:root{--mono:"Source Serif 4",Georgia,serif;--font:"Source Serif 4",Georgia,serif}
+form input,.aboutme,.brief,.brief input{font-family:var(--font)!important;font-size:16px!important}
+.navr a,.btn,.kicker,.dateline,.byline,.proof li,.socials,.soc,.soc em,.status,.prog .meta,section h2::before,.band h4,.grid h3,.pn .ph,.rw .m,.fb,.fb .chip,.cool-tick div,.example-link,.brief summary,.band li small,.rw .t small,.rw,.mast .tag,.jtab,.jtab small,.score small{font-size:14px!important;letter-spacing:.03em!important;font-weight:600}
+.rw,.band li small,.rw .t small,.mast .tag,.proof li,.status,.socials,.brief summary{font-weight:400}
+.dateline,.kicker,.band h4,.pn .ph,section h2::before,.grid h3,.byline{font-size:12px!important;letter-spacing:.08em!important}
+.hero .lead,.band li,.grid p{font-size:17px!important}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 `;
 
