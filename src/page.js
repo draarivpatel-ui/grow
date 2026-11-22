@@ -267,6 +267,40 @@ form .btn.paste{border-width:1px 0 1px 1px;background:var(--panel2);height:48px}
 .rw .ib,.rw .ib.go{font-size:0;gap:0;padding:0;width:24px;height:22px;justify-content:center}
 .rw .ib svg.i{width:13px;height:13px;stroke-width:1.75}
 .rw .t .fb{padding-left:0;border-left:0;margin-left:0}
+/* readability pass: solid paper, upright serif for reading, bigger and darker small text */
+:root{--mut:#26221b;--faint:#454035;--dek:"Source Serif 4",Georgia,serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--mut:rgba(239,233,216,.92);--faint:rgba(239,233,216,.76);--line:rgba(239,233,216,.22)}}
+:root[data-theme=dark]{--mut:rgba(239,233,216,.92);--faint:rgba(239,233,216,.76);--line:rgba(239,233,216,.22)}
+body{background-image:none;font-size:17px;line-height:1.65}
+body::after{display:none}
+.wrap{background:none}
+.dateline{font-size:11.5px;letter-spacing:.04em;color:var(--mut)}
+.mast .tag,.hero .lead,.sub,.jhead .sub,.jlead .say{font-style:normal;font-family:var(--font)}
+.mast .tag{font-size:clamp(14px,1.6vw,17px);color:var(--mut)}
+.navr a{font-size:12px;letter-spacing:.05em;color:var(--ink)}
+.nav .brand{font-size:16px}
+.kicker{font-size:12px;letter-spacing:.08em}
+.hero h1{font-weight:800;letter-spacing:0}
+.hero .lead{font-size:clamp(18px,1.9vw,21px);line-height:1.55;color:var(--ink);max-width:36em}
+.byline{font-size:12px;letter-spacing:.04em;color:var(--mut)}
+.proof li,.socials,.socials .soc{font-size:12.5px;color:var(--ink)}
+.socials .soc{opacity:1}.socials .soc em{color:var(--mut)}
+.band h4{font-size:12px;letter-spacing:.08em}
+.band li{font-size:17px}.band li small{font-size:14.5px;color:var(--mut)}
+section h2::before{font-size:12px;letter-spacing:.08em}
+.grid h3{font-size:12.5px;letter-spacing:.06em}
+.grid p,.grid p{font-size:16px;color:var(--ink)}
+footer,.jtab,.pn .ph,.rw .m,.jtab .pg{letter-spacing:.04em}
+.pn .ph{font-size:11.5px}
+.rw{font-size:14.5px}.rw .t small{color:var(--mut)}
+.cool-tick div{font-size:12px;letter-spacing:.04em}
+/* one type system: Fraunces headlines + Source Serif text, three sizes (17 text, 14 small, 12 tiny caps) */
+:root{--mono:"Source Serif 4",Georgia,serif;--font:"Source Serif 4",Georgia,serif}
+form input,.aboutme,.brief,.brief input{font-family:var(--font)!important;font-size:16px!important}
+.navr a,.btn,.kicker,.dateline,.byline,.proof li,.socials,.soc,.soc em,.status,.prog .meta,section h2::before,.band h4,.grid h3,.pn .ph,.rw .m,.fb,.fb .chip,.cool-tick div,.example-link,.brief summary,.band li small,.rw .t small,.rw,.mast .tag,.jtab,.jtab small,.score small{font-size:14px!important;letter-spacing:.03em!important;font-weight:600}
+.rw,.band li small,.rw .t small,.mast .tag,.proof li,.status,.socials,.brief summary{font-weight:400}
+.dateline,.kicker,.band h4,.pn .ph,section h2::before,.grid h3,.byline{font-size:12px!important;letter-spacing:.08em!important}
+.hero .lead,.band li,.grid p{font-size:17px!important}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 `;
 
@@ -954,7 +988,7 @@ export function page({ planId = '', prefill = '', share = null } = {}) {
 <li><span>Front page<small>Can AI search find you, and the fixes</small></span></li>
 <li><span>The Market<small>Who would buy it, and the one-line pitch</small></span></li>
 <li><span>Letters<small>Five email drafts, ready to open</small></span></li>
-<li><span>The Wire<small>Posts for X, Reddit and Hacker News</small></span></li>
+<li><span>The Wire<small>Posts ready to share, three drafts</small></span></li>
 <li><span>Classifieds<small>Where to list it, one link each</small></span></li></ol></aside></div>
 <div id="plan" hidden></div>
 <div id="about">
