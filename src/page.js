@@ -317,6 +317,17 @@ form input,.aboutme,.brief,.brief input{font-family:var(--font)!important;font-s
 @media(max-width:860px){.first{grid-template-columns:1fr}}
 .fs:not(:first-child) .gob{display:none}.showall{display:none}
 .showall{margin-top:22px;font-size:14px}
+/* fewer buttons: one main button up top, the rest under More; row extras appear on hover or focus */
+.jbar details.more{position:relative}
+.jbar details.more>summary{list-style:none;cursor:pointer}.jbar details.more>summary::-webkit-details-marker{display:none}
+.jbar details.more>summary::after{content:"";display:inline-block;margin-left:7px;border:4px solid transparent;border-top-color:currentColor;border-bottom:0;vertical-align:2px}
+.jbar details.more .mm{position:absolute;right:0;top:calc(100% + 6px);z-index:30;display:flex;flex-direction:column;gap:2px;min-width:200px;padding:6px;background:var(--panel);border:1px solid var(--ink);box-shadow:4px 4px 0 var(--ink)}
+.jbar details.more .mm .ib{justify-content:flex-start;width:100%;border-color:transparent}
+.jbar details.more .mm .ib:hover{background:var(--panel2)}
+@media (hover:hover){
+ .rw .ra>.ib:not(:first-child),.rw .fb{opacity:0;pointer-events:none;transition:opacity .15s}
+ .rw:hover .ra>.ib,.rw:focus-within .ra>.ib,.rw.open .ra>.ib,.rw:hover .fb,.rw:focus-within .fb,.rw.open .fb{opacity:1;pointer-events:auto}
+}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 `;
 
@@ -670,6 +681,7 @@ function draw(id, plan) {
   bar.append(ibtn('Calendar', 'cal', 'Download the Day 1, 3 and 5 tasks and the follow-ups as calendar events (.ics) for Google Calendar, Outlook or Apple', () => saveFile(planName(plan.url) + '-grow-plan.ics', 'text/calendar', planIcs(id, plan))));
   bar.append(ibtn('Export', 'down2', 'Download the plan as a Markdown to-do list (pastes into Notion, Obsidian, GitHub). The text is copied too.', () => { const md = planMd(id, plan); saveFile(planName(plan.url) + '-grow-plan.md', 'text/markdown', md); copy(md); }));
   bar.append(iopen('Open the site', plan.url, 'Open ' + host(plan.url) + ' in a new tab'));
+  { const its = [...bar.querySelectorAll(':scope > .ib:not(.go)')]; if (its.length > 1) { const d = el('details', 'more'); const sm = el('summary', 'ib', 'More'); const mm = el('div', 'mm'); mm.append(...its); d.append(sm, mm); bar.append(d); } }
   head.append(bar);
   if (plan.generic) head.append(el('p', 'note', 'Made without the model: its free budget is used up or it is too slow right now (the budget resets at 00:00 UTC). The AI-search check and the listings are real; the rest is a general guide with blanks to fill. Press the button again tomorrow for a plan written for your page.'));
   out.append(head);
