@@ -978,6 +978,7 @@ export function page({ planId = '', prefill = '', share = null } = {}) {
   const ogTitle = share ? `Grow plan for ${share.host}` : 'Flisk Grow: find your first customers';
   const ogDesc = share ? (share.summary || 'Who would buy it, where they are, and what to send them.') : 'Who would buy it, where they are, and what to send them. Free, no sign-in.';
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#eeece5"><meta name="theme-color" content="#eeece5" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0b0b0d" media="(prefers-color-scheme: dark)">
 <title>${esc(share ? ogTitle + ' · Flisk Grow' : 'Flisk Grow: find your first customers')}</title>
 <meta name="description" content="Paste a link to what you made. Get who would buy it, where they are, 5 email drafts, 3 post drafts, an AI search check and where to list it. Free, no sign-in.">
 <meta property="og:title" content="${esc(ogTitle)}"><meta property="og:description" content="${esc(ogDesc)}"><meta property="og:type" content="website"><meta property="og:url" content="https://grow.flisk.si${planId === 'example' ? '/example' : planId ? '/p/' + planId : '/'}"><meta name="twitter:card" content="summary">
