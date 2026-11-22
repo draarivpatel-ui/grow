@@ -982,7 +982,7 @@ export function page({ planId = '', prefill = '', share = null } = {}) {
 <title>${esc(share ? ogTitle + ' · Flisk Grow' : 'Flisk Grow: find your first customers')}</title>
 <meta name="description" content="Paste a link to what you made. Get who would buy it, where they are, 5 email drafts, 3 post drafts, an AI search check and where to list it. Free, no sign-in.">
 <meta property="og:title" content="${esc(ogTitle)}"><meta property="og:description" content="${esc(ogDesc)}"><meta property="og:type" content="website"><meta property="og:url" content="https://grow.flisk.si${planId === 'example' ? '/example' : planId ? '/p/' + planId : '/'}"><meta name="twitter:card" content="summary">
-<link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="canonical" href="https://grow.flisk.si/">
+<link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="canonical" href="https://grow.flisk.si/">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Old+Standard+TT:ital@1&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>${CSS}</style>
