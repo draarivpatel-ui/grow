@@ -304,17 +304,18 @@ form input,.aboutme,.brief,.brief input{font-family:var(--font)!important;font-s
 /* one next step: a single big card, everything else folded away until asked */
 .plan-collapsed .jtabs,.plan-collapsed .stage{display:none}
 #plan:not(.plan-collapsed) .showall{display:none}
-.firstw{max-width:760px;margin:22px auto 28px}
+.firstw{margin:22px 0 28px}
 .firstw .lh{font-size:12px!important;letter-spacing:.08em!important;text-transform:uppercase;margin:0 0 10px}
-.first{display:flex;flex-direction:column;gap:8px}
-.first .lh.then{margin:18px 0 2px}
-.fs:first-child{padding:28px 30px;gap:10px}
-.fs:first-child b{font-size:clamp(26px,4vw,36px);line-height:1.1}
+.first{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px}
+.first .lh.then{display:none}
+.fs:first-child{padding:24px 26px;gap:10px}
+.fs:first-child b{font-size:clamp(24px,3vw,32px);line-height:1.1}
 .fs:first-child small{font-size:17px;white-space:normal;opacity:.92}
 .fs:first-child .gob{align-self:flex-start;margin-top:8px;padding:12px 20px;background:var(--ink);color:var(--bg);font-weight:700;font-size:16px}
 .fs:first-child .gob::after{content:" \2192"}
-.fs:not(:first-child){min-height:0;padding:12px 16px}
-.fs:not(:first-child) .gob{display:none}
+.fs:not(:first-child){min-height:0;padding:14px 16px}.fs:not(:first-child) small{white-space:normal}
+@media(max-width:860px){.first{grid-template-columns:1fr}}
+.fs:not(:first-child) .gob{display:none}.showall{display:none}
 .showall{margin-top:22px;font-size:14px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 `;
@@ -770,7 +771,7 @@ function draw(id, plan) {
   const l0 = plan.listings[0];
   if (l0) first.append(fs(5, 'Get listed on ' + l0.name, clip(l0.why || 'Open the submit page', 70), l0.url));
   if (first.children.length > 1) first.children[1].before(el('div', 'lh then', 'After that'));
-  if (first.children.length) { const fw = el('div', 'firstw'); fw.append(el('div', 'lh', 'Your next step'), first); out.append(fw); const all = el('button', 'btn showall'); all.type = 'button'; all.textContent = 'Show the whole plan'; all.onclick = () => goStep(J.cur || 0); fw.append(all); if (!/step-[1-5]/.test(location.hash)) out.classList.add('plan-collapsed'); }
+  if (first.children.length) { const fw = el('div', 'firstw'); fw.append(el('div', 'lh', 'Your next step'), first); out.append(fw); const all = el('button', 'btn showall'); all.type = 'button'; all.textContent = 'Show the whole plan'; all.onclick = () => goStep(J.cur || 0);  }
   const tabs = el('div', 'jtabs'); tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', 'Steps');
   J.tabs = []; J.stages = []; J.tabsEl = tabs;
   out.append(tabs);
