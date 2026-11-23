@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { page } from '../src/page.js';
+import { cabinetPage } from '../src/cabinet.js';
 
 const html = () => page({});
 const mainBlock = () => html().match(/<main(?:\s[^>]*)?>([\s\S]*?)<\/main>/);
@@ -27,5 +28,18 @@ describe('page landmark', () => {
     expect(main).toContain('id="plan"');
     expect(main).toContain('id="about"');
     expect(main).toContain('id="api"');
+  });
+});
+
+describe('header logo', () => {
+  // The org bar card already shows the product icon, so the site header is the wordmark only.
+  const brand = (h) => h.match(/<a class="brand"[^>]*>([\s\S]*?)<\/a>/)[1];
+
+  test('the home page header brand is the wordmark with no icon', () => {
+    expect(brand(html())).toBe('Flisk Grow');
+  });
+
+  test('the cabinet header brand is the wordmark with no icon', () => {
+    expect(brand(cabinetPage())).toBe('Flisk Grow');
   });
 });

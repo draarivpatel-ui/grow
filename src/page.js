@@ -17,7 +17,7 @@ a{color:inherit}h1,h2,h3{margin:0;line-height:1.1}h1,h2{font-family:var(--displa
 button,input{font:inherit;color:inherit}:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:0 36px;border-left:1px solid var(--line2);border-right:1px solid var(--line2);min-height:100vh}
 .nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 -36px;padding:14px 36px;border-bottom:1px solid var(--line2)}
-.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:21px;text-decoration:none;white-space:nowrap}.brand img{width:26px;height:26px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:21px;text-decoration:none;white-space:nowrap}
 .navr{display:flex;gap:4px}.navr a{font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.08em;text-decoration:none;padding:8px 12px;border:1px solid transparent}.navr a:hover{border-color:var(--line2)}
 .btn{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;border:1px solid var(--line2);border-radius:0;background:transparent;padding:10px 16px;font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.08em;text-decoration:none;cursor:pointer}
 .btn:hover{background:var(--panel2)}.btn.go{background:var(--acc);border-color:var(--acc);color:var(--accink)}.btn.go::after{content:"\2192"}.btn.go:hover{filter:brightness(1.06)}.btn:disabled{opacity:.6;cursor:default}
@@ -195,7 +195,7 @@ h1,h2,h3{font-family:var(--display)}
 .mast .tag{margin:8px 0 0;font:italic 400 clamp(13px,1.6vw,17px) var(--dek);color:var(--mut)}
 /* rubric nav */
 .nav{justify-content:center;gap:6px 22px;flex-wrap:wrap;padding:9px 36px;border-bottom:3px solid var(--line2)}
-.nav .brand{font:800 15px var(--display)}.nav .brand img{width:20px;height:20px}
+.nav .brand{font:800 15px var(--display)}
 .navr{flex-wrap:wrap;justify-content:center;gap:2px 6px}.navr a{font:600 10.5px var(--mono);letter-spacing:.14em;padding:6px 10px}.navr a:hover{border-color:transparent;color:var(--red);text-decoration:underline}
 /* lead story */
 .hero{grid-template-columns:2.2fr 1fr}
@@ -991,7 +991,7 @@ export function page({ planId = '', prefill = '', share = null } = {}) {
 <div class="wrap">
 <div class="dateline"><span>Vol. 1 · No. ${edNo} · ${edDate}</span><span>Free · No sign-in · Beta</span><span>Printed fresh in 20 seconds</span></div>
 <div class="mast"><a class="name" href="/">The Grow <em>Gazette</em></a><p class="tag">All the news that helps you find your first customers</p></div>
-<header class="nav"><a class="brand" href="/"><img src="/icon.svg" alt="">Flisk Grow</a>
+<header class="nav"><a class="brand" href="/">Flisk Grow</a>
 <nav class="navr"><a href="#about">Front page</a><a href="#about">The Market</a><a href="#about">Letters</a><a href="#about">The Wire</a><a href="#about">Classifieds</a><a href="/me">My cabinet</a><a href="#api" class="hide-s">API</a><a href="https://github.com/flisk-sh/grow" class="hide-s">GitHub</a><a href="https://flisk.si">More from Flisk</a></nav></header>
 <main>
 <div class="hero"><div>

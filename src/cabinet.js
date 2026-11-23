@@ -399,7 +399,7 @@ export function cabinetPage() {
 <script defer data-domain="grow.flisk.si" src="https://flisk.sh/a.js"></script></head><body>
 <script src="https://flisk.si/assets/bar.js" data-product="Grow" data-icon="grow" data-accent="#22c55e" data-siblings="Cilytics,Ranker" data-text="Find your first customers with a plan made from your link." defer></script>
 <div class="wrap">
-<header class="nav"><a class="brand" href="/"><img src="/icon.svg" alt="">Flisk Grow</a><nav class="navr" id="who"></nav></header>
+<header class="nav"><a class="brand" href="/">Flisk Grow</a><nav class="navr" id="who"></nav></header>
 <section><h2>My cabinet</h2><p class="sub">Your sites, the people talking about the problem each one solves, and where you listed it. Nothing is posted for you.</p>
 <form id="add" novalidate><input id="addurl" type="url" inputmode="url" placeholder="https://your-site.com" aria-label="Link to add"><button class="btn go" type="submit">Add site</button></form>
 <p id="addst" class="status" role="status"></p><p id="err" class="status err"></p>
