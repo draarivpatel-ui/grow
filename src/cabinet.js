@@ -289,12 +289,16 @@ async function api(path, body) {
   if (!r.ok) throw new Error(j.error || 'Something went wrong.');
   return j;
 }
+// The org bar (flisk.si/assets/bar.js) reads the login from [data-flisk-login]: that element's whole text must be the login, so it gets its own span.
+// ME.user is only set for a GitHub session (gh_), never for the anonymous a_ one; the pattern is a second guard.
+const GH_LOGIN = /^[A-Za-z0-9][A-Za-z0-9-]{0,38}$/;
+const whoNodes = (user) => { const lg = el('span', 'who-am', user.login); if (GH_LOGIN.test(String(user.login))) lg.setAttribute('data-flisk-login', ''); return [el('span', 'who-am', 'Signed in as '), lg, ' ']; };
 let ME = null; let CUR = new URLSearchParams(location.search).get('site') || ''; let FILTER = 'new';
 
 async function start() {
   try { ME = await api('/api/me'); } catch (e) { $('#err').textContent = e.message; return; }
   const who = $('#who'); who.replaceChildren();
-  if (ME.user) { who.append(el('span', 'who-am', 'Signed in as ' + ME.user.login + ' ')); const a = el('a', 'btn', 'Sign out'); a.href = '/auth/out'; who.append(a); }
+  if (ME.user) { who.append(...whoNodes(ME.user)); const a = el('a', 'btn', 'Sign out'); a.href = '/auth/out'; who.append(a); }
   else if (ME.signIn) { who.append(el('span', 'who-am', 'Kept in this browser. ')); const a = el('a', 'btn go', 'Sign in with GitHub'); a.href = '/auth/start'; who.append(a); }
   else who.append(el('span', 'who-am', 'Kept in this browser.'));
   if (!ME.sites.find((s) => s.id === CUR)) CUR = ME.sites[0] ? ME.sites[0].id : '';
