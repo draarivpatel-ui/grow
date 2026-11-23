@@ -73,12 +73,15 @@ export const LISTINGS = [
   { name: 'FoundrList', why: 'A launch list for founders, with a badge you can put on your site.', url: 'https://www.foundrlist.com/' },
   { name: 'LaunchAmp', why: 'A European launch directory that approves each tool and gives a badge.', url: 'https://launchamp.eu/' },
   { name: 'ToolPotion', why: 'An AI tools directory with ranked pages per tool.', url: 'https://toolpotion.ai/' },
-  { name: 'Up For Grabs', why: 'For an open source repo: lists it for people looking for a good first issue. Add a project file by pull request.', url: 'https://github.com/up-for-grabs/up-for-grabs.net/blob/gh-pages/docs/list-a-project.md' },
-  { name: 'Awesome First PR Opportunities', why: 'For an open source repo with good first issues: a 90,000-star list of projects that welcome new contributors. One pull request per repo.', url: 'https://github.com/MunGell/awesome-for-beginners/blob/main/CONTRIBUTING.md' },
+  { name: 'Up For Grabs', repoOnly: true, why: 'For an open source repo: lists it for people looking for a good first issue. Add a project file by pull request.', url: 'https://github.com/up-for-grabs/up-for-grabs.net/blob/gh-pages/docs/list-a-project.md' },
+  { name: 'Awesome First PR Opportunities', repoOnly: true, why: 'For an open source repo with good first issues: a 90,000-star list of projects that welcome new contributors. One pull request per repo.', url: 'https://github.com/MunGell/awesome-for-beginners/blob/main/CONTRIBUTING.md' },
   { name: 'free-for-dev', why: 'For a developer service with a free tier: a 140,000-star list of them. Add a line by pull request.', url: 'https://github.com/ripienaar/free-for-dev' },
   { name: 'awesome-mcp-servers', why: 'For an MCP server: the biggest list of them. Add a line by pull request.', url: 'https://github.com/punkpeye/awesome-mcp-servers' },
   { name: 'SourceForge', why: 'Mirrors your releases and lists the project for people browsing open source.', url: 'https://sourceforge.net/create/' },
 ];
+
+// The listings for one link: the open source lists only when the link is a GitHub repo.
+export const listingsFor = (url) => (githubRepo(url) ? LISTINGS : LISTINGS.filter((l) => !l.repoOnly));
 
 // Places that allow self-promotion, each with its own rule. Fixed and checked by hand: the model never makes up a community.
 // Discord has no "post this" link, so those get a draft to copy and a place to find the right channel.
@@ -310,7 +313,7 @@ export function genericCustomers(url, page, check, site = '') {
       { where: 'Hacker News', title: 'Show HN: ' + name, body: 'What it is, why I built it, and what I want feedback on, in three short lines.' },
       { where: 'Discord', title: 'Show your work', body: 'Hi all, I built ' + name + ' for [who]. It [one result]. Link: ' + live + '. What would you change?' },
     ],
-    check, listings: LISTINGS, promo: PROMO, tools: TOOLS,
+    check, listings: listingsFor(url), promo: PROMO, tools: TOOLS,
   };
 }
 
@@ -460,6 +463,6 @@ async function makePlanFor(url, { fetch: fetchImpl, model, citable, key, about: 
   if (!plan) return { error: 'model', message: 'the model did not give a usable plan' };
   if (brief) signEmails(plan.emails, brief.name);
   // Hacker News has its own post draft; listing it again under Get listed sends the maker there twice.
-  const listings = plan.posts.some((p) => p.where === 'Hacker News') ? LISTINGS.filter((l) => !/hacker news/i.test(l.name)) : LISTINGS;
+  const listings = plan.posts.some((p) => p.where === 'Hacker News') ? listingsFor(url).filter((l) => !/hacker news/i.test(l.name)) : listingsFor(url);
   return { plan: { url, ...(site ? { site } : {}), ...(repo && !site ? { noSite: true } : {}), ...(brief ? { brief } : {}), ...plan, check, listings, promo: PROMO, tools: TOOLS }, links };
 }

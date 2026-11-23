@@ -65,3 +65,12 @@ describe('plan quality', () => {
     expect(html).toContain('else if (plan.noSite)');
   });
 });
+
+describe('open source lists', () => {
+  test('only a GitHub repo is offered the first-issue lists', async () => {
+    const { listingsFor } = await import('../src/plan.js');
+    expect(listingsFor('https://github.com/acme/tool').some((l) => l.name === 'Up For Grabs')).toBe(true);
+    expect(listingsFor('https://a.com/').some((l) => l.name === 'Up For Grabs')).toBe(false);
+    expect(listingsFor('https://a.com/').some((l) => l.name === 'Product Hunt')).toBe(true);
+  });
+});
