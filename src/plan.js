@@ -73,6 +73,10 @@ export const LISTINGS = [
   { name: 'FoundrList', why: 'A launch list for founders, with a badge you can put on your site.', url: 'https://www.foundrlist.com/' },
   { name: 'LaunchAmp', why: 'A European launch directory that approves each tool and gives a badge.', url: 'https://launchamp.eu/' },
   { name: 'ToolPotion', why: 'An AI tools directory with ranked pages per tool.', url: 'https://toolpotion.ai/' },
+  { name: 'Up For Grabs', why: 'For an open source repo: lists it for people looking for a good first issue. Add a project file by pull request.', url: 'https://github.com/up-for-grabs/up-for-grabs.net/blob/gh-pages/docs/list-a-project.md' },
+  { name: 'Awesome First PR Opportunities', why: 'For an open source repo with good first issues: a 90,000-star list of projects that welcome new contributors. One pull request per repo.', url: 'https://github.com/MunGell/awesome-for-beginners/blob/main/CONTRIBUTING.md' },
+  { name: 'free-for-dev', why: 'For a developer service with a free tier: a 140,000-star list of them. Add a line by pull request.', url: 'https://github.com/ripienaar/free-for-dev' },
+  { name: 'awesome-mcp-servers', why: 'For an MCP server: the biggest list of them. Add a line by pull request.', url: 'https://github.com/punkpeye/awesome-mcp-servers' },
   { name: 'SourceForge', why: 'Mirrors your releases and lists the project for people browsing open source.', url: 'https://sourceforge.net/create/' },
 ];
 
