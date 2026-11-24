@@ -444,7 +444,7 @@ export async function rewriteItem(plan, kind, index, { model, key, note = '', tw
   const r = REWRITE[kind]; const list = plan?.[r?.field];
   if (!r || !Array.isArray(list) || !list[index]) return { error: 'no such item' };
   const system = `You help a maker find the first people who would pay for what they made. ${VOICE}
-${tweak ? `Rewrite the item below as ONE new item for the same place and the same reader. Keep its meaning. Change only this: ${tweak}.` : r.ask} Answer with ONE JSON object and nothing else: {"item": ${r.shape}}
+${tweak ? `Edit the item below, do not write a new one. Copy every field of it unchanged ("to", "find", "where", "title", "subject", "followup", "url") except the "body" text, and in the body keep every fact and the same reader. Change only this: ${tweak}.` : r.ask} Answer with ONE JSON object and nothing else: {"item": ${r.shape}}
 ${RULES}`;
   const user = `Link: ${plan.url}\nProduct: ${plan.product || ''}\nBuyers: ${plan.buyers || ''}${briefLine(plan.brief)}${kind === 'place' ? '\nPlaces already in the plan: ' + list.map((x) => x.name).join(', ') : ''}\nThe item to replace: ${JSON.stringify(list[index])}${note && !tweak ? '\nThe maker asks: ' + str(note, 200) : ''}`;
   let j;

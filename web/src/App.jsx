@@ -18,11 +18,12 @@ import {
   MagnifyingGlassIcon, ChartBarIcon, MegaphoneIcon, ListBulletIcon, WrenchScrewdriverIcon, PlusIcon, UsersIcon, MapPinIcon, ArrowRightIcon,
   BriefcaseIcon, PencilSquareIcon, HomeIcon, RocketLaunchIcon, LinkIcon, DocumentTextIcon, ClipboardDocumentCheckIcon, ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
-import {Logo} from './logos.jsx';
+import {Logo, Names} from './logos.jsx';
 import {GmailCard} from './cards/GmailCard.jsx';
 import {postCardFor} from './cards/PostCard.jsx';
 import Cabinet from './Cabinet.jsx';
 
+const GitHubIcon = () => <Logo name="GitHub" size={18} />;
 const ic = (I) => <Icon icon={I} size="sm" />;
 const lg = (name, url) => <Logo name={name} url={url} size={18} />;
 const BOOT = window.__BOOT__ || {};
@@ -91,8 +92,8 @@ function Section({title, sub, icon, count, children}) {
   return (
     <Card><VStack gap={3}>
       <VStack gap={1}>
-        <HStack gap={2} align="center">{icon && <Icon icon={icon} size="md" />}<Heading level={3}>{title}</Heading>{count != null && <Badge label={String(count)} />}</HStack>
-        {sub && <Text type="supporting" color="secondary">{sub}</Text>}
+        <HStack gap={2} align="center">{icon && <Icon icon={icon} size="md" />}<Heading level={3}><Names text={title} /></Heading>{count != null && <Badge label={String(count)} />}</HStack>
+        {sub && <Text type="supporting" color="secondary"><Names text={sub} /></Text>}
       </VStack>
       {children}
     </VStack></Card>
@@ -107,7 +108,7 @@ function Row({id, done, toggle, logo, title, text, actions}) {
       {logo}
       <VStack gap={1} style={{flex: 1, minWidth: 0}} className={on ? 'done' : ''}>
         <Text weight="semibold">{title}</Text>
-        {text && <Text type="supporting" color="secondary" style={{overflowWrap: 'anywhere'}}>{text}</Text>}
+        {text && <Text type="supporting" color="secondary" style={{overflowWrap: 'anywhere'}}><Names text={text} /></Text>}
         {actions && <HStack gap={2} wrap="wrap">{actions}</HStack>}
       </VStack>
     </HStack></Card>
@@ -138,7 +139,7 @@ function StepBody({step, plan, id, done, toggle, goAbout, rw}) {
             <OpenBtn label="Full report on Citable" href={p.check.report} logo={lg('Citable')} primary /></VStack></HStack>
         <VStack gap={3}>{p.check.fixes.length ? p.check.fixes.map((f, i) => (
           <HStack key={f.title} gap={2} align="start"><Badge label={f.status === 'pass' ? 'OK' : f.status === 'warn' ? 'Warn' : 'Fail'} variant={f.status === 'pass' ? 'success' : f.status === 'warn' ? 'warning' : 'error'} />
-            <VStack gap={0} style={{flex: 1}}><Text weight="semibold">{f.title}</Text><Text type="supporting" color="secondary">{f.summary}</Text></VStack><CopyBtn text={f.title + ': ' + f.summary} /></HStack>)) : <Text color="secondary">Nothing to fix: AI search can read this page.</Text>}</VStack>
+            <VStack gap={0} style={{flex: 1}}><Text weight="semibold"><Names text={f.title} /></Text><Text type="supporting" color="secondary"><Names text={f.summary} /></Text></VStack><CopyBtn text={f.title + ': ' + f.summary} /></HStack>)) : <Text color="secondary">Nothing to fix: AI search can read this page.</Text>}</VStack>
       </div> : <HStack gap={3} align="center"><Text color="secondary">{p.noSite ? 'This link is a GitHub repo, so there is no page of yours to check. Add your website and make the plan again.' : 'The check did not answer this time.'}</Text><OpenBtn label="Try on Citable" href="https://citable.flisk.si" logo={lg('Citable')} /></HStack>}
     </Section>
     <GapsCard id={id} plan={p} />
@@ -172,7 +173,7 @@ function StepBody({step, plan, id, done, toggle, goAbout, rw}) {
     <div className="grid">{(p.posts || []).length ? p.posts.map((x, i) => { const h = postHref(x, p); const Card = postCardFor(x.where);
       const actions = <>{h && <OpenBtn label={'Open in ' + x.where} href={h} logo={lg(x.where)} primary />}<CopyBtn text={(x.title ? x.title + '\n\n' : '') + x.body} /></>;
       return Card ? <Card key={i + ':' + x.body} id={'post' + i} done={done} toggle={toggle} post={x} plan={p} rewrite={rw('post', i)} actions={actions} />
-        : <Draft key={i} id={'post' + i} done={done} toggle={toggle} logo={lg(x.where)} to={x.where} title={x.title || clip(x.body, 60)} body={x.body} actions={actions} />; }) : <Text color="secondary">No post drafts this time. Press the button again for drafts for X, Reddit and Hacker News.</Text>}</div></Section>;
+        : <Draft key={i} id={'post' + i} done={done} toggle={toggle} logo={lg(x.where)} to={x.where} title={x.title || clip(x.body, 60)} body={x.body} actions={actions} />; }) : <Text color="secondary">No post drafts this time. Press the button again for drafts for <Names text="X, Reddit and Hacker News" />.</Text>}</div></Section>;
 
   const ls = p.listings || [];
   const lrow = (x, i) => row('list' + i, lg(x.name, x.url), x.name, x.why, <OpenBtn label="Submit" href={x.url} logo={lg(x.name, x.url)} primary />);
@@ -298,7 +299,7 @@ function PlanView({id, plan, onPlan}) {
           <div className="grid">{nexts.map((n, i) => (
             <Card key={n.label} variant={i === 0 ? 'blue' : 'subtle'}><VStack gap={2}>
               <HStack gap={2} align="center">{n.icon}<Text type="supporting" color="secondary">Step {n.n}</Text></HStack>
-              <Text weight="semibold">{n.label}</Text><Text type="supporting" color="secondary" style={{overflowWrap: 'anywhere'}}>{n.sub}</Text>
+              <Text weight="semibold">{n.label}</Text><Text type="supporting" color="secondary" style={{overflowWrap: 'anywhere'}}><Names text={n.sub} /></Text>
               <div>{n.href ? <OpenBtn label={n.cta} href={n.href} logo={n.icon} primary={i === 0} /> : <Button label={n.cta} size="sm" variant={i === 0 ? 'primary' : 'secondary'} icon={ic(ArrowRightIcon)} onClick={() => { setStep(n.go); setFull(true); }} />}</div>
             </VStack></Card>))}</div>
           <div><Button label={'Show the whole plan (' + total + ' tasks)'} variant="ghost" icon={ic(ListBulletIcon)} onClick={() => setFull(true)} /></div>
@@ -320,6 +321,16 @@ function PlanView({id, plan, onPlan}) {
 }
 
 // ---------- home ----------
+const URL_HINTS = ['https://your-site.com', 'https://github.com/you/your-repo', 'https://your-app.vercel.app', 'https://producthunt.com/products/your-product', 'https://bsky.app/profile/you.bsky.social', 'https://your-shop.com'];
+const HIST_KEY = 'grow:recent-urls';
+const loadRecent = () => { try { const a = JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); return Array.isArray(a) ? a.filter((x) => typeof x === 'string').slice(0, 5) : []; } catch { return []; } };
+const saveRecent = (u) => { const n = [u, ...loadRecent().filter((x) => x !== u)].slice(0, 5); try { localStorage.setItem(HIST_KEY, JSON.stringify(n)); } catch { /* storage blocked */ } return n; };
+// Cycles the placeholder every 2 seconds so a visitor sees the kinds of links that work.
+function useRotatingHint(list, ms = 2000) {
+  const [i, setI] = useState(0);
+  useEffect(() => { const t = setInterval(() => setI((n) => (n + 1) % list.length), ms); return () => clearInterval(t); }, [list, ms]);
+  return list[i];
+}
 const MAKE_STEPS = ['Reading your page', 'Checking AI search', 'Finding who would buy it', 'Writing emails and posts', 'Finding places to list it'];
 
 function Home({onPlan}) {
@@ -328,11 +339,13 @@ function Home({onPlan}) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [tick, setTick] = useState(0);
+  const [recent, setRecent] = useState(loadRecent);
+  const hint = useRotatingHint(URL_HINTS);
   useEffect(() => { if (!busy) return undefined; setTick(0); const t = setInterval(() => setTick((n) => n + 1), 3500); return () => clearInterval(t); }, [busy]);
   const make = async (e) => {
     e && e.preventDefault(); setErr('');
     const u = withScheme(url); if (!/^https?:\/\/[^\s/]+\.[^\s/]{2,}/i.test(u)) { setErr('Enter a link to your site, like your-site.com'); return; }
-    setBusy(true);
+    setRecent(saveRecent(u)); setBusy(true);
     try {
       const r = await fetch('/api/plan', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({url: u, about: about.trim() || undefined})});
       const j = await r.json(); if (!r.ok) throw new Error(j.error || 'Something went wrong. Press the button again.');
@@ -347,9 +360,13 @@ function Home({onPlan}) {
       <Text color="secondary" type="lead">Paste a link to what you made. Get who would buy it, where they are, emails and posts to send, whether AI search can read your page, and where to list it.</Text>
       <form onSubmit={make}><VStack gap={2}>
         <div className="url-row">
-          <div className="url-field"><TextInput label="Link to your site" isLabelHidden type="url" value={url} onChange={setUrl} placeholder="https://your-site.com" startIcon={ic(LinkIcon)} size="lg" /></div>
+          <div className="url-field"><TextInput label="Link to your site" isLabelHidden type="url" htmlName="url" autoComplete="url" value={url} onChange={setUrl} placeholder={hint} startIcon={ic(LinkIcon)} size="lg" /></div>
           <Button label="Paste" variant="secondary" size="lg" icon={ic(ClipboardDocumentIcon)} onClick={paste} type="button" />
         </div>
+        {recent.length > 0 && <HStack gap={1} wrap="wrap" justify="center" align="center">
+          <Text type="supporting" color="secondary">Recent:</Text>
+          {recent.map((r) => <Button key={r} label={clip(r.replace(/^https?:\/\//, ''), 32)} variant="ghost" size="sm" type="button" onClick={() => setUrl(r)} />)}
+        </HStack>}
         <TextInput label="What is it about (optional)" isLabelHidden value={about} onChange={setAbout} placeholder="Optional: one line on who it is for" startIcon={ic(PencilSquareIcon)} />
         <HStack gap={2} justify="center" wrap="wrap">
           <Button label={busy ? 'Making your plan…' : 'Make my plan'} variant="primary" type="submit" isDisabled={busy} icon={ic(RocketLaunchIcon)} />
@@ -365,10 +382,10 @@ function Home({onPlan}) {
       <HStack gap={2} wrap="wrap" justify="center">
         {['Hacker News', 'Reddit', 'Product Hunt', 'X', 'Bluesky', 'Instagram'].map((n) => <Badge key={n} label={n} icon={lg(n)} />)}
       </HStack>
-      <Text type="supporting" color="secondary">Followers plan for a profile: paste an X, Bluesky or Instagram profile link.</Text>
       <HStack gap={2} wrap="wrap" justify="center">
         {['LinkedIn', 'YouTube', 'TikTok'].map((n) => <Badge key={n} label={n + ' · coming soon'} icon={lg(n)} />)}
       </HStack>
+      <Text type="supporting" color="secondary">Followers plan for a profile: paste an <Names text="X" />, <Names text="Bluesky" /> or <Names text="Instagram" /> profile link.</Text>
     </VStack></div>
   );
 }
@@ -387,7 +404,7 @@ function Nav({go, plan, id, me}) {
       </SideNavSection>
       <SideNavSection title="Flisk">
         <SideNavItem label="Example plan" icon={SparklesIcon} onClick={() => go('/example')} />
-        <SideNavItem label="GitHub" icon={LinkIcon} href="https://github.com/flisk-sh/grow" target="_blank" />
+        <SideNavItem label="GitHub" icon={GitHubIcon} href="https://github.com/flisk-sh/grow" target="_blank" />
       </SideNavSection>
     </SideNav>
   );
