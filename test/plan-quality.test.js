@@ -24,9 +24,17 @@ describe('plan quality', () => {
     expect(unsub('/r/startups - I built a thing')).toBe('I built a thing');
     expect(unsub('Show HN: Grow')).toBe('Show HN: Grow');
     expect(unlink('Try it: https://github.com/a/b now')).toBe('Try it: now');
-    const p = cleanPlan({ ...MODEL_PLAN, emails: [{ to: 'x', subject: 's', body: 'b', followup: 'f', find: 'Show HN' }], posts: [{ where: 'Reddit', title: 'r/Music: Hi', body: 'see https://a.com' }] });
+    const p = cleanPlan({ ...MODEL_PLAN, emails: [{ to: 'x', subject: 's', body: 'b', followup: 'f', find: 'people on r/webdev' }], posts: [{ where: 'Reddit', title: 'r/Music: Hi', body: 'see https://a.com' }] });
     expect(p.posts[0]).toMatchObject({ title: 'Hi', body: 'see' });
-    expect(p.emails[0]).toMatchObject({ followup: 'f', find: 'Show HN' });
+    expect(p.emails[0]).toMatchObject({ followup: 'f', find: 'people on r/webdev', place: 0 });
+  });
+
+  test('the copy is grounded in facts from the site', async () => {
+    for (const s of [SYSTEM, SYSTEM_EMAILS, SYSTEM_POSTS]) { expect(s).toContain('real features'); expect(s).not.toContain('never copy headings'); expect(s).not.toContain('under 50 stars'); }
+    expect(SYSTEM_EMAILS).not.toContain('r/SideProject');
+    const model = fakeFetch();
+    await makePlan('https://a.com/', { fetch: fakeFetch(), model, citable: fakeFetch(), key: 'k' });
+    expect(JSON.parse(model.calls[0].init.body).messages[1].content).toContain('Product name: Thing');
   });
 
   test('a GitHub repo is checked and linked through its own website', async () => {

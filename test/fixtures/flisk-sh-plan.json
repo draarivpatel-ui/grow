@@ -1,0 +1,258 @@
+{
+  "url": "https://flisk.sh/",
+  "product": "A tool that simplifies local development for multi-service apps by running them with one command.",
+  "queries": [
+    "devops local development",
+    "microservices setup",
+    "containerized environment"
+  ],
+  "buyers": "DevOps engineers who manage multiple microservices in a containerized environment and struggle with complex setup and configuration processes.",
+  "pitch": "Simplify local development for your microservices with a single command.",
+  "today": "I will reach out to the DevOps subreddit to share my product with the community and ask for feedback.",
+  "places": [
+    {
+      "name": "DevOps subreddit",
+      "why": "They discuss and share knowledge on DevOps practices and tools.",
+      "url": "https://www.reddit.com/r/devops/"
+    },
+    {
+      "name": "DevOps subreddit's 'tools' category",
+      "why": "They share and discuss various DevOps tools and their usage.",
+      "url": "https://www.reddit.com/r/devops/comments/"
+    },
+    {
+      "name": "DevOps Forum",
+      "why": "They provide a platform for DevOps professionals to discuss and share knowledge on various DevOps topics.",
+      "url": "https://www.devopsonline.com/forum/"
+    },
+    {
+      "name": "DevOps World",
+      "why": "They organize conferences and events for DevOps professionals to learn and network.",
+      "url": "https://devops-world.com/"
+    },
+    {
+      "name": "Stack Overflow's 'DevOps' tag",
+      "why": "They provide a Q&A platform for developers and DevOps professionals to discuss and share knowledge on various DevOps topics.",
+      "url": "https://stackoverflow.com/questions/tagged/devops"
+    },
+    {
+      "name": "DevOps Online Community",
+      "why": "They provide a platform for DevOps professionals to discuss and share knowledge on various DevOps topics.",
+      "url": "https://www.devopsonline.com/community/"
+    },
+    {
+      "name": "GitHub's 'DevOps' community",
+      "why": "They provide a platform for developers and DevOps professionals to discuss and share knowledge on various DevOps topics.",
+      "url": "https://github.com/community"
+    },
+    {
+      "name": "Containerization subreddits",
+      "why": "They discuss and share knowledge on containerization and container orchestration.",
+      "url": "https://www.reddit.com/r/docker/%20and%20https://www.reddit.com/r/k8s/"
+    }
+  ],
+  "emails": [
+    {
+      "to": "a solo developer who just put a project on GitHub and has under 50 stars",
+      "find": "people who posted Show HN this week",
+      "subject": "Simplify Your Local Development",
+      "body": "I saw your project on GitHub and thought of you. Flisk lets you run your whole app locally with one command, so you can focus on coding. Would you like to try it out?",
+      "followup": "Hi, I wanted to follow up on my previous email. If you're still interested in trying Flisk, I'd be happy to help you get started."
+    },
+    {
+      "to": "a DevOps engineer who has been searching for ways to improve their team's develo",
+      "find": "people asking how to get first users on r/SideProject",
+      "subject": "Streamline Your Team's Development",
+      "body": "I noticed you're looking for ways to improve your team's development workflow. Flisk can help you run your whole app locally with one command, reducing setup time and increasing productivity. Would you like to learn more?",
+      "followup": "Hi, I wanted to follow up on my previous email. If you're interested in seeing how Flisk can benefit your team, I'd be happy to set up a demo."
+    },
+    {
+      "to": "a developer who has been struggling with slow setup times for their multi-servic",
+      "find": "people posting about slow setup times on Reddit",
+      "subject": "Cut the Cost of Waiting",
+      "body": "I saw your post about struggling with slow setup times for your multi-service app. Flisk can help you run your whole app locally with one command, eliminating setup time and increasing productivity. Would you like to try it out?",
+      "followup": "Hi, I wanted to follow up on my previous email. If you're still experiencing slow setup times, I'd be happy to help you get started with Flisk."
+    },
+    {
+      "to": "a DevOps engineer who has been looking for ways to improve their team's security",
+      "find": "people asking about security on r/DevOps",
+      "subject": "Improve Your Team's Security Posture",
+      "body": "I noticed you're looking for ways to improve your team's security posture. Flisk's open-source core and free MCP servers can help you run your whole app locally with one command, reducing the attack surface and increasing security. Would you like to learn more?",
+      "followup": "Hi, I wanted to follow up on my previous email. If you're interested in seeing how Flisk can benefit your team's security posture, I'd be happy to set up a demo."
+    },
+    {
+      "to": "a developer who has been looking for ways to improve their local development wor",
+      "find": "people posting about local development on Dev.to",
+      "subject": "Simplify Your Local Development",
+      "body": "I saw your post about looking for ways to improve your local development workflow. Flisk can help you run your whole app locally with one command, reducing setup time and increasing productivity. Would you like to try it out?",
+      "followup": "Hi, I wanted to follow up on my previous email. If you're still interested in trying Flisk, I'd be happy to help you get started."
+    }
+  ],
+  "posts": [
+    {
+      "where": "X",
+      "title": "Run My App with One Command",
+      "body": "I built Flisk to let you run your whole app locally with one command. It's free, open source, and works with your existing agent. No more complicated setup or waiting for slow services to start."
+    },
+    {
+      "where": "Reddit",
+      "title": "One Command to Rule Them All",
+      "body": "I created Flisk to simplify local development. With one command, you can start your entire app, including services and databases. It's free, MIT licensed, and works with your existing agent."
+    },
+    {
+      "where": "Hacker News",
+      "title": "Simplifying Local Development with Flisk",
+      "body": "I'm excited to share Flisk, a tool that lets you run your whole app locally with one command. It's designed to work with your existing agent and reduce the complexity of local development."
+    },
+    {
+      "where": "Discord",
+      "title": "Show Your Work: Flisk",
+      "body": "Hey everyone, I wanted to share Flisk, a tool I built to simplify local development. It lets you run your whole app with one command, and I'd love to get your feedback and see how you use it."
+    }
+  ],
+  "check": {
+    "score": 100,
+    "grade": "A",
+    "fixes": [],
+    "report": "https://citable.flisk.si/flisk.sh"
+  },
+  "listings": [
+    {
+      "name": "Product Hunt",
+      "why": "A launch day with a page people can upvote and comment on.",
+      "url": "https://www.producthunt.com/posts/new"
+    },
+    {
+      "name": "SaaSHub",
+      "why": "A software directory people search for alternatives.",
+      "url": "https://www.saashub.com/submit"
+    },
+    {
+      "name": "AlternativeTo",
+      "why": "Shows up when people look for an alternative to a known app.",
+      "url": "https://alternativeto.net/manage-item/"
+    },
+    {
+      "name": "BetaList",
+      "why": "Early adopters who sign up for new products.",
+      "url": "https://betalist.com/submit"
+    },
+    {
+      "name": "Toolradar",
+      "why": "A tool directory that AI assistants read.",
+      "url": "https://toolradar.com/submit"
+    },
+    {
+      "name": "Uneed",
+      "why": "A daily launch list for new tools.",
+      "url": "https://www.uneed.best/submit-a-tool"
+    },
+    {
+      "name": "DevHunt",
+      "why": "A launch list for developer tools.",
+      "url": "https://devhunt.org/"
+    },
+    {
+      "name": "AIChief",
+      "why": "An AI tools directory with a page per tool.",
+      "url": "https://aichief.com/submit-tool/"
+    },
+    {
+      "name": "FoundrList",
+      "why": "A launch list for founders, with a badge you can put on your site.",
+      "url": "https://www.foundrlist.com/"
+    },
+    {
+      "name": "LaunchAmp",
+      "why": "A European launch directory that approves each tool and gives a badge.",
+      "url": "https://launchamp.eu/"
+    },
+    {
+      "name": "ToolPotion",
+      "why": "An AI tools directory with ranked pages per tool.",
+      "url": "https://toolpotion.ai/"
+    },
+    {
+      "name": "free-for-dev",
+      "why": "For a developer service with a free tier: a 140,000-star list of them. Add a line by pull request.",
+      "url": "https://github.com/ripienaar/free-for-dev"
+    },
+    {
+      "name": "awesome-mcp-servers",
+      "why": "For an MCP server: the biggest list of them. Add a line by pull request.",
+      "url": "https://github.com/punkpeye/awesome-mcp-servers"
+    },
+    {
+      "name": "SourceForge",
+      "why": "Mirrors your releases and lists the project for people browsing open source.",
+      "url": "https://sourceforge.net/create/"
+    }
+  ],
+  "promo": [
+    {
+      "name": "Flisk Discord #show-your-stack",
+      "where": "Discord",
+      "rule": "Show what you built with or next to Flisk. Post the link and what it does.",
+      "url": "https://discord.com/channels/1562937840071999538/1569404291196915904"
+    },
+    {
+      "name": "r/SideProject",
+      "where": "Reddit",
+      "rule": "Made for people who share their own projects; say what it does and ask for feedback.",
+      "url": "https://www.reddit.com/r/SideProject/submit"
+    },
+    {
+      "name": "r/alphaandbetausers",
+      "where": "Reddit",
+      "rule": "Made for finding early testers; say what you need tested.",
+      "url": "https://www.reddit.com/r/alphaandbetausers/submit"
+    },
+    {
+      "name": "r/SaaS",
+      "where": "Reddit",
+      "rule": "Share a product with the story behind it; read the pinned rules first.",
+      "url": "https://www.reddit.com/r/SaaS/submit"
+    },
+    {
+      "name": "r/webdev (Showoff Saturday)",
+      "where": "Reddit",
+      "rule": "Self-promotion only in the Saturday thread; do not post it on other days.",
+      "url": "https://www.reddit.com/r/webdev/"
+    },
+    {
+      "name": "r/InternetIsBeautiful",
+      "where": "Reddit",
+      "rule": "Only for a free, public site that is nice to look at or use; no sign-up wall.",
+      "url": "https://www.reddit.com/r/InternetIsBeautiful/submit"
+    },
+    {
+      "name": "Find Discord servers for your buyers (Disboard)",
+      "where": "Discord",
+      "rule": "Search your buyers' topic, join 3 servers, and look for a channel named show-your-work, showcase, self-promo or promote. Read its pinned rule before you post.",
+      "url": "https://disboard.org/"
+    }
+  ],
+  "tools": [
+    {
+      "name": "Citable",
+      "why": "Can ChatGPT, Claude and Perplexity read and quote your page.",
+      "url": "https://citable.flisk.si"
+    },
+    {
+      "name": "README Score",
+      "why": "A score for a GitHub README and a fix for each missing part.",
+      "url": "https://readme.flisk.si"
+    },
+    {
+      "name": "Flisk Analytics",
+      "why": "Count visitors without cookies. Invite only for now.",
+      "url": "https://analytics.flisk.si"
+    }
+  ],
+  "links": [
+    "https://github.com/flisk-sh/flisk",
+    "https://discord.gg/qMu5Xn8Kaq",
+    "https://www.npmjs.com/package/@flisk-sh/flisk",
+    "https://www.producthunt.com/products/flisk"
+  ]
+}

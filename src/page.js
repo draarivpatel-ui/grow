@@ -640,7 +640,7 @@ function planMd(id, plan) {
   const sec = (t, rows) => { if (rows.length) L.push('## ' + t, '', ...rows, ''); };
   sec('1. Get ready', ((plan.check && plan.check.fixes) || []).filter((f) => f.status !== 'pass').map((f) => '- [ ] Fix: ' + f.title + ' (' + f.summary + ')'));
   sec('2. Find buyers', plan.places.map((x) => '- [ ] ' + x.name + (x.url ? ' <' + x.url + '>' : '') + ': ' + x.why));
-  sec('3. Reach out', plan.emails.flatMap((e, i) => ['- [ ] Day ' + [1, 1, 3, 3, 5][Math.min(i, 4)] + ', email ' + (e.to ? 'to ' + e.to : '') + ': **' + e.subject + '**', ...(e.find ? ['  - Find them: ' + e.find] : []), '', '  > ' + e.body.split('\n').join('\n  > '), ...(e.followup ? ['', '  - [ ] Day 7 follow-up if no reply: ' + e.followup.split('\n').join(' ')] : []), '']));
+  sec('3. Reach out', plan.emails.flatMap((e, i) => ['- [ ] Day ' + [1, 1, 3, 3, 5][Math.min(i, 4)] + ', email ' + (e.to ? 'to ' + e.to : '') + ': **' + e.subject + '**', ...(e.find ? ['  - Find them: ' + e.find + (e.place != null && plan.places[e.place] && plan.places[e.place].url ? ' <' + plan.places[e.place].url + '>' : '')] : []), '', '  > ' + e.body.split('\n').join('\n  > '), ...(e.followup ? ['', '  - [ ] Day 7 follow-up if no reply: ' + e.followup.split('\n').join(' ')] : []), '']));
   sec('4. Post', (plan.posts || []).flatMap((x) => ['- [ ] ' + x.where + (x.title ? ': **' + x.title + '**' : ''), '', '  > ' + x.body.split('\n').join('\n  > '), '']));
   sec('5. Get listed', plan.listings.map((x) => '- [ ] ' + x.name + ' <' + x.url + '>'));
   return L.join('\n');
@@ -750,7 +750,10 @@ function draw(id, plan) {
     const mt = 'mailto:?subject=' + encodeURIComponent(e.subject) + '&body=' + encodeURIComponent(e.body);
     // The Day 7 follow-up goes in the same thread: same subject with Re:, sent only when there was no reply.
     const fu = e.followup && iopen('Day 7 follow-up', 'https://mail.google.com/mail/?view=cm&fs=1&su=' + encodeURIComponent('Re: ' + e.subject) + '&body=' + encodeURIComponent(e.followup), 'Seven days later, if there was no reply: open the follow-up in Gmail', false);
-    return row('mail' + i, svg('mail'), e.subject, 'To: ' + (e.to || 'someone who fits') + '. ' + (e.find ? 'Find them: ' + e.find + ' ' : '') + e.body + (e.followup ? '\n\nDay 7, if no reply: ' + e.followup : ''), [iopen('Gmail', gm, 'Open a Gmail draft with this email. Add the address and press Send.', true, 'mail'), fu, iopen('Mail app', mt, 'Open a draft in your own mail app'), icopy(e.subject + '\n\n' + e.body, 'Copy the subject and the email text'), rewriteBtn('email', i)].filter(Boolean), true, 5);
+    // Where to find this reader: the place in the plan the email was tied to.
+    const fp = e.place != null && plan.places[e.place];
+    const ft = fp && fp.url ? iopen('Find them', fp.url, 'Open ' + fp.name + ' to find people like this reader', false) : null;
+    return row('mail' + i, svg('mail'), e.subject, 'To: ' + (e.to || 'someone who fits') + '. ' + (e.find ? 'Find them: ' + e.find + ' ' : '') + e.body + (e.followup ? '\n\nDay 7, if no reply: ' + e.followup : ''), [iopen('Gmail', gm, 'Open a Gmail draft with this email. Add the address and press Send.', true, 'mail'), fu, iopen('Mail app', mt, 'Open a draft in your own mail app'), icopy(e.subject + '\n\n' + e.body, 'Copy the subject and the email text'), ft, rewriteBtn('email', i)].filter(Boolean), true, 5);
   });
   const days = [['Day 1 · today', 0, 2], ['Day 3', 2, 4], ['Day 5', 4, 99]];
   const reach = mails.length > 2 ? days.map((d) => [d[0], mails.slice(d[1], d[2])]).filter((d) => d[1].length).map((d) => pane(d[0], svg('mail'), d[1], 'Send these on ' + d[0].replace(' · today', ', today') + '. Nothing is sent for you.')) : [pane('Emails to send', svg('mail'), mails, 'Drafts only. Nothing is sent for you.')];
