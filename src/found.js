@@ -18,6 +18,8 @@ export function siteName(url) {
   try { const h = new URL(url).hostname.replace(/^www\./, ''); return { host: h, name: h.split('.')[0] }; } catch { return { host: '', name: '' }; }
 }
 
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 async function text(fetchImpl, url) {
   try {
     const r = await fetchImpl(url, { headers: { 'user-agent': UA, accept: 'text/html,application/json' }, redirect: 'follow', signal: AbortSignal.timeout(8000) });
@@ -31,7 +33,7 @@ export async function findHN(name, host, fetchImpl) {
   let hits = [];
   try { hits = JSON.parse(raw).hits || []; } catch { /* no hits */ }
   // Only a story that links to this exact domain is yours. A "Show HN" title with the same word is not.
-  const at = new RegExp(`^https?://(www\\.)?${host.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([/:?#]|$)`, 'i');
+  const at = new RegExp(`^https?://(www\\.)?${escapeRegex(host)}([/:?#]|$)`, 'i');
   const hit = hits.find((h) => at.test(String(h.url || '')));
   return hit ? { place: 'Hacker News (Show HN)', link: `https://news.ycombinator.com/item?id=${hit.objectID}` } : null;
 }
@@ -39,11 +41,13 @@ export async function findHN(name, host, fetchImpl) {
 export async function findListings(siteUrl, { fetch: fetchImpl } = {}) {
   const { host, name } = siteName(siteUrl);
   if (!name) return [];
+  // Match the domain itself, not a hostname that extends it. A final sentence period is fine.
+  const mentionsHost = new RegExp(`(?:^|[^\\w.-])(?:www\\.)?${escapeRegex(host)}(?![\\w-]|\\.[\\w-])`, 'i');
   const slugs = [...new Set([name, `${name}-cli`, `${name}-sh`, host.replace(/\./g, '-')])];
   const probe = async (p) => {
     for (const s of slugs) {
       const u = p.url(s);
-      if ((await text(fetchImpl, u)).toLowerCase().includes(host)) return { place: p.place, link: u };
+      if (mentionsHost.test(await text(fetchImpl, u))) return { place: p.place, link: u };
     }
     return null;
   };
