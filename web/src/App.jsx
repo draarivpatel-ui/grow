@@ -19,6 +19,8 @@ import {
   BriefcaseIcon, PencilSquareIcon, HomeIcon, RocketLaunchIcon, LinkIcon, DocumentTextIcon, ClipboardDocumentCheckIcon, ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 import {Logo} from './logos.jsx';
+import {GmailCard} from './cards/GmailCard.jsx';
+import {postCardFor} from './cards/PostCard.jsx';
 
 const ic = (I) => <Icon icon={I} size="sm" />;
 const lg = (name, url) => <Logo name={name} url={url} size={18} />;
@@ -123,7 +125,7 @@ function Draft({id, done, toggle, to, title, body, actions, logo}) {
 }
 
 // ---------- plan ----------
-function StepBody({step, plan, id, done, toggle, goAbout}) {
+function StepBody({step, plan, id, done, toggle, goAbout, rw}) {
   const p = plan;
   const row = (key, logoEl, title, text, actions) => <Row key={key} id={key} done={done} toggle={toggle} logo={logoEl} title={title} text={text} actions={actions} />;
   if (step === 0) return <VStack gap={4}>
@@ -157,8 +159,7 @@ function StepBody({step, plan, id, done, toggle, goAbout}) {
   </VStack>;
 
   if (step === 2) return <Section title="Emails to send" icon={EnvelopeIcon} count={(p.emails || []).length} sub="Drafts only. Add the address in your mail and press Send yourself: nothing is sent for you.">
-    <div className="grid">{(p.emails || []).map((e, i) => <Draft key={i} id={'mail' + i} done={done} toggle={toggle} logo={lg('Gmail')} to={'To: ' + (e.to || 'someone who fits')} title={e.subject}
-      body={e.body + (e.find ? '\n\nFind them: ' + e.find : '')}
+    <div className="grid">{(p.emails || []).map((e, i) => <GmailCard key={i + ':' + e.subject + e.body} id={'mail' + i} done={done} toggle={toggle} email={e} rewrite={rw('email', i)}
       actions={<>
         <OpenBtn label="Open in Gmail" href={gmail(e)} logo={lg('Gmail')} primary />
         <OpenBtn label="Mail app" href={mailto(e)} icon={EnvelopeIcon} />
@@ -166,8 +167,10 @@ function StepBody({step, plan, id, done, toggle, goAbout}) {
         <CopyBtn text={e.subject + '\n\n' + e.body} /></>} />)}</div></Section>;
 
   if (step === 3) return <Section title="Posts to write" icon={PencilSquareIcon} count={(p.posts || []).length} sub="Opens the post box with the text filled in. You read it, change it and post it yourself.">
-    <div className="grid">{(p.posts || []).length ? p.posts.map((x, i) => { const h = postHref(x, p); return <Draft key={i} id={'post' + i} done={done} toggle={toggle} logo={lg(x.where)} to={x.where} title={x.title || clip(x.body, 60)} body={x.body}
-      actions={<>{h && <OpenBtn label={'Open in ' + x.where} href={h} logo={lg(x.where)} primary />}<CopyBtn text={(x.title ? x.title + '\n\n' : '') + x.body} /></>} />; }) : <Text color="secondary">No post drafts this time. Press the button again for drafts for X, Reddit and Hacker News.</Text>}</div></Section>;
+    <div className="grid">{(p.posts || []).length ? p.posts.map((x, i) => { const h = postHref(x, p); const Card = postCardFor(x.where);
+      const actions = <>{h && <OpenBtn label={'Open in ' + x.where} href={h} logo={lg(x.where)} primary />}<CopyBtn text={(x.title ? x.title + '\n\n' : '') + x.body} /></>;
+      return Card ? <Card key={i + ':' + x.body} id={'post' + i} done={done} toggle={toggle} post={x} plan={p} rewrite={rw('post', i)} actions={actions} />
+        : <Draft key={i} id={'post' + i} done={done} toggle={toggle} logo={lg(x.where)} to={x.where} title={x.title || clip(x.body, 60)} body={x.body} actions={actions} />; }) : <Text color="secondary">No post drafts this time. Press the button again for drafts for X, Reddit and Hacker News.</Text>}</div></Section>;
 
   const ls = p.listings || [];
   const lrow = (x, i) => row('list' + i, lg(x.name, x.url), x.name, x.why, <OpenBtn label="Submit" href={x.url} logo={lg(x.name, x.url)} primary />);
@@ -216,17 +219,37 @@ function Followers({plan, id, done, toggle}) {
       <VStack gap={3}><Text>{plan.audience}</Text>{plan.today && <Card variant="blue"><VStack gap={1}><Text type="supporting" weight="semibold">Do this today</Text><Text>{plan.today}</Text></VStack></Card>}</VStack></div></Section>
     {plan.pinned && <Section title="Your pinned post" icon={PencilSquareIcon} sub="The first thing a stranger sees."><div className="pre">{plan.pinned}</div><HStack gap={2}><OpenBtn label={'Open in ' + net} href={POST(plan.pinned, net)} logo={lg(net)} primary /><CopyBtn text={plan.pinned} /></HStack></Section>}
     <Section title="Your first 7 days" icon={ListBulletIcon} sub="About 20 minutes a day."><div className="grid">{(plan.week || []).map((x, i) => <Row key={i} id={'day' + i} done={done} toggle={toggle} logo={ic(ListBulletIcon)} title={x.day} text={x.do} />)}</div></Section>
-    <Section title="Posts to write" icon={PencilSquareIcon} count={(plan.posts || []).length}><div className="grid">{(plan.posts || []).map((x, i) => <Draft key={i} id={'post' + i} done={done} toggle={toggle} logo={lg(net)} to={net} title={x.title} body={x.body} actions={<><OpenBtn label={'Open in ' + net} href={POST(x.body, net)} logo={lg(net)} primary /><CopyBtn text={x.body} /></>} />)}</div></Section>
+    <Section title="Posts to write" icon={PencilSquareIcon} count={(plan.posts || []).length}><div className="grid">{(plan.posts || []).map((x, i) => { const Card = postCardFor(net);
+      const actions = <><OpenBtn label={'Open in ' + net} href={POST(x.body, net)} logo={lg(net)} primary /><CopyBtn text={x.body} /></>;
+      return Card ? <Card key={i + ':' + x.body} id={'post' + i} done={done} toggle={toggle} post={{...x, where: net}} plan={plan} rewrite={null} actions={actions} />
+        : <Draft key={i} id={'post' + i} done={done} toggle={toggle} logo={lg(net)} to={net} title={x.title} body={x.body} actions={actions} />; })}</div>
+    </Section>
     {(plan.accounts || []).length > 0 && <Section title="Accounts to follow and answer" icon={ChatBubbleLeftRightIcon}><div className="grid">{plan.accounts.map((x, i) => <Row key={i} id={'acc' + i} done={done} toggle={toggle} logo={lg(net)} title={x.name} text={x.why} />)}</div></Section>}
   </VStack>;
 }
 
-function PlanView({id, plan}) {
+function PlanView({id, plan, onPlan}) {
+  const [busyKey, setBusyKey] = useState('');
   const ex = id === 'example';
   const [step, setStep] = useState(() => { const m = location.hash.match(/step-([1-5])/); return m ? +m[1] - 1 : 0; });
   const [done, setDone] = useState(() => loadDone(id));
   const [full, setFull] = useState(() => /step-/.test(location.hash));
   const [saveAsk, setSaveAsk] = useState('');
+  // The sparkle menu on a card: a ready-made change or free text goes to the model, and the new plan replaces this one.
+  const rw = (kind, index) => {
+    if (!id || id === 'example' || plan.generic || !onPlan) return null;
+    const key = kind + index;
+    return {busy: busyKey === key, onPick: async (tweak, note) => {
+      setBusyKey(key);
+      try {
+        const r = await fetch('/api/rewrite', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({id, kind, index, tweak: tweak || undefined, note: note || undefined})});
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || 'The rewrite did not work. Press again.');
+        setDone((d) => { const n = new Set(d); n.delete((kind === 'email' ? 'mail' : kind) + index); try { localStorage.setItem(doneKey(id), JSON.stringify([...n])); } catch { /* storage blocked */ } return n; });
+        onPlan(j.plan); toast('Rewritten');
+      } catch (e) { toast(e.message); } finally { setBusyKey(''); }
+    }};
+  };
   const toggle = (k) => setDone((d) => { const n = new Set(d); n.has(k) ? n.delete(k) : n.add(k); try { localStorage.setItem(doneKey(id), JSON.stringify([...n])); } catch { /* storage blocked */ } return n; });
   useEffect(() => { document.title = (plan.kind === 'followers' ? 'Followers plan for @' + plan.handle : 'Grow plan for ' + planName(plan.url)) + ' · Flisk Grow'; }, [plan]);
   const title = plan.kind === 'followers' ? 'A followers plan for @' + plan.handle : 'A plan for ' + planName(plan.url);
@@ -283,7 +306,7 @@ function PlanView({id, plan}) {
             {STEPS.map((s, i) => <SegmentedControlItem key={s.k} value={String(i)} label={(i + 1) + '. ' + s.t} icon={ic(s.icon)} />)}
           </SegmentedControl></div>
           <Text color="secondary">{STEPS[step].say}</Text>
-          <StepBody step={step} plan={plan} id={id} done={done} toggle={toggle} />
+          <StepBody step={step} plan={plan} id={id} done={done} toggle={toggle} rw={rw} />
           <HStack gap={2} justify="space-between">
             <Button label="Back" variant="secondary" icon={ic(ArrowRightIcon)} isDisabled={step === 0} onClick={() => setStep(step - 1)} style={{transform: 'scaleX(-1)'}} />
             <Button label="Next step" variant="primary" icon={ic(ArrowRightIcon)} isDisabled={step === 4} onClick={() => setStep(step + 1)} />
@@ -388,7 +411,7 @@ export default function App() {
       <div style={{height: '100%', overflow: 'auto'}}>
         {error ? <div className="page"><VStack gap={3}><Banner status="error" title={error} /><div><Button label="Make a new plan" variant="primary" icon={ic(PlusIcon)} onClick={() => go('/')} /></div></VStack></div>
           : id && !plan ? <div className="page"><Text color="secondary">Loading the plan…</Text></div>
-          : plan ? <PlanView key={id} id={id === 'guide' ? '' : id} plan={plan} />
+          : plan ? <PlanView key={id} id={id === 'guide' ? '' : id} plan={plan} onPlan={setPlan} />
           : <Home onPlan={onPlan} />}
       </div>
     </AppShell>

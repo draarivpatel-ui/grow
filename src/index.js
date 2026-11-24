@@ -1,5 +1,5 @@
 // grow.flisk.si: paste a link, get a plan to find the first customers. No sign-in. Plans are kept 30 days at /p/<id>.
-import { cleanBrief, cleanLinks, genericFollowers, githubRepo, httpUrl, makePlan, profileOf, rankerFor, rewriteItem, workersAi } from './plan.js';
+import { TWEAKS, cleanBrief, cleanLinks, genericFollowers, githubRepo, httpUrl, makePlan, profileOf, rankerFor, rewriteItem, workersAi } from './plan.js';
 import { feedback } from './feedback.js';
 import { EXAMPLE } from './example.js';
 import { page } from './page.js';
@@ -209,7 +209,9 @@ async function route(req, env, deps = {}) {
     if (used >= perDay) return json(429, { error: "Today's free rewrites are used. Come back tomorrow (00:00 UTC)." });
     const model = modelFor(env, fetchImpl);
     if (!model) return json(503, { error: 'The model is not set up on this server yet.' });
-    const out = await rewriteItem(plan, kind, index, { model, key: env.INFERENCE_KEY, note: b?.note });
+    const tweak = b?.tweak ? (Object.hasOwn(TWEAKS, b.tweak) ? TWEAKS[b.tweak] : null) : String(b?.note ?? '').replace(/[\u0000-\u001f]+/g, ' ').trim().slice(0, 120);
+    if (tweak === null) return json(400, { error: 'Unknown change. Pick one from the list.' });
+    const out = await rewriteItem(plan, kind, index, { model, key: env.INFERENCE_KEY, note: b?.note, tweak });
     if (out.error) return json(502, { error: 'The model did not give a usable rewrite. Press again.', detail: out.message });
     const field = { email: 'emails', post: 'posts', place: 'places' }[kind];
     plan[field][index] = out.item;

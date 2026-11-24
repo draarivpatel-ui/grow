@@ -409,13 +409,24 @@ export const REWRITE = {
   post: { field: 'posts', shape: '{"where": "<same place>", "title": "...", "body": "the post in the maker\'s voice, under 60 words, no subreddit and no link"}', ask: 'Write ONE new post for the same place, with a different angle.' },
   place: { field: 'places', shape: '{"name": "...", "why": "...", "url": "its address if you are sure, else empty"}', ask: 'Give ONE different real place where these buyers talk, not one already in the plan.' },
 };
-export async function rewriteItem(plan, kind, index, { model, key, note = '' }) {
+// Ready-made changes a maker can ask for on one email or post. Each key is what the card's menu sends.
+export const TWEAKS = {
+  polite: 'make it more polite and warm',
+  formal: 'make it more formal and professional',
+  friendly: 'make it friendlier and more casual, like a message to a peer',
+  shorter: 'make it shorter: cut every sentence that is not needed',
+  direct: 'make it more direct: lead with the point and the ask',
+  links: 'add one or two relevant links in the text, the product link first',
+  question: 'end with one clear, easy-to-answer question',
+  confident: 'make it more confident, with one concrete result or number if the page gives one',
+};
+export async function rewriteItem(plan, kind, index, { model, key, note = '', tweak = '' }) {
   const r = REWRITE[kind]; const list = plan?.[r?.field];
   if (!r || !Array.isArray(list) || !list[index]) return { error: 'no such item' };
   const system = `You help a maker find the first people who would pay for what they made. ${VOICE}
-${r.ask} Answer with ONE JSON object and nothing else: {"item": ${r.shape}}
+${tweak ? `Rewrite the item below as ONE new item for the same place and the same reader. Keep its meaning. Change only this: ${tweak}.` : r.ask} Answer with ONE JSON object and nothing else: {"item": ${r.shape}}
 ${RULES}`;
-  const user = `Link: ${plan.url}\nProduct: ${plan.product || ''}\nBuyers: ${plan.buyers || ''}${briefLine(plan.brief)}${kind === 'place' ? '\nPlaces already in the plan: ' + list.map((x) => x.name).join(', ') : ''}\nThe item to replace: ${JSON.stringify(list[index])}${note ? '\nThe maker asks: ' + str(note, 200) : ''}`;
+  const user = `Link: ${plan.url}\nProduct: ${plan.product || ''}\nBuyers: ${plan.buyers || ''}${briefLine(plan.brief)}${kind === 'place' ? '\nPlaces already in the plan: ' + list.map((x) => x.name).join(', ') : ''}\nThe item to replace: ${JSON.stringify(list[index])}${note && !tweak ? '\nThe maker asks: ' + str(note, 200) : ''}`;
   let j;
   try {
     const res = await model('https://inference.flisk.si/v1/chat/completions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` }, body: JSON.stringify({ model: MODEL, temperature: 0.8, max_tokens: 600, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] }), signal: AbortSignal.timeout(MODEL_TIMEOUT_MS) });
