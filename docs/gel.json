@@ -13,7 +13,8 @@
     "repo-health": "report",
     "status-declared": "report",
     "dependabot-config": "report",
-    "north-star": "report"
+    "north-star": "report",
+    "sonar-patterns": "report"
   },
   "next_cta": {
     "rendered": {

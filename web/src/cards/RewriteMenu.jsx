@@ -1,7 +1,7 @@
 // The sparkle button on top of every card. It opens a small menu of changes (more polite, more formal, add links ...)
 // and a box for anything else; the card shimmers while the model rewrites it.
+// The menu is position:fixed inside the card (no portal), so the card must not have a transform or filter while it is open.
 import {useEffect, useRef, useState} from 'react';
-import {createPortal} from 'react-dom';
 
 export const TWEAKS = [
   ['polite', 'Make it more polite'],
@@ -36,7 +36,7 @@ export function RewriteMenu({busy, onPick}) {
   return (
     <>
       <button ref={btn} type="button" className={'rw-btn' + (busy ? ' busy' : '')} aria-label="Rewrite with AI" aria-haspopup="menu" aria-expanded={open} title="Rewrite with AI" disabled={busy} onClick={() => (open ? setOpen(false) : show())}>✨</button>
-      {open && createPortal(
+      {open && (
         <div className="rw-pop" role="menu" style={{top: pos.top, left: pos.left}}>
           <div className="rw-title">Rewrite with AI</div>
           {TWEAKS.map(([k, label]) => <button key={k} type="button" role="menuitem" onClick={() => pick(k)}>{label}</button>)}
@@ -44,7 +44,7 @@ export function RewriteMenu({busy, onPick}) {
             <input value={text} onChange={(e) => setText(e.target.value)} maxLength={120} placeholder="Or ask for something else" aria-label="Ask for another change" />
             <button type="submit" disabled={!text.trim()}>Go</button>
           </form>
-        </div>, document.body)}
+        </div>)}
     </>
   );
 }
