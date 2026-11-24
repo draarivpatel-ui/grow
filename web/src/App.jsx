@@ -434,6 +434,9 @@ export default function App() {
           : plan ? <PlanView key={id} id={id === 'guide' ? '' : id} plan={plan} onPlan={setPlan} />
           : <Home onPlan={onPlan} />}
       </div>
+      <a className="pro-fab" href="https://chat.flisk.si" target="_blank" rel="noopener" title="Open Flisk Chat to get a deeper, customised plan with AI">
+        <Logo name="chat.flisk.si" url="https://chat.flisk.si" size={20} /><span>Get an advanced AI plan</span>
+      </a>
     </AppShell>
   );
 }
