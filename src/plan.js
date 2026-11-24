@@ -205,7 +205,8 @@ You get a link and the text of its page. Answer with ONE JSON object and nothing
  "queries": ["2 to 4 short search phrases (2-4 words) a buyer would write in a post when they have the problem"],
  "places": [{"name": "a real community, forum, subreddit, newsletter, event or group where those buyers are", "why": "why there", "url": "its address if you are sure, else empty"}]}
 ${BUYER}
-Give 5 to 8 places. Only real places that match those buyers; never invent an address.
+Give 5 to 8 places. Only real places that match those buyers; never invent an address. A place is where BUYERS talk to
+each other, never the maker's own pages (its repo, its Discord, its npm or Product Hunt page).
 ${RULES}`;
 export const SYSTEM_POSTS = `You help a maker find the first people who would pay for what they made. ${VOICE}
 You get a link and the text of its page. Answer with ONE JSON object and nothing else:
@@ -361,12 +362,20 @@ export function parseJson(s) {
 // (checked subreddits in PROMO) and adds the product's own link, so both come out of the draft.
 export const unsub = (t) => String(t).replace(/^\s*[/]?r[/]\w+\s*[:\-|]\s*/i, '').trim();
 export const unlink = (t) => String(t).replace(/\s*https?:[/][/]\S+/g, '').trim();
+const hostOf = (u) => { try { return new URL(u).hostname.replace(/^www[.]/, '').toLowerCase(); } catch { return ''; } };
+// A link that is the maker's own: the same page as one of theirs, or anything on the product's own site.
+export function isOwn(u, own) {
+  const k = linkKey(u), h = hostOf(u);
+  return own.some((o) => { const ok = linkKey(o); return k === ok || k.startsWith(ok + '/') || (linkKind(o) === 'Other' && h && h === hostOf(o)); });
+}
 // Keep only what the page can draw safely. Returns null when the model gave too little to be useful.
-export function cleanPlan(i) {
+// `own` is the maker's own links (the product, its repo, its Discord ...): those are not places to find buyers.
+export function cleanPlan(i, own = []) {
   if (!i || typeof i !== 'object') return null;
   // The url stays raw until cleanPlaces: it splits glued subreddits before anything is thrown away.
   const places = cleanPlaces((Array.isArray(i.places) ? i.places : []).slice(0, 10)
-    .map((p) => ({ name: str(p?.name, 80), why: str(p?.why, 200), url: String(p?.url ?? '').trim().slice(0, 300) })).filter((p) => p.name));
+    .map((p) => ({ name: str(p?.name, 80), why: str(p?.why, 200), url: String(p?.url ?? '').trim().slice(0, 300) })).filter((p) => p.name))
+    .filter((p) => !p.url || !isOwn(p.url, own));
   let emails = (Array.isArray(i.emails) ? i.emails : []).slice(0, 8)
     .map((e) => ({ to: str(e?.to, 80), find: str(e?.find, 240), subject: str(e?.subject, 120), body: text(e?.body, 1500), followup: text(e?.followup, 800) })).filter((e) => e.subject && e.body);
   const posts = (Array.isArray(i.posts) ? i.posts : []).slice(0, 6)
@@ -484,7 +493,7 @@ async function makePlanFor(url, { fetch: fetchImpl, model, citable, key, about: 
     const f = cleanFollowers(raw, profile);
     return f ? { plan: { url, ...f, tools: TOOLS } } : { error: 'model', message: 'the model did not give a usable plan' };
   }
-  const plan = cleanPlan(raw);
+  const plan = cleanPlan(raw, [url, site, ...links].filter(Boolean));
   if (!plan) return { error: 'model', message: 'the model did not give a usable plan' };
   // A made-up address that does not open loses its link; an email that pointed there gets another place.
   const had = plan.places.map((p) => p.url);
