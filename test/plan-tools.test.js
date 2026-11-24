@@ -88,7 +88,8 @@ describe('rewrite one item', () => {
     const r = await s.rw({ id: s.made.id, kind: 'email', index: 0, tweak: 'polite' });
     expect(r.status).toBe(200);
     expect((await r.json()).item.subject).toBe('Polite hello');
-    expect(s.asked[0].messages[0].content).toContain('Change only this: make it more polite');
+    expect(s.asked[0].messages[0].content).toContain('Change only this: make it more polite')
+    expect(s.asked[0].messages[0].content).toContain('Copy every field of it unchanged');
     expect(s.asked[0].messages[1].content).toContain('The item to replace');
     expect((await s.rw({ id: s.made.id, kind: 'email', index: 0, tweak: 'constructor' })).status).toBe(400);
     expect(s.asked.length).toBe(1);
