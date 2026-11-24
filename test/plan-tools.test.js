@@ -83,6 +83,23 @@ describe('rewrite one item', () => {
     expect((await bad.rw({ id: bad.made.id, kind: 'place', index: 0 })).status).toBe(502);
   });
 
+  test('a ready-made change rewrites the same item; an unknown change is refused', async () => {
+    const s = await setup({ item: { to: 'Clinic owner', subject: 'Polite hello', body: 'Dear owner,\nthanks.\n[your name]', followup: 'Any thoughts?' } });
+    const r = await s.rw({ id: s.made.id, kind: 'email', index: 0, tweak: 'polite' });
+    expect(r.status).toBe(200);
+    expect((await r.json()).item.subject).toBe('Polite hello');
+    expect(s.asked[0].messages[0].content).toContain('Change only this: make it more polite');
+    expect(s.asked[0].messages[1].content).toContain('The item to replace');
+    expect((await s.rw({ id: s.made.id, kind: 'email', index: 0, tweak: 'constructor' })).status).toBe(400);
+    expect(s.asked.length).toBe(1);
+  });
+
+  test('free text asks for the same change on the same item', async () => {
+    const s = await setup({ item: { to: 'x', subject: 'Short', body: 'Hi\n[your name]', followup: 'y' } });
+    expect((await s.rw({ id: s.made.id, kind: 'email', index: 0, note: 'mention the free tier' })).status).toBe(200);
+    expect(s.asked[0].messages[0].content).toContain('Change only this: mention the free tier');
+  });
+
   test('refuses bad input, an unknown plan and the example; limits each visitor', async () => {
     const s = await setup({ item: { name: 'Indie Hackers', why: 'makers', url: 'https://indiehackers.com' } });
     expect((await s.rw({ id: s.made.id, kind: 'tool', index: 0 })).status).toBe(400);
