@@ -30,10 +30,10 @@ describe('plan quality', () => {
   });
 
   test('a GitHub repo is checked and linked through its own website', async () => {
-    const page = withRepo('https://grow.flisk.si/'), citable = fakeFetch(), model = fakeFetch();
+    const page = withRepo('https://grow.flisk.si/classic'), citable = fakeFetch(), model = fakeFetch();
     const out = await makePlan('https://github.com/flisk-sh/grow', { fetch: page, model, citable, key: 'k' });
-    expect(out.plan.site).toBe('https://grow.flisk.si/');
-    expect(citable.calls[0].url).toContain(encodeURIComponent('https://grow.flisk.si/'));
+    expect(out.plan.site).toBe('https://grow.flisk.si/classic');
+    expect(citable.calls[0].url).toContain(encodeURIComponent('https://grow.flisk.si/classic'));
     expect(out.plan.check.report).toBe('https://citable.flisk.si/grow.flisk.si');
     expect(JSON.parse(model.calls[0].init.body).messages[1].content).toContain("The product's website: https://grow.flisk.si/");
   });
@@ -59,7 +59,7 @@ describe('plan quality', () => {
 
   test('the page links posts to the website and offers the Day 7 follow-up', async () => {
     const { default: worker } = await import('../src/index.js');
-    const html = await (await worker.fetch(new Request('https://grow.flisk.si/'), {})).text();
+    const html = await (await worker.fetch(new Request('https://grow.flisk.si/classic'), {})).text();
     expect(html).toContain('const u = plan.site || plan.url;');
     expect(html).toContain("'Day 7 follow-up'");
     expect(html).toContain('else if (plan.noSite)');

@@ -83,12 +83,22 @@ async function route(req, env, deps = {}) {
   const cab = await cabinet(req, env, { fetch: fetchImpl });
   if (cab) return cab;
 
-  // The Astryx look: /next, /next/example and /next/p/<id> (the built files live at /_app/).
+  // The old /next preview now lives at /: send old links to the same page there.
+  if (req.method === 'GET' || req.method === 'HEAD') {
+    const old = /^\/next(\/example|\/p\/[0-9a-f]{12})?$/.exec(path);
+    if (old) return new Response(null, { status: 301, headers: { location: (old[1] || '/') + url.search } });
+  }
+
+  // The Astryx look: /, /example and /p/<id> (the built files live at /_app/).
   if (req.method === 'GET' || req.method === 'HEAD') {
     const asset = path.startsWith('/_app/') ? nextAsset(path) : null;
     if (asset) return asset;
-    if (path === '/next' || path === '/next/example') return nextHtml(nextPage({ planId: path === '/next' ? '' : 'example', prefill: path === '/next' ? httpUrl(url.searchParams.get('url')) : '', share: path === '/next' ? null : { host: 'an example', summary: EXAMPLE.product } }));
-    const np = /^\/next\/p\/([0-9a-f]{12})$/.exec(path);
+    if (path === '/example') return nextHtml(nextPage({ planId: 'example', share: { host: 'an example', summary: EXAMPLE.product }, index: false }));
+    if (path === '/') {
+      // A link with ?url= only fills the box: a plan costs a model call, so a person presses the button.
+      return nextHtml(nextPage({ prefill: httpUrl(url.searchParams.get('url')), index: !url.search }));
+    }
+    const np = /^\/p\/([0-9a-f]{12})$/.exec(path);
     if (np) {
       const row = await env.DB.prepare('SELECT url, data, created FROM plans WHERE id = ?').bind(np[1]).first();
       let share = null;
@@ -97,28 +107,29 @@ async function route(req, env, deps = {}) {
         let summary = ''; try { const d = JSON.parse(row.data); summary = String(d.product || d.account || '').slice(0, 200); } catch { /* no summary */ }
         share = { host: h, summary };
       }
-      return nextHtml(nextPage({ planId: np[1], share }));
+      return nextHtml(nextPage({ planId: np[1], share, index: false }));
     }
   }
 
-  // A finished plan to look at before making one. It is a fixed file, so it costs no model call.
-  if ((req.method === 'GET' || req.method === 'HEAD') && path === '/example') return html(page({ planId: 'example', share: { host: 'an example', summary: EXAMPLE.product } }));
   if (req.method === 'GET' && path === '/api/plan/example') return json(200, { id: 'example', created: 0, plan: EXAMPLE });
 
-  if ((req.method === 'GET' || req.method === 'HEAD') && (path === '/' || /^\/p\/[0-9a-f]{12}$/.test(path))) {
-    // A link with ?url= only fills the box: a plan costs a model call, so a person presses the button.
-    // A shared plan link names the site in its preview, so a friend sees what it is before opening it.
-    let share = null, planId = '';
-    if (path.startsWith('/p/')) {
-      planId = path.slice(3);
-      const row = await env.DB.prepare('SELECT url, data, created FROM plans WHERE id = ?').bind(planId).first();
-      if (row && Date.now() - row.created <= 30 * DAY_MS) {
-        let host = row.url; try { host = new URL(row.url).host; } catch { /* keep the link */ }
-        let summary = ''; try { const d = JSON.parse(row.data); summary = String(d.product || d.account || '').slice(0, 200); } catch { /* no summary */ }
-        share = { host, summary };
+  // The previous design, kept at /classic (never indexed) while the new one beds in.
+  if (req.method === 'GET' || req.method === 'HEAD') {
+    if (path === '/classic/example') return html(page({ planId: 'example', share: { host: 'an example', summary: EXAMPLE.product } }), { 'x-robots-tag': 'noindex, nofollow' });
+    const cm = /^\/classic(?:\/p\/([0-9a-f]{12}))?$/.exec(path);
+    if (cm) {
+      const planId = cm[1] || '';
+      let share = null;
+      if (planId) {
+        const row = await env.DB.prepare('SELECT url, data, created FROM plans WHERE id = ?').bind(planId).first();
+        if (row && Date.now() - row.created <= 30 * DAY_MS) {
+          let host = row.url; try { host = new URL(row.url).host; } catch { /* keep the link */ }
+          let summary = ''; try { const d = JSON.parse(row.data); summary = String(d.product || d.account || '').slice(0, 200); } catch { /* no summary */ }
+          share = { host, summary };
+        }
       }
+      return html(page({ planId, share, prefill: httpUrl(url.searchParams.get('url')) }), { 'x-robots-tag': 'noindex, nofollow' });
     }
-    return html(page({ planId, share, prefill: httpUrl(url.searchParams.get('url')) }), path === '/' && !url.search ? {} : { 'x-robots-tag': 'noindex, nofollow' });
   }
 
   const m = /^\/api\/plan\/([0-9a-f]{12})$/.exec(path);
