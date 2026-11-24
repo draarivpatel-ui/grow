@@ -243,6 +243,10 @@ body.has-plan .dateline,body.has-plan .byline{display:none}
 body.has-plan .mast{padding:10px 36px 8px}body.has-plan .mast .name{font-size:clamp(28px,4vw,44px)}body.has-plan .mast .tag{display:none}
 form .btn.paste{border-width:1px 0 1px 1px;background:var(--panel2);height:48px}form .btn.paste:hover{background:var(--bg2)}
 @media(max-width:560px){form .btn.paste{border-width:0 1px 1px 1px;justify-content:center}}
+@property --next-cta-angle{syntax:'<angle>';initial-value:0deg;inherits:false}
+.next-cta,form input.next-cta{border:2px solid transparent;background:linear-gradient(var(--panel),var(--panel)) padding-box,conic-gradient(from var(--next-cta-angle),#ef4444,#f59e0b,#eab308,#22c55e,#3b82f6,#8b5cf6,#ef4444) border-box;animation:next-cta-spin 3s linear infinite}
+@keyframes next-cta-spin{to{--next-cta-angle:360deg}}
+@media (prefers-reduced-motion:reduce){.next-cta,form input.next-cta{animation:none}}
 .firstw{margin:14px 0 18px}.firstw .lh{margin-bottom:6px}.first{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
 .fs{display:flex;flex-direction:column;gap:3px;min-height:72px;padding:12px 14px;border:1px solid var(--line2);background:var(--panel);color:inherit;text-decoration:none;text-align:left;font:inherit;cursor:pointer}
 .fs:first-child{background:var(--acc);border-color:var(--acc);color:var(--accink)}.fs:hover{border-color:var(--ink);box-shadow:3px 3px 0 var(--ink)}
@@ -999,7 +1003,7 @@ export function page({ planId = '', prefill = '', share = null } = {}) {
 <h1>Find your first customers.</h1>
 <p class="lead">Paste a link to what you made. Get who would buy it, where they are, emails and posts to send, whether AI search can read your page, and where to list it.</p>
 <p class="byline">By our plan desk · Edition ready in about 20 seconds</p>
-<form id="form" novalidate><input id="url" type="url" inputmode="url" autocomplete="url" placeholder="https://your-site.com" aria-label="Link to your site" value="${esc(prefill)}"><button id="paste" class="btn paste" type="button" title="Paste a link from your clipboard">Paste</button><button id="go" class="btn go" type="submit">Make my plan</button></form>
+<form id="form" novalidate><input id="url" class="next-cta" data-next-cta type="url" inputmode="url" autocomplete="url" placeholder="https://your-site.com" aria-label="Link to your site" value="${esc(prefill)}"><button id="paste" class="btn paste" type="button" title="Paste a link from your clipboard">Paste</button><button id="go" class="btn go" type="submit">Make my plan</button></form>
 <input id="about-me" class="aboutme" maxlength="300" placeholder="Optional: what is this account about?" aria-label="What the account is about" hidden>
 <details id="brief" class="brief"><summary>Optional: tell it who it is for, the price and your name</summary><div class="bq">
 <input id="q-who" maxlength="160" placeholder="Who is it for? e.g. dentists with a small clinic" aria-label="Who it is for">
