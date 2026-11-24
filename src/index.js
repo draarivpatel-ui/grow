@@ -3,6 +3,7 @@ import { cleanBrief, cleanLinks, genericFollowers, githubRepo, httpUrl, makePlan
 import { feedback } from './feedback.js';
 import { EXAMPLE } from './example.js';
 import { page } from './page.js';
+import { nextAsset, nextPage } from './next.js';
 import { cabinet } from './cabinet.js';
 import { clicks } from './clicks.js';
 import { withSecurityHeaders } from './security-headers.js';
@@ -14,6 +15,8 @@ const DAY_MS = 864e5;
 const STATIC_CACHE = 'public, max-age=86400';
 const json = (status, body, extra = {}) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'access-control-allow-origin': '*', ...extra } });
 const html = (body, extra = {}) => new Response(body, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', 'content-security-policy': "default-src 'self'; script-src 'self' 'unsafe-inline' https://flisk.si https://flisk.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://flisk.si; font-src https://fonts.gstatic.com; img-src 'self' data: https://flisk.si https://ranker.flisk.si; connect-src 'self' https://flisk.si https://*.flisk.si https://flisk.sh; frame-ancestors https://analytics.flisk.si", ...extra } });
+// The Astryx page serves its own script, styles and fonts, so font-src allows 'self'.
+const nextHtml = (body) => html(body, { 'content-security-policy': "default-src 'self'; script-src 'self' 'unsafe-inline' https://flisk.si https://flisk.sh; style-src 'self' 'unsafe-inline' https://flisk.si https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://flisk.si https://ranker.flisk.si; connect-src 'self' https://flisk.si https://*.flisk.si https://flisk.sh; frame-ancestors https://analytics.flisk.si" });
 const today = () => new Date().toISOString().slice(0, 10);
 const newId = () => [...crypto.getRandomValues(new Uint8Array(6))].map((b) => b.toString(16).padStart(2, '0')).join('');
 
@@ -79,6 +82,24 @@ async function route(req, env, deps = {}) {
   const fb = await feedback(req, env); if (fb) return fb;
   const cab = await cabinet(req, env, { fetch: fetchImpl });
   if (cab) return cab;
+
+  // The Astryx look: /next, /next/example and /next/p/<id> (the built files live at /_app/).
+  if (req.method === 'GET' || req.method === 'HEAD') {
+    const asset = path.startsWith('/_app/') ? nextAsset(path) : null;
+    if (asset) return asset;
+    if (path === '/next' || path === '/next/example') return nextHtml(nextPage({ planId: path === '/next' ? '' : 'example', prefill: path === '/next' ? httpUrl(url.searchParams.get('url')) : '', share: path === '/next' ? null : { host: 'an example', summary: EXAMPLE.product } }));
+    const np = /^\/next\/p\/([0-9a-f]{12})$/.exec(path);
+    if (np) {
+      const row = await env.DB.prepare('SELECT url, data, created FROM plans WHERE id = ?').bind(np[1]).first();
+      let share = null;
+      if (row && Date.now() - row.created <= 30 * DAY_MS) {
+        let h = row.url; try { h = new URL(row.url).host; } catch { /* keep the link */ }
+        let summary = ''; try { const d = JSON.parse(row.data); summary = String(d.product || d.account || '').slice(0, 200); } catch { /* no summary */ }
+        share = { host: h, summary };
+      }
+      return nextHtml(nextPage({ planId: np[1], share }));
+    }
+  }
 
   // A finished plan to look at before making one. It is a fixed file, so it costs no model call.
   if ((req.method === 'GET' || req.method === 'HEAD') && path === '/example') return html(page({ planId: 'example', share: { host: 'an example', summary: EXAMPLE.product } }));

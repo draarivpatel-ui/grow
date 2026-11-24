@@ -1,0 +1,20 @@
+html,body,#root{height:100%;margin:0}
+body{overflow:hidden}
+#root{display:flex;flex-direction:column}
+#root>*{flex:1;min-height:0}
+.page{max-width:1040px;margin:0 auto;padding:24px 16px 80px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.cols,.grid{grid-template-columns:1fr}}
+.pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;padding:10px 12px;border-radius:var(--radius,8px);background:var(--color-background-secondary,#8881)}
+.logo{border-radius:4px;flex:none;background:#fff;object-fit:contain;padding:1px;box-sizing:border-box}
+.logo-fb{display:inline-grid;place-items:center;background:#8882;font-size:10px;font-weight:700}
+.brand{width:28px;height:28px;border-radius:50%;background:#22c55e;color:#04120a;display:grid;place-items:center;flex:none}
+.brand svg{width:16px;height:16px}
+.ring{width:92px;height:92px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p)*1%),#8882 0);display:grid;place-items:center;flex:none}
+.ring b{width:72px;height:72px;border-radius:50%;background:var(--color-background,#fff);display:grid;place-items:center;font-size:24px;align-content:center}
+.ring small{font-size:11px;font-weight:400;opacity:.65;margin-top:-6px}
+.hero{max-width:720px;margin:0 auto;padding:56px 16px 24px;text-align:center}
+.hero form{width:100%}
+.done{opacity:.55}
+.prog-step{display:flex;align-items:center;gap:10px}
