@@ -64,3 +64,7 @@ MIT license.
 
 Secrets: `SESSION_SECRET` (long random), optional `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`.
 Schema: `bunx wrangler@4 d1 execute flisk-grow --remote --file schema.sql`.
+
+## The Astryx look (`/next`)
+
+`/next`, `/next/example` and `/next/p/<id>` draw the plan pages with Astryx, Meta's design system, under the Flisk bar. The app is in `web/` (React). Run `cd web && bun install && bun run build` after changing it: that writes `src/next-app.generated.js`, which is committed, so a deploy needs no build step. The Worker serves the built files at `/_app/`. No sign-in is asked anywhere except when a person presses Save. The classic page at `/` and `/p/<id>` is unchanged.
