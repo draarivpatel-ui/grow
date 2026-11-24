@@ -33,7 +33,7 @@ export async function userId(req, env) {
 async function sessionCookie(env, id) { return setCookie(COOKIE, encodeURIComponent(`${id}.${await sign(env.SESSION_SECRET, id)}`), YEAR / 1000); }
 
 const json = (status, body, extra = {}) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...extra } });
-const signInReady = (env) => Boolean(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET);
+const signInReady = (env) => Boolean((env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET) || (env.LOGIN_PUBLIC_KEY && env.SESSION_SECRET));
 
 async function siteOf(env, uid, id) {
   return uid ? env.DB.prepare('SELECT * FROM sites WHERE id = ? AND user_id = ?').bind(id, uid).first() : null;
@@ -299,7 +299,7 @@ async function start() {
   try { ME = await api('/api/me'); } catch (e) { $('#err').textContent = e.message; return; }
   const who = $('#who'); who.replaceChildren();
   if (ME.user) { who.append(...whoNodes(ME.user)); const a = el('a', 'btn', 'Sign out'); a.href = '/auth/out'; who.append(a); }
-  else if (ME.signIn) { who.append(el('span', 'who-am', 'Kept in this browser. ')); const a = el('a', 'btn go', 'Sign in with GitHub'); a.href = '/auth/start'; who.append(a); }
+  else if (ME.signIn) { who.append(el('span', 'who-am', 'Kept in this browser. ')); const a = el('a', 'btn go', 'Start free with GitHub'); a.href = '/auth/start?utm_source=grow&utm_medium=cta&utm_campaign=free-key'; who.append(a, el('span', 'who-am', ' No card. Free to start.')); }
   else who.append(el('span', 'who-am', 'Kept in this browser.'));
   if (!ME.sites.find((s) => s.id === CUR)) CUR = ME.sites[0] ? ME.sites[0].id : '';
   tabs(); if (CUR) openSite(CUR); else { $('#site').replaceChildren(); $('#none').hidden = false; }

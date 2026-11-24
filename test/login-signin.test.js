@@ -66,3 +66,29 @@ describe('sign-in through login.flisk.si', () => {
     expect(r.headers.get('location')).toBe('/me?signin=failed');
   });
 });
+
+describe('the standard sign-in button', () => {
+  test('the cabinet offers "Start free with GitHub" with the no-card line and utm tags', async () => {
+    const { env } = await setup();
+    const page = await (await handle(new Request(`${O}/me`), env, deps)).text();
+    expect(page).toContain("'Start free with GitHub'");
+    expect(page).toContain('No card. Free to start.');
+    expect(page).toContain('/auth/start?utm_source=grow&utm_medium=cta&utm_campaign=free-key');
+    expect(page).not.toContain('Sign in with GitHub');
+  });
+  test('/api/me says sign-in is ready with the Flisk login key, and not without it', async () => {
+    const { env } = await setup();
+    const meSignIn = async (e) => {
+      const cookie = (await handle(new Request(`${O}/me`), e, deps)).headers.get('set-cookie').split(';')[0];
+      return (await (await handle(new Request(`${O}/api/me`, { headers: { cookie } }), e, deps)).json()).signIn;
+    };
+    expect(await meSignIn(env)).toBe(true);
+    expect(await meSignIn({ DB: fakeD1(), SESSION_SECRET: 'x' })).toBe(false);
+  });
+  test('/auth/start ignores the utm tags', async () => {
+    const { env } = await setup();
+    const r = await handle(new Request(`${O}/auth/start?utm_source=grow&utm_medium=cta&utm_campaign=free-key`), env, deps);
+    expect(r.status).toBe(302);
+    expect(r.headers.get('location')).not.toContain('utm_');
+  });
+});
