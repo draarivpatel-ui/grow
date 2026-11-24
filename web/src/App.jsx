@@ -37,6 +37,7 @@ const clip = (t, n) => (t.length > n ? t.slice(0, n - 1) + '…' : t);
 const enc = encodeURIComponent;
 const gmail = (e) => 'https://mail.google.com/mail/?view=cm&fs=1&su=' + enc(e.subject) + '&body=' + enc(e.body);
 const mailto = (e) => 'mailto:?subject=' + enc(e.subject) + '&body=' + enc(e.body);
+const withScheme = (t) => { const v = String(t || '').trim(); return v && !/^[a-z][a-z0-9+.-]*:\/\//i.test(v) ? 'https://' + v : v; };
 const planLink = (id) => location.origin + (id === 'example' ? '/example' : id ? '/p/' + id : '/');
 const BSKY = (n) => n === 'Bluesky';
 const POST = (t, n) => (BSKY(n) ? 'https://bsky.app/intent/compose?text=' : 'https://x.com/intent/post?text=') + enc(t);
@@ -305,7 +306,7 @@ function Home({onPlan}) {
   useEffect(() => { if (!busy) return undefined; setTick(0); const t = setInterval(() => setTick((n) => n + 1), 3500); return () => clearInterval(t); }, [busy]);
   const make = async (e) => {
     e && e.preventDefault(); setErr('');
-    const u = url.trim(); if (!/^https?:\/\//i.test(u)) { setErr('Paste a full link that starts with https://'); return; }
+    const u = withScheme(url); if (!/^https?:\/\/[^\s/]+\.[^\s/]{2,}/i.test(u)) { setErr('Enter a link to your site, like your-site.com'); return; }
     setBusy(true);
     try {
       const r = await fetch('/api/plan', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({url: u, about: about.trim() || undefined})});
