@@ -26,6 +26,21 @@ test('a site that is nowhere gives nothing', async () => {
   expect(await findListings('https://nobody.dev', { fetch: fakeFetch })).toEqual([]);
 });
 
+test('directory probes ignore other domains that contain the site name', async () => {
+  const directoryPages = {
+    'https://www.saashub.com/acme': '<a href="https://not-acme.dev">Another Acme</a>',
+    'https://www.saashub.com/acme-cli': '<a href="https://WWW.ACME.DEV/docs">Acme</a>',
+    'https://toolradar.com/tools/acme': 'Visit acme.dev.example for the other product.',
+    'https://devhunt.org/tool/acme': 'Visit shop.acme.dev for a separate site.',
+    'https://www.uneed.best/tool/acme': 'Our website is acme.dev.',
+  };
+  const f = async (u) => u in directoryPages ? new Response(directoryPages[u]) : new Response('', { status: 404 });
+  expect(await findListings('https://acme.dev', { fetch: f })).toEqual([
+    { place: 'SaaSHub', link: 'https://www.saashub.com/acme-cli' },
+    { place: 'Uneed', link: 'https://www.uneed.best/tool/acme' },
+  ]);
+});
+
 test('a Show HN with the same word but another site is not yours', async () => {
   const f = async (u) => new Response(String(u).includes('hn.algolia') ? JSON.stringify({ hits: [{ objectID: '1', title: 'Show HN: Pages', url: 'https://other.example/' }] }) : '', { status: String(u).includes('hn.algolia') ? 200 : 404 });
   expect(await findListings('https://pages.flisk.si', { fetch: f })).toEqual([]);
