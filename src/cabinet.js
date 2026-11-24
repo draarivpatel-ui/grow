@@ -7,6 +7,7 @@ import { CSS } from './page.js';
 import { findListings } from './found.js';
 import { findRepo, jobsFor, postJobs } from './jobs.js';
 import { verifyLoginToken } from './login-token.js';
+import { nextPage } from './next.js';
 
 const COOKIE = 'grow_s';
 const YEAR = 365 * 864e5;
@@ -72,10 +73,13 @@ export async function cabinet(req, env, deps = {}) {
   const fetchImpl = deps.fetch || fetch;
   const origin = env.PUBLIC_ORIGIN || url.origin;
 
-  if (req.method === 'GET' && path === '/me') {
+  // /me is the Astryx page (the app draws the cabinet); the previous design stays at /classic/me.
+  if (req.method === 'GET' && (path === '/me' || path === '/classic/me')) {
+    const classic = path === '/classic/me';
     const headers = { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-robots-tag': 'noindex', 'x-content-type-options': 'nosniff', 'content-security-policy': "default-src 'self'; script-src 'self' 'unsafe-inline' https://flisk.si https://flisk.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://flisk.si; font-src https://fonts.gstatic.com; img-src 'self' data: https://flisk.si; connect-src 'self' https://flisk.si https://*.flisk.si; frame-ancestors 'none'" };
+    if (!classic) headers['content-security-policy'] = headers['content-security-policy'].replace("font-src https://fonts.gstatic.com", "font-src 'self' https://fonts.gstatic.com").replace("img-src 'self' data: https://flisk.si", "img-src 'self' data: https://flisk.si https://ranker.flisk.si");
     if (env.SESSION_SECRET && !(await userId(req, env))) headers['set-cookie'] = await sessionCookie(env, 'a_' + rand(8));
-    return new Response(cabinetPage(), { headers });
+    return new Response(classic ? cabinetPage() : nextPage({ index: false, bare: true }), { headers });
   }
 
   // GitHub sign-in (an OAuth app with callback <origin>/auth/callback).
