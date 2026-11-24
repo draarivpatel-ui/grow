@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test';
+import { readFileSync } from 'node:fs';
 import { handle } from '../src/index.js';
 import { NEXT_CSS_PATH, NEXT_FONTS, NEXT_JS_PATH } from '../src/next-app.generated.js';
 import { fakeD1 } from './fake-d1.js';
@@ -47,5 +48,31 @@ describe('the Astryx pages', () => {
     const font = Object.keys(NEXT_FONTS)[0];
     expect((await s.get(font)).headers.get('content-type')).toBe('font/woff2');
     expect((await s.get('/_app/nope.js')).status).toBe(404);
+  });
+});
+
+describe('the cabinet in the new design', () => {
+  const src = readFileSync(new URL('../web/src/Cabinet.jsx', import.meta.url), 'utf8');
+  test('/me serves the Astryx app shell and still sets the cabinet cookie', async () => {
+    const res = await handle(new Request('https://grow.flisk.si/me'), { DB: fakeD1(), SESSION_SECRET: 'test-secret' }, { cache: null });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain('<div id="root">');
+    expect(html).toMatch(/\/_app\/app\.[0-9a-f]{12}\.js/);
+    expect(html).toContain('noindex');
+    expect(html).not.toContain("data-next-cta"); // the old cabinet header is gone
+    expect(res.headers.get('set-cookie')).toMatch(/^grow_s=a_/);
+    expect(res.headers.get('content-security-policy')).toContain("font-src 'self'");
+  });
+  test('the old cabinet stays at /classic/me', async () => {
+    const res = await handle(new Request('https://grow.flisk.si/classic/me'), { DB: fakeD1(), SESSION_SECRET: 'test-secret' }, { cache: null });
+    expect(await res.text()).toContain('My cabinet');
+  });
+  test('the new cabinet keeps the standard sign-in button and marks the login for the org bar once', () => {
+    expect(src).toContain('Start free with GitHub');
+    expect(src).toContain('No card. Free to start.');
+    expect(src).toContain('/auth/start?utm_source=grow&utm_medium=cta&utm_campaign=free-key');
+    expect(src.match(/data-flisk-login/g).length).toBe(2); // the comment and the one attribute
+    expect(src).toContain('GH_LOGIN.test(');
   });
 });

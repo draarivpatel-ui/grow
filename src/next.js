@@ -19,8 +19,8 @@ export function nextAsset(path) {
 }
 
 // The page shell: meta for people who share a link, the Flisk bar, then the app. No sign-in and no session is asked for here.
-export function nextPage({ planId = '', prefill = '', share = null, index = false } = {}) {
-  const title = share ? `Grow plan for ${share.host}` : 'Flisk Grow: find your first customers';
+export function nextPage({ planId = '', prefill = '', share = null, index = false, bare = false } = {}) {
+  const title = bare ? 'My cabinet · Flisk Grow' : share ? `Grow plan for ${share.host}` : 'Flisk Grow: find your first customers';
   const desc = share ? (share.summary || 'Who would buy it, where they are, and what to send them.') : 'Who would buy it, where they are, and what to send them. Free, no sign-in.';
   const boot = JSON.stringify({ planId, prefill }).replace(/</g, '\\u003c');
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -32,7 +32,7 @@ ${index ? '' : '<meta name="robots" content="noindex, nofollow">'}<link rel="can
 <link rel="stylesheet" href="${NEXT_CSS_PATH}">
 <script defer data-domain="grow.flisk.si" src="https://flisk.sh/a.js"></script></head><body>
 <script src="https://flisk.si/assets/bar.js" data-product="Grow" data-icon="grow" data-accent="#22c55e" data-siblings="Cilytics,Ranker" data-text="Find your first customers with a plan made from your link." defer></script>
-<div id="root">${planId || share ? '' : SKELETON}</div>
+<div id="root">${planId || share || bare ? '' : SKELETON}</div>
 <script>window.__BOOT__=${boot};</script>
 <script type="module" src="${NEXT_JS_PATH}"></script>
 </body></html>`;

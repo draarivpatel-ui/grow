@@ -19,6 +19,7 @@ import {
   BriefcaseIcon, PencilSquareIcon, HomeIcon, RocketLaunchIcon, LinkIcon, DocumentTextIcon, ClipboardDocumentCheckIcon, ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 import {Logo} from './logos.jsx';
+import Cabinet from './Cabinet.jsx';
 
 const ic = (I) => <Icon icon={I} size="sm" />;
 const lg = (name, url) => <Logo name={name} url={url} size={18} />;
@@ -346,16 +347,16 @@ function Home({onPlan}) {
 }
 
 // ---------- shell ----------
-function Nav({go, plan, id}) {
+function Nav({go, plan, id, me}) {
   return (
     <SideNav collapsible
       header={<HStack gap={2} align="center"><span className="brand"><Icon icon={RocketLaunchIcon} size="sm" /></span><Text type="emphasized">Flisk Grow</Text></HStack>}
       topContent={<Button label="New plan" variant="secondary" icon={ic(PlusIcon)} isFullWidth onClick={() => go('/')} />}
       footer={<Text type="supporting" color="secondary">No account needed. Sign in only to save a plan.</Text>}>
       <SideNavSection title="Workspace">
-        <SideNavItem label="Home" icon={HomeIcon} isSelected={!plan} onClick={() => go('/')} />
+        <SideNavItem label="Home" icon={HomeIcon} isSelected={!plan && !me} onClick={() => go('/')} />
         {plan && <SideNavItem label="This plan" icon={DocumentTextIcon} isSelected onClick={() => {}} />}
-        <SideNavItem label="My cabinet" icon={BookmarkIcon} href="/me" />
+        <SideNavItem label="My cabinet" icon={BookmarkIcon} isSelected={me} href="/me" />
       </SideNavSection>
       <SideNavSection title="Flisk">
         <SideNavItem label="Example plan" icon={SparklesIcon} onClick={() => go('/example')} />
@@ -367,26 +368,28 @@ function Nav({go, plan, id}) {
 
 export default function App() {
   const parse = () => { const m = location.pathname.match(/^\/(?:p\/([0-9a-f]{12})|(example))$/); return m ? (m[1] || 'example') : ''; };
+  const isMe = () => location.pathname.replace(/\/+$/, '') === '/me';
+  const [me, setMe] = useState(isMe);
   const [id, setId] = useState(parse);
   const [plan, setPlan] = useState(BOOT.plan || null);
   const [error, setError] = useState('');
   const [navOpen, setNavOpen] = useState(false);
-  const go = (path) => { history.pushState(null, '', path); setPlan(null); setError(''); setId(parse()); setNavOpen(false); };
-  useEffect(() => { const f = () => { setPlan(null); setId(parse()); }; addEventListener('popstate', f); return () => removeEventListener('popstate', f); }, []);
+  const go = (path) => { history.pushState(null, '', path); setPlan(null); setError(''); setId(parse()); setMe(isMe()); setNavOpen(false); };
+  useEffect(() => { const f = () => { setPlan(null); setId(parse()); setMe(isMe()); }; addEventListener('popstate', f); return () => removeEventListener('popstate', f); }, []);
   useEffect(() => {
-    if (!id || plan) return;
+    if (!id || plan || me) return;
     let live = true;
     fetch('/api/plan/' + id).then((r) => r.json()).then((j) => { if (!live) return; if (j.error) setError(j.error); else setPlan(j.plan); }).catch(() => live && setError('Could not load this plan.'));
     return () => { live = false; };
   }, [id, plan]);
   const onPlan = (newId, p) => { if (newId) history.pushState(null, '', '/p/' + newId); setId(newId || 'guide'); setPlan(p); };
-  const drawer = <MobileNav header="Flisk Grow"><SideNavRenderContext value="drawer-content"><Nav go={go} plan={plan} id={id} /></SideNavRenderContext></MobileNav>;
+  const drawer = <MobileNav header="Flisk Grow"><SideNavRenderContext value="drawer-content"><Nav go={go} plan={plan} id={id} me={me} /></SideNavRenderContext></MobileNav>;
   return (
     <AppShell height="fill" mobileNav={{hasToggle: false, isOpen: navOpen, onOpenChange: setNavOpen, content: drawer}}
-      topNav={<HStack gap={2} align="center" style={{padding: 'var(--spacing-2) var(--spacing-3)'}}><MobileNavToggle /><Text type="supporting" color="secondary">{plan ? 'Plans / ' + planName(plan.url || '') : 'Flisk Grow'}</Text></HStack>}
-      sideNav={<Nav go={go} plan={plan} id={id} />}>
+      topNav={<HStack gap={2} align="center" style={{padding: 'var(--spacing-2) var(--spacing-3)'}}><MobileNavToggle /><Text type="supporting" color="secondary">{me ? 'My cabinet' : plan ? 'Plans / ' + planName(plan.url || '') : 'Flisk Grow'}</Text></HStack>}
+      sideNav={<Nav go={go} plan={plan} id={id} me={me} />}>
       <div style={{height: '100%', overflow: 'auto'}}>
-        {error ? <div className="page"><VStack gap={3}><Banner status="error" title={error} /><div><Button label="Make a new plan" variant="primary" icon={ic(PlusIcon)} onClick={() => go('/')} /></div></VStack></div>
+        {me ? <Cabinet /> : error ? <div className="page"><VStack gap={3}><Banner status="error" title={error} /><div><Button label="Make a new plan" variant="primary" icon={ic(PlusIcon)} onClick={() => go('/')} /></div></VStack></div>
           : id && !plan ? <div className="page"><Text color="secondary">Loading the plan…</Text></div>
           : plan ? <PlanView key={id} id={id === 'guide' ? '' : id} plan={plan} />
           : <Home onPlan={onPlan} />}
