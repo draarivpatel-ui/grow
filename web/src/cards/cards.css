@@ -81,3 +81,4 @@
 .dc-name{display:flex;gap:8px;align-items:baseline;font-size:15px}.dc-name span{font-size:11px;color:var(--rc-mute)}
 .dc-text{margin:2px 0 0;font-size:14px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;min-height:90px}
 .rc-discord .rc-link{color:#00a8fc}
+.co-name{display:inline-flex;align-items:center;gap:4px;vertical-align:baseline;font-weight:500;white-space:nowrap}.co-name .logo{flex:none;border-radius:3px}
