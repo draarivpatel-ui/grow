@@ -6,6 +6,9 @@ import { NEXT_CSS, NEXT_CSS_PATH, NEXT_FONTS, NEXT_JS, NEXT_JS_PATH } from './ne
 const YEAR = 'public, max-age=31536000, immutable';
 const esc = (t) => String(t).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
+// What shows before the app loads on the home page: the heading and the link box, marked as the next action (the app replaces it).
+const SKELETON = '<div class="hero"><h1>Find your first customers.</h1><form class="url-row" onsubmit="return false"><div class="url-field url-skeleton"><input class="next-cta" data-next-cta type="text" inputmode="url" autocomplete="url" placeholder="https://your-site.com" aria-label="Link to your site"></div><button type="button" class="url-skeleton-paste">Paste</button></form></div>';
+
 // A built file, or null when the path is not one.
 export function nextAsset(path) {
   if (path === NEXT_JS_PATH) return new Response(NEXT_JS, { headers: { 'content-type': 'text/javascript; charset=utf-8', 'cache-control': YEAR } });
@@ -29,7 +32,7 @@ ${index ? '' : '<meta name="robots" content="noindex, nofollow">'}<link rel="can
 <link rel="stylesheet" href="${NEXT_CSS_PATH}">
 <script defer data-domain="grow.flisk.si" src="https://flisk.sh/a.js"></script></head><body>
 <script src="https://flisk.si/assets/bar.js" data-product="Grow" data-icon="grow" data-accent="#22c55e" data-siblings="Cilytics,Ranker" data-text="Find your first customers with a plan made from your link." defer></script>
-<div id="root"></div>
+<div id="root">${planId || share ? '' : SKELETON}</div>
 <script>window.__BOOT__=${boot};</script>
 <script type="module" src="${NEXT_JS_PATH}"></script>
 </body></html>`;

@@ -1,9 +1,10 @@
 import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
-import { page, CSS } from '../src/page.js';
+import { nextPage } from '../src/next.js';
+import { NEXT_CSS as CSS } from '../src/next-app.generated.js';
 import { entries } from '../scripts/next-cta-rendered.mjs';
 
-const html = page({});
+const html = nextPage({ index: true });
 
 describe('next-cta', () => {
   test('exactly one element is marked, with the class', () => {
@@ -21,8 +22,8 @@ describe('next-cta', () => {
   test('css spins the border and has a reduced-motion fallback', () => {
     expect(CSS).toContain('@property --next-cta-angle');
     expect(CSS).toContain('@keyframes next-cta-spin');
-    expect(CSS).toMatch(/\.next-cta[^{]*\{[^}]*animation:next-cta-spin 3s linear infinite/);
-    expect(CSS).toMatch(/prefers-reduced-motion:reduce\)\{[^}]*animation:none/);
+    expect(CSS).toMatch(/\.next-cta\{[^}]*animation:3s linear infinite next-cta-spin/);
+    expect(CSS).toMatch(/prefers-reduced-motion:reduce\)\{\.next-cta\{animation:none/);
   });
 
   test('bench/next-cta-rendered.json matches the rendered page', () => {
