@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { checkPlaceLinks, cleanLink, cleanPlaces, splitPlace, tieFinds } from '../src/links.js';
-import { cleanPlan, mainText, siteFacts } from '../src/plan.js';
+import { cleanPlan, isOwn, mainText, siteFacts } from '../src/plan.js';
 
 // A plan the live site made for https://flisk.sh on 2026-11-24, before this fix: glued subreddits, a bare
 // /comments/ link, and an r/SideProject "find them" on an email to a DevOps engineer.
@@ -98,5 +98,21 @@ describe('site facts', () => {
     expect(t).not.toContain('Products menu');
     expect(t).not.toContain('Footer words');
     expect(siteFacts(html, 'Flisk: run your app')).toEqual({ name: 'Flisk CLI', headings: ['Run your whole app on your laptop with one command.'], features: ['An MCP server lets Claude Code start it'] });
+  });
+});
+
+describe("the maker's own pages", () => {
+  // Plan 81a159f1614e for flisk.sh listed Flisk's own GitHub, Discord, npm and Product Hunt pages as places to find buyers.
+  const own = ['https://flisk.sh/', 'https://github.com/flisk-sh/flisk', 'https://discord.gg/qMu5Xn8Kaq', 'https://www.npmjs.com/package/@flisk-sh/flisk', 'https://www.producthunt.com/products/flisk'];
+  test('are not places to find buyers', () => {
+    expect(isOwn('https://github.com/flisk-sh/flisk', own)).toBe(true);
+    expect(isOwn('https://flisk.sh/docs', own)).toBe(true);
+    expect(isOwn('https://www.producthunt.com/products/flisk/', own)).toBe(true);
+    expect(isOwn('https://github.com/community', own)).toBe(false);
+    expect(isOwn('https://www.reddit.com/r/devops/', own)).toBe(false);
+    const plan = cleanPlan({ buyers: 'DevOps engineers.', places: [...own.slice(1).map((url) => ({ name: 'own', why: 'x', url })), { name: 'Reddit (r/devops)', why: 'DevOps engineers', url: 'https://www.reddit.com/r/devops/' }],
+      emails: [{ to: 'AI developer who uses Claude Code', find: 'the Claude Code community on Reddit', subject: 's', body: 'b' }] }, own);
+    expect(plan.places.map((p) => p.url)).toEqual(['https://www.reddit.com/r/devops/']);
+    expect(plan.emails[0].place).toBe(0);
   });
 });
