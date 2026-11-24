@@ -20,6 +20,7 @@ describe('the Astryx pages', () => {
     expect(t).toContain(NEXT_CSS_PATH);
     expect(t).not.toMatch(/\/auth\/|Sign in/);
     expect(r.headers.get('content-security-policy')).toContain("font-src 'self'");
+    expect(r.headers.get('content-security-policy')).toContain('frame-src https://chat.flisk.si');
   });
 
   test('a shared /next/p/<id> link names the site, and the old page is untouched', async () => {

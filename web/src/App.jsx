@@ -16,7 +16,7 @@ import {SegmentedControl, SegmentedControlItem} from '@astryxdesign/core/Segment
 import {
   ArrowTopRightOnSquareIcon, ClipboardDocumentIcon, EnvelopeIcon, PaperAirplaneIcon, BookmarkIcon, ShareIcon, ArrowDownTrayIcon, SparklesIcon,
   MagnifyingGlassIcon, ChartBarIcon, MegaphoneIcon, ListBulletIcon, WrenchScrewdriverIcon, PlusIcon, UsersIcon, MapPinIcon, ArrowRightIcon,
-  BriefcaseIcon, PencilSquareIcon, HomeIcon, RocketLaunchIcon, LinkIcon, DocumentTextIcon, ClipboardDocumentCheckIcon, ChatBubbleLeftRightIcon,
+  ChevronDownIcon, ChatBubbleOvalLeftEllipsisIcon, BriefcaseIcon, PencilSquareIcon, HomeIcon, RocketLaunchIcon, LinkIcon, DocumentTextIcon, ClipboardDocumentCheckIcon, ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 import {Logo} from './logos.jsx';
 
@@ -342,6 +342,53 @@ function Home({onPlan}) {
   );
 }
 
+
+// ---------- the chat window ----------
+// The full Flisk Chat (models from inference, tasks, fleet computers) in a window docked at the bottom, so people can do things
+// with their plan right here. It is chat.flisk.si/embed in a frame; Grow tells it the plan and what is worth asking.
+const CHAT = 'https://chat.flisk.si';
+function planContext(plan) {
+  if (!plan) return 'The visitor is on Flisk Grow, a tool that makes a plan to find the first customers for a product. They have not made a plan yet.';
+  if (plan.kind === 'followers') return 'The visitor is looking at their Flisk Grow followers plan for @' + plan.handle + '. ' + (plan.account || '') + ' Audience: ' + (plan.audience || '') + ' Bio: ' + (plan.bio || '');
+  return 'The visitor is looking at their Flisk Grow plan to find first customers for ' + plan.url + '. About it: ' + (plan.product || '') + ' Buyers: ' + (plan.buyers || '') + ' Pitch: ' + (plan.pitch || '') + ' Emails drafted: ' + (plan.emails || []).map((e) => e.subject).join('; ') + '. Posts drafted: ' + (plan.posts || []).map((x) => x.where + ': ' + (x.title || '')).join('; ') + '. Help them with it: rewrite drafts, pick where to post first, build a landing page or a short video for it.';
+}
+function planAsks(plan) {
+  if (!plan) return ['Build me a landing page for my product', 'Who would buy a tool that…', 'Write a Show HN title for my project', 'Make a 30-second video script for my launch'];
+  if (plan.kind === 'followers') return ['Write 5 posts in my voice', 'Rewrite my bio to get more follows', 'Which account should I reply to first?', 'Plan my week of posts'];
+  return ['Rewrite email 1 shorter and friendlier', 'Where should I post first, and why?', 'Build a landing page for ' + planName(plan.url), 'Make a 30-second launch video script', 'Write a better Show HN title', 'Fix my AI-search problems for me'];
+}
+
+function ChatDock({plan}) {
+  const [open, setOpen] = useState(false);
+  const [i, setI] = useState(0);
+  const [frame, setFrame] = useState(null);
+  const asks = useMemo(() => planAsks(plan), [plan]);
+  const ctx = useMemo(() => planContext(plan), [plan]);
+  useEffect(() => { if (open) return undefined; const t = setInterval(() => setI((n) => n + 1), 3500); return () => clearInterval(t); }, [open]);
+  const send = () => { if (frame && frame.contentWindow) frame.contentWindow.postMessage({type: 'grow:context', context: ctx, suggestions: asks}, CHAT); };
+  useEffect(() => {
+    const on = (e) => { if (e.origin === CHAT && e.data && e.data.type === 'chat:ready') send(); };
+    addEventListener('message', on); return () => removeEventListener('message', on);
+  });
+  useEffect(() => { if (open) send(); }, [ctx, asks, open, frame]);
+  return (
+    <div className={'chatdock' + (open ? ' open' : '')}>
+      {open && <div className="chatwin">
+        <HStack gap={2} align="center" justify="space-between" className="chathead">
+          <HStack gap={2} align="center"><Logo name="Chat" url="https://chat.flisk.si" size={20} /><Text weight="semibold">Flisk Chat</Text><Badge label="Knows your plan" icon={ic(SparklesIcon)} /></HStack>
+          <Button label="Close chat" variant="ghost" size="sm" isIconOnly icon={ic(ChevronDownIcon)} onClick={() => setOpen(false)} />
+        </HStack>
+        <iframe ref={setFrame} title="Flisk Chat" src={CHAT + '/embed'} allow="clipboard-write; microphone" />
+      </div>}
+      {!open && <button type="button" className="chatbar" onClick={() => setOpen(true)} aria-label="Open Flisk Chat">
+        <Logo name="Chat" url="https://chat.flisk.si" size={22} />
+        <span className="chatph">{asks[i % asks.length]}</span>
+        <span className="chatgo"><Icon icon={ChatBubbleOvalLeftEllipsisIcon} size="sm" /></span>
+      </button>}
+    </div>
+  );
+}
+
 // ---------- shell ----------
 function Nav({go, plan, id}) {
   return (
@@ -382,12 +429,13 @@ export default function App() {
     <AppShell height="fill" mobileNav={{hasToggle: false, isOpen: navOpen, onOpenChange: setNavOpen, content: drawer}}
       topNav={<HStack gap={2} align="center" style={{padding: 'var(--spacing-2) var(--spacing-3)'}}><MobileNavToggle /><Text type="supporting" color="secondary">{plan ? 'Plans / ' + planName(plan.url || '') : 'Flisk Grow'}</Text></HStack>}
       sideNav={<Nav go={go} plan={plan} id={id} />}>
-      <div style={{height: '100%', overflow: 'auto'}}>
+      <div style={{height: '100%', overflow: 'auto', paddingBottom: 84}}>
         {error ? <div className="page"><VStack gap={3}><Banner status="error" title={error} /><div><Button label="Make a new plan" variant="primary" icon={ic(PlusIcon)} onClick={() => go('/next')} /></div></VStack></div>
           : id && !plan ? <div className="page"><Text color="secondary">Loading the plan…</Text></div>
           : plan ? <PlanView key={id} id={id === 'guide' ? '' : id} plan={plan} />
           : <Home onPlan={onPlan} />}
       </div>
+      <ChatDock plan={plan} />
     </AppShell>
   );
 }
