@@ -11,8 +11,8 @@ const setup = () => {
 };
 
 describe('the Astryx pages', () => {
-  test('/next is the app shell with the Flisk bar and no sign-in', async () => {
-    const r = await setup().get('/next');
+  test('/ is the app shell with the Flisk bar and no sign-in', async () => {
+    const r = await setup().get('/');
     expect(r.status).toBe(200);
     const t = await r.text();
     expect(t).toContain('https://flisk.si/assets/bar.js');
@@ -22,12 +22,20 @@ describe('the Astryx pages', () => {
     expect(r.headers.get('content-security-policy')).toContain("font-src 'self'");
   });
 
-  test('a shared /next/p/<id> link names the site, and the old page is untouched', async () => {
+  test('/next and its sub-paths redirect to the same page at /', async () => {
+    const s = setup();
+    for (const [from, to] of [['/next', '/'], ['/next/example', '/example'], ['/next/p/0123456789ab', '/p/0123456789ab']]) {
+      const r = await s.get(from);
+      expect(r.status).toBe(301);
+      expect(r.headers.get('location')).toBe(to);
+    }
+  });
+
+  test('a shared /p/<id> link names the site', async () => {
     const s = setup();
     const j = await (await s.post('https://a.com/')).json();
-    expect(await (await s.get('/next/p/' + j.id)).text()).toContain('<meta property="og:title" content="Grow plan for a.com">');
-    expect(await (await s.get('/p/' + j.id)).text()).toContain('Share this plan');
-    expect((await s.get('/next/example')).status).toBe(200);
+    expect(await (await s.get('/p/' + j.id)).text()).toContain('<meta property="og:title" content="Grow plan for a.com">');
+    expect((await s.get('/example')).status).toBe(200);
   });
 
   test('the built files are served long-cached, fonts as woff2', async () => {

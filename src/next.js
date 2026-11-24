@@ -16,7 +16,7 @@ export function nextAsset(path) {
 }
 
 // The page shell: meta for people who share a link, the Flisk bar, then the app. No sign-in and no session is asked for here.
-export function nextPage({ planId = '', prefill = '', share = null } = {}) {
+export function nextPage({ planId = '', prefill = '', share = null, index = false } = {}) {
   const title = share ? `Grow plan for ${share.host}` : 'Flisk Grow: find your first customers';
   const desc = share ? (share.summary || 'Who would buy it, where they are, and what to send them.') : 'Who would buy it, where they are, and what to send them. Free, no sign-in.';
   const boot = JSON.stringify({ planId, prefill }).replace(/</g, '\\u003c');
@@ -24,7 +24,7 @@ export function nextPage({ planId = '', prefill = '', share = null } = {}) {
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0b0b0c" media="(prefers-color-scheme: dark)">
 <title>${esc(title)}</title><meta name="description" content="${esc(desc)}">
 <meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:type" content="website"><meta name="twitter:card" content="summary">
-<meta name="robots" content="noindex, nofollow"><link rel="canonical" href="https://grow.flisk.si/">
+${index ? '' : '<meta name="robots" content="noindex, nofollow">'}<link rel="canonical" href="https://grow.flisk.si/">
 <link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="stylesheet" href="${NEXT_CSS_PATH}">
 <script defer data-domain="grow.flisk.si" src="https://flisk.sh/a.js"></script></head><body>

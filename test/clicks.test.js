@@ -30,7 +30,7 @@ describe('click map', () => {
   });
 
   test('the page sends clicks only without Do Not Track, and shows a do-this-first strip and folded lists', async () => {
-    const html = await (await handle(new Request('https://grow.flisk.si/'), {})).text();
+    const html = await (await handle(new Request('https://grow.flisk.si/classic'), {})).text();
     const main = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).find((s) => s.includes('function draw('));
     expect(() => new Function(main)).not.toThrow();
     expect(main).toContain("if (navigator.doNotTrack === '1' || navigator.globalPrivacyControl) return;");

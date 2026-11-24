@@ -98,7 +98,7 @@ describe('rewrite one item', () => {
 describe('example plan and export', () => {
   test('/example serves the page and /api/plan/example a full plan, with no model call', async () => {
     const f = fakeFetch(); const env = { DB: fakeD1() };
-    const page = await handle(req('/example'), env, { fetch: f });
+    const page = await handle(req('/classic/example'), env, { fetch: f });
     expect(page.status).toBe(200);
     const html = await page.text();
     expect(html).toContain('window.PLAN_ID="example"'); expect(html).toContain('https://grow.flisk.si/example');
@@ -108,7 +108,7 @@ describe('example plan and export', () => {
   });
 
   test('the page has the questions, the example link, feedback, rewrite, calendar and Markdown export', async () => {
-    const html = await (await handle(req('/'), {})).text();
+    const html = await (await handle(req('/classic'), {})).text();
     for (const id of ['q-who', 'q-price', 'q-name']) expect(html).toContain('id="' + id + '"');
     expect(html).toContain('href="/example"');
     const main = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).find((s) => s.includes('function draw('));
@@ -117,7 +117,7 @@ describe('example plan and export', () => {
   });
 
   test('planIcs and planMd make a valid calendar and a to-do list', async () => {
-    const html = await (await handle(req('/'), {})).text();
+    const html = await (await handle(req('/classic'), {})).text();
     const main = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).find((s) => s.includes('function draw('));
     const pick = (name) => { const i = main.indexOf('function ' + name + '('); let d = 0, j = main.indexOf('{', i); for (; j < main.length; j++) { if (main[j] === '{') d++; else if (main[j] === '}' && --d === 0) break; } return main.slice(i, j + 1); };
     const { EXAMPLE } = await import('../src/example.js');

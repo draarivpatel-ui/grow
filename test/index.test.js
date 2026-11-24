@@ -42,12 +42,13 @@ describe('routes', () => {
 
   test('?url= only fills the box and never calls the model', async () => {
     const s = setup();
-    const r = await s.get('/?url=' + encodeURIComponent('https://a.com/"><script>'));
+    const r = await s.get('/classic?url=' + encodeURIComponent('https://a.com/"><script>'));
     const t = await r.text();
     expect(r.headers.get('x-robots-tag')).toContain('noindex');
     expect(t).toContain('value="https://a.com/%22%3E%3Cscript%3E"');
     expect(s.modelCalls()).toBe(0);
-    expect((await s.get('/')).headers.get('x-robots-tag')).toBeNull();
+    expect(await (await s.get('/')).text()).not.toContain('noindex');
+    expect(await (await s.get('/?url=https%3A%2F%2Fa.com%2F')).text()).toContain('noindex');
   });
 
   test('makes a plan, saves it, and reads it back', async () => {
@@ -58,21 +59,21 @@ describe('routes', () => {
     expect(j.id).toMatch(/^[0-9a-f]{12}$/);
     const back = await (await s.get('/api/plan/' + j.id)).json();
     expect(back.plan.buyers).toBe(j.plan.buyers);
-    expect((await s.get('/p/' + j.id)).status).toBe(200);
+    expect((await s.get('/classic/p/' + j.id)).status).toBe(200);
     expect((await s.get('/api/plan/000000000000')).status).toBe(404);
   });
 
   test('a shared plan link names the site in its preview', async () => {
     const s = setup();
     const j = await (await s.post('https://a.com/')).json();
-    const html = await (await s.get('/p/' + j.id)).text();
+    const html = await (await s.get('/classic/p/' + j.id)).text();
     expect(html).toContain('<meta property="og:title" content="Grow plan for a.com">');
     expect(html).toContain('og:url" content="https://grow.flisk.si/p/' + j.id + '"');
     expect(html).toContain('Share this plan');
     expect(html).toContain('Find a skill for your AI agent');
     expect(html).toContain('https://tools.flisk.si/skills');
     for (const t of ['Edit links', 'Paste many links', 'Add your ', 'Takes about ', 'Make a new plan with these links']) expect(html).toContain(t);
-    expect(await (await s.get('/')).text()).toContain('content="Flisk Grow: find your first customers"');
+    expect(await (await s.get('/classic')).text()).toContain('content="Flisk Grow: find your first customers"');
   });
 
   test('extra links make a new plan instead of the one made today, and feed Ranker', async () => {
@@ -89,7 +90,7 @@ describe('routes', () => {
   test('a plan page is one journey board: five steps as tabs, ticks kept per plan', async () => {
     const s = setup();
     const j = await (await s.post('https://a.com/')).json();
-    const html = await (await s.get('/p/' + j.id)).text();
+    const html = await (await s.get('/classic/p/' + j.id)).text();
     for (const step of ['Get ready', 'Find buyers', 'Reach out', 'Post', 'Get listed']) expect(html).toContain(step);
     expect(html).toContain('jtabs');
     expect(html).toContain("'grow-done:'");
@@ -161,7 +162,7 @@ describe('slow model', () => {
     expect(j).toMatchObject({ generic: true, slow: true });
     expect(j.plan.check.score).toBe(62);
     expect(j.id).toMatch(/^[0-9a-f]{12}$/);
-    const shared = await s.get('/p/' + j.id);
+    const shared = await s.get('/classic/p/' + j.id);
     expect(shared.status).toBe(200);
     const again = await (await s.post('https://a.com/')).json();
     expect(again.reused).toBeUndefined();
@@ -172,7 +173,7 @@ describe('slow model', () => {
   });
 
   test('the page guards the button and survives a non-JSON error', async () => {
-    const html = await (await setup().get('/')).text();
+    const html = await (await setup().get('/classic')).text();
     expect(html).toContain('go.disabled = true');
     expect(html).toContain('AbortSignal.timeout(120000)');
     expect(html).toContain('r.json().catch(');
@@ -181,7 +182,7 @@ describe('slow model', () => {
 
 test('home page names the networks: X now, the rest soon', async () => {
   const { handle } = await import('../src/index.js');
-  const html = await (await handle(new Request('https://grow.flisk.si/'), {})).text();
+  const html = await (await handle(new Request('https://grow.flisk.si/classic'), {})).text();
   expect(html).toContain('/logo/x.com');
   expect(html).toContain('class="socials nologo"');
   expect(html).toContain('Instagram<em>soon</em>');
@@ -227,7 +228,7 @@ describe('traces', () => {
 describe('motion layer', () => {
   test('the page script parses, calls cool() after draw, and respects reduced motion', async () => {
     const { handle } = await import('../src/index.js');
-    const html = await (await handle(new Request('https://grow.flisk.si/'), {})).text();
+    const html = await (await handle(new Request('https://grow.flisk.si/classic'), {})).text();
     const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
     const main = scripts.find((s) => s.includes('function draw('));
     expect(main).toBeDefined();
@@ -242,7 +243,7 @@ describe('motion layer', () => {
 describe('click targets', () => {
   test('rows, score and title are big enough to hit, and touch screens get 40px targets', async () => {
     const { handle } = await import('../src/index.js');
-    const html = await (await handle(new Request('https://grow.flisk.si/'), {})).text();
+    const html = await (await handle(new Request('https://grow.flisk.si/classic'), {})).text();
     const main = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).find((s) => s.includes('function draw('));
     expect(() => new Function(main)).not.toThrow();
     expect(main).toContain("const ck = el('label', 'ck'); ck.append(c);");
