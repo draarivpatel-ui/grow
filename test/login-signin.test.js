@@ -70,7 +70,7 @@ describe('sign-in through login.flisk.si', () => {
 describe('the standard sign-in button', () => {
   test('the cabinet offers "Start free with GitHub" with the no-card line and utm tags', async () => {
     const { env } = await setup();
-    const page = await (await handle(new Request(`${O}/me`), env, deps)).text();
+    const page = await (await handle(new Request(`${O}/classic/me`), env, deps)).text();
     expect(page).toContain("'Start free with GitHub'");
     expect(page).toContain('No card. Free to start.');
     expect(page).toContain('/auth/start?utm_source=grow&utm_medium=cta&utm_campaign=free-key');

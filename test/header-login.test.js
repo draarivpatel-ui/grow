@@ -8,13 +8,13 @@ const O = 'https://grow.flisk.si';
 const BAR_PATTERN = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/;
 
 const page = async () => {
-  const res = await handle(new Request(`${O}/me`), { DB: fakeD1(), SESSION_SECRET: 'test-secret' }, { cache: null });
+  const res = await handle(new Request(`${O}/classic/me`), { DB: fakeD1(), SESSION_SECRET: 'test-secret' }, { cache: null });
   expect(res.status).toBe(200);
   return res.text();
 };
 const line = (html, start) => {
   const l = html.split('\n').find((x) => x.startsWith(start));
-  if (!l) throw new Error(`missing in /me script: ${start}`);
+  if (!l) throw new Error(`missing in /classic/me script: ${start}`);
   return l;
 };
 const el = (tag, cls, txt) => ({ tag, cls, text: txt ?? '', attrs: {}, setAttribute(k, v) { this.attrs[k] = v; } });
