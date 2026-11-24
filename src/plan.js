@@ -1,6 +1,8 @@
 // One growth plan for one link: read the page, ask the free model who would buy and where they are, check whether AI
 // search can read the page (Citable), and add the places to list it. Nothing here sends a message for anyone.
 
+import { checkPlaceLinks, cleanPlaces, tieFinds } from './links.js';
+
 export const RANKER = 'https://ranker.flisk.si';
 const NOT_REPO = /^(orgs|sponsors|topics|marketplace|settings|features|about|login|explore|search|collections|trending|apps)$/i;
 // "owner/repo" when the link is a GitHub repo, else ''.
@@ -142,6 +144,27 @@ export function profileLinks(html, site) {
   return cleanLinks(out).slice(0, 8);
 }
 
+const plain = (h) => String(h).replace(/<(script|style|noscript|svg|title|template)\b[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]+>/g, ' ')
+  .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#39;|&rsquo;/g, "'").replace(/&#?\w+;/g, ' ').replace(/\s+/g, ' ').trim();
+// The page's own words without its menus: a site's nav can fill the first 3000 characters (flisk.sh's does), and then
+// the model never sees what the product does and writes generic copy.
+export function mainText(html) {
+  const m = /<main\b[\s\S]*?<\/main>/i.exec(html);
+  const h = (m ? m[0] : html).replace(/<(nav|header|footer|aside|dialog|menu)\b[\s\S]*?<\/\1>/gi, ' ');
+  return plain(h);
+}
+// Facts the copy must use: the product's name, its headings and its feature lines, in the site's own words.
+export function siteFacts(html, title = '') {
+  const og = /<meta[^>]+property=["']og:site_name["'][^>]*content=["']([^"']*)["']/i.exec(html)?.[1];
+  const name = str(og || String(title).split(/\s[|:\u2013\u2014-]\s|:\s/)[0], 60);
+  const body = (/<main\b[\s\S]*?<\/main>/i.exec(html)?.[0] || html).replace(/<(nav|header|footer|aside|dialog|menu)\b[\s\S]*?<\/\1>/gi, ' ');
+  const uniq = (xs, n, max) => [...new Set(xs.map((x) => str(plain(x), max)).filter((x) => x.length >= 8 && x.split(' ').length >= 2))].slice(0, n);
+  const headings = uniq([...body.matchAll(/<h[1-3]\b[^>]*>([\s\S]*?)<\/h[1-3]>/gi)].map((m) => m[1]), 12, 120);
+  const features = uniq([...body.matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gi)].map((m) => m[1]).filter((x) => !/<a\b/i.test(x) || plain(x).split(' ').length > 6), 10, 160);
+  return { name, headings, features };
+}
+export const factsText = (f) => !f ? '' : (f.name ? `\nProduct name: ${f.name}` : '') + (f.headings?.length ? `\nHeadings on the page: ${f.headings.join(' | ')}` : '') + (f.features?.length ? `\nFeature lines on the page: ${f.features.join(' | ')}` : '');
+
 export async function readPage(url, fetchImpl) {
   try {
     const r = await fetchImpl(url, { headers: { accept: 'text/html', 'user-agent': 'FliskGrow/1.0 (+https://grow.flisk.si)' }, redirect: 'follow', signal: AbortSignal.timeout(8000) });
@@ -149,9 +172,7 @@ export async function readPage(url, fetchImpl) {
     const html = (await r.text()).slice(0, 300_000);
     const title = str(/<title[^>]*>([\s\S]*?)<\/title>/i.exec(html)?.[1], 160);
     const desc = str(/<meta[^>]+name=["']description["'][^>]*content=["']([^"']*)["']/i.exec(html)?.[1], 300);
-    const body = html.replace(/<(script|style|noscript|svg|title)[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]+>/g, ' ')
-      .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#?\w+;/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 3000);
-    return { title, desc, body, links: profileLinks(html, url) };
+    return { title, desc, body: mainText(html).slice(0, 3000), facts: siteFacts(html, title), links: profileLinks(html, url) };
   } catch { return null; }
 }
 
@@ -169,10 +190,12 @@ export async function checkCitable(url, call) {
 // One model answer for the whole plan is about 2000 tokens, which the free model needs more than 60 s to write. Two
 // smaller answers, asked at the same time, come back in about half the time.
 const RULES = `Plain words, no emoji, no hashtags. If the page says little, guess from the link and say so in "product".
-Write your own sentences: never copy headings, button labels or feature names from the page text.`;
+Be specific to THIS product: use its name and its real features, audience and words from the page facts (what it does,
+for whom, what it replaces). Every email and post names at least one concrete thing the product does, taken from the
+facts. Never invent a feature, a number or a customer. Write your own sentences; never use button labels or menu words.`;
 // Who writes: the maker. Small models flip this and write as a buyer asking the maker about the product.
 const VOICE = `You write AS THE MAKER of this product, never as a buyer, user, investor or fan of it. The maker made it and wants people to try it.`;
-const BUYER = `The buyers are ONE narrow group you could find this week, with a job and a situation, for example "solo developers who just put a project on GitHub and have under 50 stars". Never a list like "makers, entrepreneurs, small business owners".`;
+const BUYER = `The buyers are ONE narrow group you could find this week, with a job and a situation, for example "<role> who <does what> and <has which problem this week>", taken from who the page says it is for. Never a list like "makers, entrepreneurs, small business owners".`;
 export const SYSTEM = `You help a maker find the first people who would pay for what they made. ${VOICE}
 You get a link and the text of its page. Answer with ONE JSON object and nothing else:
 {"product": "what it is, one short sentence",
@@ -193,7 +216,7 @@ ${RULES}`;
 export const SYSTEM_EMAILS = `You help a maker find the first people who would pay for what they made. ${VOICE}
 The maker writes each email TO one person who has the problem the product solves. The reader has never heard of the product.
 You get a link and the text of its page. Answer with ONE JSON object and nothing else:
-{"emails": [{"to": "who to write to: a role in the narrow buyer group", "find": "where to find real people like that this week (for example: people who posted Show HN this week, people asking how to get first users on r/SideProject), one sentence", "subject": "short", "body": "a short plain email from the maker under 90 words: what you saw they are doing, what the product does for them, one small ask; sign it [your name]", "followup": "a 2 to 3 sentence follow-up from the maker to send 7 days later if there was no reply"}]}
+{"emails": [{"to": "who to write to: a role in the narrow buyer group", "find": "where to find real people like THIS reader (the 'to' role) this week: a community, tag or search where that role talks about the problem, one sentence. It must fit the reader, never a place for makers to show their own projects", "subject": "short", "body": "a short plain email from the maker under 90 words: what you saw they are doing, what the product does for them, one small ask; sign it [your name]", "followup": "a 2 to 3 sentence follow-up from the maker to send 7 days later if there was no reply"}]}
 Give 5 emails, each to a different kind of person in or close to the buyer group.
 ${BUYER}
 ${RULES}`;
@@ -341,15 +364,17 @@ export const unlink = (t) => String(t).replace(/\s*https?:[/][/]\S+/g, '').trim(
 // Keep only what the page can draw safely. Returns null when the model gave too little to be useful.
 export function cleanPlan(i) {
   if (!i || typeof i !== 'object') return null;
-  const places = (Array.isArray(i.places) ? i.places : []).slice(0, 10)
-    .map((p) => ({ name: str(p?.name, 80), why: str(p?.why, 200), url: httpUrl(p?.url) })).filter((p) => p.name);
-  const emails = (Array.isArray(i.emails) ? i.emails : []).slice(0, 8)
+  // The url stays raw until cleanPlaces: it splits glued subreddits before anything is thrown away.
+  const places = cleanPlaces((Array.isArray(i.places) ? i.places : []).slice(0, 10)
+    .map((p) => ({ name: str(p?.name, 80), why: str(p?.why, 200), url: String(p?.url ?? '').trim().slice(0, 300) })).filter((p) => p.name));
+  let emails = (Array.isArray(i.emails) ? i.emails : []).slice(0, 8)
     .map((e) => ({ to: str(e?.to, 80), find: str(e?.find, 240), subject: str(e?.subject, 120), body: text(e?.body, 1500), followup: text(e?.followup, 800) })).filter((e) => e.subject && e.body);
   const posts = (Array.isArray(i.posts) ? i.posts : []).slice(0, 6)
     .map((p) => ({ where: ['X', 'Reddit', 'Hacker News', 'Discord'].includes(p?.where) ? p.where : 'X', title: unsub(str(p?.title, 120)), body: unlink(text(p?.body, 600)) }))
     .filter((p) => p.title || p.body);
   const buyers = str(i.buyers, 500);
   if (!buyers || !places.length || !emails.length) return null;
+  emails = tieFinds(emails, places, buyers);
   const queries = (Array.isArray(i.queries) ? i.queries : []).map((q) => str(q, 60)).filter((q) => q.length >= 3).slice(0, 4);
   return { product: str(i.product, 200), queries, buyers, pitch: str(i.pitch, 200), today: str(i.today, 240), places, emails, posts };
 }
@@ -391,7 +416,7 @@ ${RULES}`;
   const raw = j?.item;
   if (kind === 'post' && raw) raw.where = list[index].where;
   // cleanPlan does the cleaning; give it a minimal plan around the one item.
-  const one = cleanPlan({ buyers: 'x', places: kind === 'place' ? [raw] : [{ name: 'x' }], emails: kind === 'email' ? [raw] : [{ subject: 'x', body: 'x' }], posts: kind === 'post' ? [raw] : [] });
+  const one = cleanPlan({ buyers: plan.buyers || 'x', places: kind === 'place' ? [raw] : plan.places?.length ? plan.places : [{ name: 'x' }], emails: kind === 'email' ? [raw] : [{ subject: 'x', body: 'x' }], posts: kind === 'post' ? [raw] : [] });
   const item = one?.[r.field]?.[0];
   if (!item) return { error: 'model', message: 'the model did not give a usable item' };
   if (kind === 'email' && plan.brief?.name) signEmails([item], plan.brief.name);
@@ -434,7 +459,7 @@ async function makePlanFor(url, { fetch: fetchImpl, model, citable, key, about: 
   const ask = (system) => model('https://inference.flisk.si/v1/chat/completions', {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
-    body: JSON.stringify({ model: MODEL, temperature: 0.4, max_tokens: profile ? 3500 : 1400, messages: [{ role: 'system', content: system }, { role: 'user', content: `Link: ${url}\n${about}${others}` }] }),
+    body: JSON.stringify({ model: MODEL, temperature: 0.4, max_tokens: profile ? 3500 : 1400, messages: [{ role: 'system', content: system }, { role: 'user', content: `Link: ${url}\n${about}${factsText(page?.facts)}${others}` }] }),
     signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
   });
   let rs;
@@ -461,6 +486,11 @@ async function makePlanFor(url, { fetch: fetchImpl, model, citable, key, about: 
   }
   const plan = cleanPlan(raw);
   if (!plan) return { error: 'model', message: 'the model did not give a usable plan' };
+  // A made-up address that does not open loses its link; an email that pointed there gets another place.
+  const had = plan.places.map((p) => p.url);
+  await checkPlaceLinks(plan.places, fetchImpl);
+  for (const e of plan.emails) if (e.place != null && had[e.place] && !plan.places[e.place].url) { delete e.place; if (/^Look for people like this in /.test(e.find)) e.find = ''; }
+  plan.emails = tieFinds(plan.emails, plan.places, plan.buyers);
   if (brief) signEmails(plan.emails, brief.name);
   // Hacker News has its own post draft; listing it again under Get listed sends the maker there twice.
   const listings = plan.posts.some((p) => p.where === 'Hacker News') ? listingsFor(url).filter((l) => !/hacker news/i.test(l.name)) : listingsFor(url);
